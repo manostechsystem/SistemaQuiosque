@@ -1,0 +1,61 @@
+{
+  "name": "rota-do-forte-pdv",
+  "version": "1.0.0",
+  "description": "PDV do quiosque Rota do Forte",
+  "main": "main.js",
+  "author": "Rota do Forte",
+  "scripts": {
+    "start": "electron .",
+    "dist": "electron-builder --win"
+  },
+  "build": {
+    "appId": "com.rotadoforte.pdv",
+    "productName": "Rota do Forte PDV",
+    "directories": {
+      "output": "dist"
+    },
+    "files": [
+      "main.js",
+      "preload.js",
+      "src/**/*",
+      "package.json"
+    ],
+    "win": {
+      "icon": "build/icon.ico",
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        },
+        {
+          "target": "portable",
+          "arch": [
+            "x64"
+          ]
+        }
+      ]
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "Rota do Forte PDV",
+      "installerIcon": "build/icon.ico",
+      "uninstallerIcon": "build/icon.ico"
+    }
+  },
+  "devDependencies": {
+    "electron": "^33.0.0",
+    "electron-builder": "^25.1.8",
+    "png-to-ico": "^3.0.2"
+  },
+  "allowScripts": {
+    "electron@33.4.11": true
+  },
+  "dependencies": {
+    "qrcode": "^1.5.4"
+  }
+}

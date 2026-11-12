@@ -1,0 +1,2339 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>Rota do Forte — Gestão ADM Móvel</title>
+  <meta name="theme-color" content="#2C1B10">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" type="image/png" href="assets/logo-topo.png">
+  <style>
+    :root {
+      --primaria: #B8560B;
+      --primaria-forte: #8F3E03;
+      --primaria-leve: #FDEEDF;
+      --mar: #10636B;
+      --mar-leve: #E1F1F2;
+      --fundo: #F6EFE5;
+      --fundo-topo: #23140A;
+      --papel: #FFFFFF;
+      --afundado: #EFE4D4;
+      --borda: #D8C3AC;
+      --borda-forte: #8C7561;
+      --tinta: #140A04; /* Máximo contraste preto/café escuro */
+      --tinta-2: #422D1E;
+      --tinta-3: #634E3E;
+      --alerta: #B82A00;
+      --alerta-leve: #FCE8E2;
+      --sucesso: #1B6E2C;
+      --sucesso-leve: #E2F5E6;
+      --aviso: #B85600;
+      --aviso-leve: #FEF3D6;
+      --raio: 14px;
+      --raio-p: 10px;
+      --sombra: 0 4px 16px rgba(35, 20, 10, 0.10);
+      --fonte: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+    body {
+      font-family: var(--fonte);
+      background: var(--fundo);
+      color: var(--tinta);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      font-size: 15px; /* Fonte base aumentada para acessibilidade */
+      line-height: 1.5;
+    }
+
+    /* Topo Fixo com Menu Sanduíche */
+    .mob-topo {
+      background: var(--fundo-topo);
+      color: #fff;
+      padding: 14px 16px;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      box-shadow: 0 3px 12px rgba(0,0,0,0.3);
+    }
+    .mob-topo__esq { display: flex; align-items: center; gap: 12px; }
+    
+    /* Botão Sanduíche */
+    .btn-sanduiche {
+      background: rgba(255,255,255,0.14);
+      border: 1.5px solid rgba(255,255,255,0.25);
+      color: #fff;
+      width: 44px;
+      height: 44px;
+      border-radius: 10px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 5px;
+      cursor: pointer;
+      flex: none;
+    }
+    .btn-sanduiche:active { transform: scale(0.92); background: rgba(255,255,255,0.25); }
+    .btn-sanduiche span {
+      display: block;
+      width: 22px;
+      height: 2.8px;
+      background: #fff;
+      border-radius: 2px;
+      transition: all 0.25s ease;
+    }
+
+    .mob-topo__marca { display: flex; align-items: center; gap: 10px; }
+    .mob-topo__logo { width: 38px; height: 38px; border-radius: 9px; object-fit: cover; border: 1px solid rgba(255,255,255,0.2); }
+    .mob-topo__tit { font-size: 17px; font-weight: 900; line-height: 1.15; letter-spacing: -0.2px; }
+    .mob-topo__sub { font-size: 12.5px; color: #F0DFC8; font-weight: 600; }
+    .mob-topo__acoes { display: flex; align-items: center; gap: 10px; }
+
+    .btn-icone-topo {
+      background: rgba(255,255,255,0.14);
+      border: 1.5px solid rgba(255,255,255,0.25);
+      color: #fff;
+      width: 42px;
+      height: 42px;
+      border-radius: 50%;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+    }
+    .btn-icone-topo:active { transform: scale(0.92); }
+
+    /* Barra de Status do Quiosque com Grande Visibilidade */
+    .mob-status-bar {
+      background: #361F10;
+      color: #fff;
+      padding: 9px 16px;
+      font-size: 13.5px;
+      font-weight: 800;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1.5px solid #4A2E1C;
+    }
+    .status-dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; margin-right: 8px; flex: none; }
+    .status-dot--aberto { background: #3CD070; box-shadow: 0 0 10px #3CD070; }
+    .status-dot--fechado { background: #FF4D4D; }
+
+    .pulso-verde {
+      display: inline-block;
+      width: 10px;
+      height: 10px;
+      background: #3CD070;
+      border-radius: 50%;
+      animation: pulso 1.8s infinite;
+      margin-right: 6px;
+    }
+    @keyframes pulso {
+      0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(60, 208, 112, 0.8); }
+      70% { transform: scale(1.15); box-shadow: 0 0 0 9px rgba(60, 208, 112, 0); }
+      100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(60, 208, 112, 0); }
+    }
+
+    /* Menu Lateral Sanduíche (Drawer Expansível da Esquerda) */
+    .drawer-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(15, 8, 3, 0.65);
+      backdrop-filter: blur(3px);
+      z-index: 300;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.28s ease;
+    }
+    .drawer-overlay.aberto { opacity: 1; pointer-events: auto; }
+    
+    .drawer-lateral {
+      position: fixed;
+      top: 0;
+      bottom: 0;
+      left: 0;
+      width: 82%;
+      max-width: 320px;
+      background: #FFFDF9;
+      z-index: 310;
+      box-shadow: 6px 0 24px rgba(0,0,0,0.3);
+      display: flex;
+      flex-direction: column;
+      transform: translateX(-100%);
+      transition: transform 0.28s cubic-bezier(0.1, 0.9, 0.2, 1);
+    }
+    .drawer-overlay.aberto .drawer-lateral { transform: translateX(0); }
+
+    .drawer-cabecalho {
+      background: var(--fundo-topo);
+      color: #fff;
+      padding: 24px 18px 18px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 2px solid var(--primaria);
+    }
+    .btn-fechar-drawer {
+      background: rgba(255,255,255,0.15);
+      border: 1px solid rgba(255,255,255,0.3);
+      color: #fff;
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+    }
+
+    .drawer-menu {
+      padding: 14px 10px;
+      flex: 1;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .drawer-item {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding: 14px 16px;
+      background: transparent;
+      border: 1.5px solid transparent;
+      border-radius: 12px;
+      color: var(--tinta);
+      font-size: 16px;
+      font-weight: 800;
+      cursor: pointer;
+      text-align: left;
+      width: 100%;
+      transition: all 0.15s ease;
+    }
+    .drawer-item:active { background: var(--afundado); }
+    .drawer-item.ativo {
+      background: var(--primaria-leve);
+      border-color: var(--primaria);
+      color: var(--primaria-forte);
+    }
+    .drawer-item svg { width: 24px; height: 24px; stroke-width: 2.3; flex: none; }
+    .drawer-badge {
+      margin-left: auto;
+      background: var(--alerta);
+      color: #fff;
+      font-size: 12px;
+      font-weight: 900;
+      padding: 3px 9px;
+      border-radius: 12px;
+    }
+
+    .drawer-rodape {
+      padding: 16px;
+      background: var(--afundado);
+      border-top: 1.5px solid var(--borda);
+    }
+
+    /* Conteúdo Principal */
+    .mob-conteudo { padding: 16px; flex: 1; max-width: 600px; margin: 0 auto; width: 100%; }
+
+    /* Cards de Métricas / KPIs com Tipografia Grande */
+    .mob-kpi-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 14px; }
+    .mob-kpi {
+      background: var(--papel);
+      padding: 14px 16px;
+      border-radius: var(--raio);
+      border: 1.5px solid var(--borda);
+      box-shadow: var(--sombra);
+    }
+    .mob-kpi__rotulo { font-size: 12.5px; font-weight: 800; color: var(--tinta-2); text-transform: uppercase; letter-spacing: 0.5px; }
+    .mob-kpi__valor { font-size: 24px; font-weight: 900; color: var(--tinta); margin-top: 5px; line-height: 1.1; }
+    .mob-kpi--destaque { border-color: var(--primaria); background: var(--primaria-leve); }
+    .mob-kpi--destaque .mob-kpi__valor { color: var(--primaria-forte); }
+
+    /* Painéis Gerais */
+    .painel-box {
+      background: var(--papel);
+      border-radius: var(--raio);
+      padding: 18px 16px;
+      border: 1.5px solid var(--borda);
+      margin-bottom: 14px;
+      box-shadow: var(--sombra);
+    }
+    .painel-box__tit {
+      font-size: 16px;
+      font-weight: 900;
+      margin-bottom: 12px;
+      color: var(--tinta);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      letter-spacing: -0.2px;
+    }
+
+    /* Barra de Busca de Estoque */
+    .mob-busca-box {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: var(--papel);
+      border: 2px solid var(--borda-forte);
+      border-radius: var(--raio);
+      padding: 10px 14px;
+      margin-bottom: 12px;
+      box-shadow: var(--sombra);
+    }
+    .mob-busca-box svg { width: 22px; height: 22px; stroke: var(--tinta-2); flex: none; }
+    .mob-busca-input {
+      border: none;
+      background: transparent;
+      outline: none;
+      font-size: 16px;
+      font-weight: 700;
+      width: 100%;
+      color: var(--tinta);
+      font-family: inherit;
+    }
+
+    /* Filtros Rápidos */
+    .mob-filtros { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 8px; margin-bottom: 12px; -webkit-overflow-scrolling: touch; }
+    .mob-filtro-btn {
+      flex: none;
+      background: var(--papel);
+      border: 1.5px solid var(--borda);
+      border-radius: 24px;
+      padding: 8px 14px;
+      font-size: 13.5px;
+      font-weight: 800;
+      color: var(--tinta-2);
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .mob-filtro-btn.ativo { background: var(--primaria); color: #fff; border-color: var(--primaria); }
+
+    /* Lista de Itens do Estoque */
+    .mob-lista { display: flex; flex-direction: column; gap: 10px; }
+    .mob-item {
+      background: var(--papel);
+      border: 1.5px solid var(--borda);
+      border-radius: var(--raio);
+      padding: 14px 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 14px;
+      box-shadow: var(--sombra);
+    }
+    .mob-item__info { flex: 1; min-width: 0; }
+    .mob-item__nome { font-size: 16px; font-weight: 900; color: var(--tinta); line-height: 1.25; }
+    .mob-item__meta { font-size: 13px; font-weight: 700; color: var(--tinta-2); margin-top: 3px; }
+    .mob-item__dir { text-align: right; flex: none; display: flex; flex-direction: column; align-items: flex-end; gap: 6px; }
+
+    /* Badges de Estoque em Alta Visibilidade */
+    .badge-estoque {
+      padding: 5px 10px;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 900;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      border: 1px solid transparent;
+    }
+    .badge-estoque--ok { background: var(--sucesso-leve); color: var(--sucesso); border-color: #A3E0B5; }
+    .badge-estoque--baixo { background: var(--aviso-leve); color: var(--aviso); border-color: #F59F00; }
+    .badge-estoque--zerado { background: var(--alerta-leve); color: var(--alerta); border-color: #FA5252; }
+
+    .btn-ajustar-mini {
+      background: var(--afundado);
+      border: 1.5px solid var(--borda);
+      color: var(--tinta);
+      font-size: 12.5px;
+      font-weight: 800;
+      padding: 6px 12px;
+      border-radius: 8px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .btn-ajustar-mini:active { background: var(--borda); }
+
+    /* Cards de Alertas */
+    .alerta-card {
+      background: var(--papel);
+      border-left: 6px solid var(--alerta);
+      border-radius: var(--raio-p);
+      padding: 14px 16px;
+      margin-bottom: 10px;
+      box-shadow: var(--sombra);
+    }
+    .alerta-card--baixo { border-left-color: var(--aviso); }
+    .alerta-card__topo { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
+    .alerta-card__tit { font-size: 15px; font-weight: 900; color: var(--tinta); }
+    .alerta-card__desc { font-size: 13.5px; font-weight: 700; color: var(--tinta-2); line-height: 1.4; }
+
+    /* Feed de Vendas em Tempo Real */
+    .venda-live-card {
+      background: var(--papel);
+      border: 1.5px solid var(--borda);
+      border-radius: var(--raio-p);
+      padding: 14px 16px;
+      margin-bottom: 10px;
+      box-shadow: var(--sombra);
+    }
+    .venda-live-card__topo { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
+    .venda-live-card__tit { font-size: 16px; font-weight: 900; color: var(--primaria); }
+    .venda-live-card__hora { font-size: 12.5px; font-weight: 800; color: var(--tinta-2); }
+    .venda-live-card__itens { font-size: 14px; font-weight: 700; color: var(--tinta); line-height: 1.45; margin: 5px 0; }
+    .venda-live-card__rodape {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--tinta-2);
+      border-top: 1.5px dashed var(--borda);
+      padding-top: 8px;
+      margin-top: 6px;
+    }
+
+    /* Linhas de Categoria na Home */
+    .cat-barra-linha { margin-bottom: 12px; }
+    .cat-barra-topo { display: flex; justify-content: space-between; font-size: 14px; font-weight: 800; margin-bottom: 4px; }
+    .cat-barra-pista { height: 10px; background: var(--afundado); border-radius: 5px; overflow: hidden; }
+    .cat-barra-progresso { height: 100%; background: var(--primaria); border-radius: 5px; }
+
+    /* Gráfico de Barras por Hora */
+    .grafico-horas-container {
+      display: flex;
+      align-items: flex-end;
+      gap: 6px;
+      height: 110px;
+      padding-top: 20px;
+      border-bottom: 1.5px solid var(--borda);
+      margin-bottom: 8px;
+    }
+    .coluna-hora { flex: 1; display: flex; flex-direction: column; align-items: center; height: 100%; justify-content: flex-end; }
+    .barra-hora { width: 100%; background: var(--primaria-leve); border: 1.5px solid var(--primaria); border-radius: 4px 4px 0 0; min-height: 5px; }
+    .barra-hora.pico { background: var(--primaria); }
+    .rotulo-hora { font-size: 10.5px; color: var(--tinta-2); margin-top: 4px; font-weight: 800; }
+
+    /* Barra Proporcional de Pagamento */
+    .barra-proporcional-pag { display: flex; height: 16px; border-radius: 8px; overflow: hidden; margin: 12px 0 14px; background: var(--afundado); }
+    .fatia-pag { height: 100%; }
+    .fatia-pag--pix { background: #E5A000; } /* Amarelo Ouro Solar */
+    .fatia-pag--credito { background: #D97724; } /* Laranja */
+    .fatia-pag--debito { background: #1971C2; } /* Azul */
+    .fatia-pag--dinheiro { background: #2B8A3E; } /* Verde */
+
+    /* Botões Principais */
+    .btn-acao {
+      background: var(--primaria);
+      color: #fff;
+      border: none;
+      width: 100%;
+      height: 50px;
+      border-radius: var(--raio);
+      font-size: 16px;
+      font-weight: 900;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      margin-top: 10px;
+    }
+    .btn-acao:active { background: var(--primaria-forte); }
+
+    /* Modal Touch */
+    .mob-modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(15, 8, 3, 0.65);
+      backdrop-filter: blur(3px);
+      z-index: 400;
+      display: flex;
+      align-items: flex-end;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.25s ease;
+    }
+    .mob-modal-overlay.aberto { opacity: 1; pointer-events: auto; }
+    .mob-modal {
+      background: #FFFDF9;
+      width: 100%;
+      border-radius: 22px 22px 0 0;
+      padding: 22px 18px 30px;
+      transform: translateY(100%);
+      transition: transform 0.25s cubic-bezier(0.1, 0.9, 0.2, 1);
+      max-height: 85vh;
+      overflow-y: auto;
+    }
+    .mob-modal-overlay.aberto .mob-modal { transform: translateY(0); }
+    .mob-modal__tit { font-size: 19px; font-weight: 900; margin-bottom: 12px; text-align: center; }
+
+    .stepper-touch { display: flex; align-items: center; justify-content: center; gap: 12px; margin: 20px 0; }
+    .stepper-touch__btn {
+      width: 52px;
+      height: 52px;
+      border-radius: 50%;
+      border: 1.5px solid var(--borda);
+      background: var(--afundado);
+      font-size: 20px;
+      font-weight: 900;
+      color: var(--tinta);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+    }
+    .stepper-touch__btn:active { background: var(--borda); }
+    .stepper-touch__val { font-size: 32px; font-weight: 900; min-width: 80px; text-align: center; color: var(--primaria-forte); }
+
+    /* ==================== TELA DE LOGIN ADM MOBILE ==================== */
+    .login-wrapper {
+      min-height: 78vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      padding: 12px 6px;
+    }
+    .login-card {
+      background: var(--papel);
+      border: 1.5px solid var(--borda);
+      border-radius: 20px;
+      padding: 24px 18px;
+      box-shadow: 0 8px 30px rgba(35, 20, 10, 0.12);
+      width: 100%;
+      max-width: 420px;
+      text-align: center;
+      animation: surgirSuave 0.25s ease-out;
+    }
+    @keyframes surgirSuave {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .login-logo-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      margin-bottom: 18px;
+    }
+    .login-logo-img {
+      width: 86px;
+      height: 86px;
+      border-radius: 18px;
+      object-fit: cover;
+      border: 2px solid var(--borda);
+      box-shadow: 0 4px 14px rgba(0,0,0,0.12);
+      margin-bottom: 12px;
+      transition: all 0.25s ease;
+      background: #FFFDF9;
+    }
+    .login-nome-quiosque {
+      font-size: 22px;
+      font-weight: 900;
+      color: var(--tinta);
+      letter-spacing: -0.3px;
+      line-height: 1.2;
+    }
+    .login-sub-quiosque {
+      font-size: 13.5px;
+      font-weight: 700;
+      color: var(--tinta-2);
+      margin-top: 4px;
+    }
+
+    /* Campos de Formulário Acessíveis */
+    .campo-login-grupo {
+      text-align: left;
+      margin-bottom: 15px;
+    }
+    .campo-login-rotulo {
+      display: block;
+      font-size: 13.5px;
+      font-weight: 800;
+      color: var(--tinta);
+      margin-bottom: 6px;
+    }
+    .input-login-padrao {
+      width: 100%;
+      height: 50px;
+      padding: 0 16px;
+      border: 2px solid var(--borda-forte);
+      border-radius: var(--raio);
+      font-size: 16px;
+      font-weight: 800;
+      color: var(--tinta);
+      background: var(--papel);
+      outline: none;
+      box-sizing: border-box;
+      transition: border-color 0.2s;
+    }
+    .input-login-padrao:focus {
+      border-color: var(--primaria);
+      box-shadow: 0 0 0 3px rgba(184, 86, 11, 0.15);
+    }
+
+    /* Input Senha com Botão Olho */
+    .input-senha-wrap {
+      position: relative;
+      display: flex;
+      align-items: center;
+    }
+    .input-senha-wrap .input-login-padrao {
+      padding-right: 50px;
+    }
+    .btn-olho-senha {
+      position: absolute;
+      right: 8px;
+      background: transparent;
+      border: none;
+      width: 38px;
+      height: 38px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      color: var(--tinta-2);
+      border-radius: 8px;
+    }
+    .btn-olho-senha:active { background: var(--afundado); }
+    .btn-olho-senha svg { width: 22px; height: 22px; }
+
+    /* Lembre de Mim e Esqueci a Senha */
+    .lembre-mim-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 18px;
+      text-align: left;
+      gap: 8px;
+    }
+    .lembre-mim-label {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      cursor: pointer;
+      font-size: 13.5px;
+      font-weight: 800;
+      color: var(--tinta-2);
+      user-select: none;
+    }
+    .lembre-mim-label input[type="checkbox"] {
+      width: 19px;
+      height: 19px;
+      accent-color: var(--primaria);
+      cursor: pointer;
+    }
+
+    .btn-esqueci-link {
+      background: transparent;
+      border: none;
+      color: var(--primaria);
+      font-size: 13.5px;
+      font-weight: 800;
+      cursor: pointer;
+      text-decoration: underline;
+      padding: 4px;
+      flex: none;
+    }
+    .btn-esqueci-link:active { opacity: 0.7; }
+
+    .aviso-erro-login {
+      background: var(--alerta-leve);
+      border: 1.5px solid var(--alerta);
+      color: var(--alerta);
+      border-radius: 10px;
+      padding: 10px 14px;
+      font-size: 13.5px;
+      font-weight: 800;
+      margin-top: 14px;
+      text-align: center;
+    }
+
+    /* Modal de Esqueci Senha */
+    .recupera-abas {
+      display: flex;
+      background: var(--afundado);
+      border-radius: 10px;
+      padding: 3px;
+      margin-bottom: 16px;
+      gap: 4px;
+    }
+    .btn-recupera-aba {
+      flex: 1;
+      padding: 9px;
+      border-radius: 8px;
+      border: none;
+      background: transparent;
+      font-size: 13px;
+      font-weight: 800;
+      color: var(--tinta-2);
+      cursor: pointer;
+    }
+    .btn-recupera-aba.ativo {
+      background: var(--papel);
+      color: var(--primaria-forte);
+      font-weight: 900;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.1);
+    }
+  </style>
+</head>
+<body>
+
+  <!-- TOPO DO SISTEMA MOBILE COM MENU SANDUÍCHE -->
+  <header class="mob-topo">
+    <div class="mob-topo__esq">
+      <!-- BOTÃO SANDUÍCHE NA BARRA SUPERIOR ESQUERDA -->
+      <button class="btn-sanduiche" id="btn-abrir-drawer" title="Menu Principal">
+        <span></span>
+        <span></span>
+        <span></span>
+      </button>
+
+      <div class="mob-topo__marca">
+        <img src="assets/logo-topo.png" alt="Logo" class="mob-topo__logo" id="mob-topo-logo">
+        <div>
+          <div class="mob-topo__tit" id="mob-topo-tit">Rota do Forte</div>
+          <div class="mob-topo__sub">Gestão Empresarial ADM</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="mob-topo__acoes">
+      <button class="btn-icone-topo" id="btn-recarregar" title="Atualizar dados agora">
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.3"><path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16"/><path d="M16 21h5v-5"/></svg>
+      </button>
+    </div>
+  </header>
+
+  <!-- BARRA DE STATUS DO CAIXA: INFORMA EXATAMENTE QUEM ABRIU O CAIXA -->
+  <div class="mob-status-bar">
+    <div style="display:flex;align-items:center;min-width:0">
+      <span class="status-dot status-dot--aberto" id="dot-status"></span>
+      <span id="txt-status-caixa" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Conectando...</span>
+    </div>
+    <div style="display:flex;align-items:center;gap:6px;flex:none;margin-left:8px">
+      <span class="pulso-verde"></span>
+      <span id="txt-hora-sync" style="font-size:12px;font-weight:800">Ao Vivo</span>
+    </div>
+  </div>
+
+  <!-- MENU SANDUÍCHE LATERAL EXPANSÍVEL (DRAWER DA ESQUERDA) -->
+  <div class="drawer-overlay" id="drawer-overlay">
+    <nav class="drawer-lateral" id="drawer-lateral">
+      <div class="drawer-cabecalho">
+        <div style="display:flex;align-items:center;gap:10px">
+          <img src="assets/logo-topo.png" alt="Logo" id="drawer-logo" style="width:36px;height:36px;border-radius:8px;object-fit:cover">
+          <div>
+            <div style="font-size:16px;font-weight:900" id="drawer-nome-loja">Rota do Forte</div>
+            <div style="font-size:12px;color:#E5D5C5">Painel do Administrador</div>
+          </div>
+        </div>
+        <button class="btn-fechar-drawer" id="btn-fechar-drawer" title="Fechar Menu">
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>
+
+      <div class="drawer-menu">
+        <button class="drawer-item ativo" data-nav="home">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+          <span>Home (Dashboard)</span>
+        </button>
+
+        <button class="drawer-item" data-nav="estoque">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="m7.5 4.27 9 5.15"/><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/></svg>
+          <span>Estoque</span>
+        </button>
+
+        <button class="drawer-item" data-nav="alertas">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+          <span>Alertas de Estoque</span>
+          <span class="drawer-badge" id="drawer-badge-alertas" hidden>0</span>
+        </button>
+
+        <button class="drawer-item" data-nav="financeiro">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+          <span>Financeiro (Ao Vivo)</span>
+        </button>
+
+        <button class="drawer-item" data-nav="config">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+          <span>Sons & Notificações</span>
+        </button>
+      </div>
+
+      <div class="drawer-rodape">
+        <button class="drawer-item" id="btn-drawer-sair" style="color:var(--alerta);border-color:#F8D7DA;background:#FFF5F5">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+          <span>Sair / Desconectar</span>
+        </button>
+      </div>
+    </nav>
+  </div>
+
+  <!-- CONTEÚDO PRINCIPAL DINÂMICO -->
+  <main class="mob-conteudo" id="app-conteudo">
+
+    <!-- TELA DE LOGIN (QUANDO NÃO AUTENTICADO) -->
+    <section id="tela-login" hidden>
+      <div class="login-wrapper">
+        <div class="login-card">
+          <!-- Logo e Identidade do Quiosque de Acordo com o Dono -->
+          <div class="login-logo-container">
+            <img id="login-logo-img" src="assets/logo.png" alt="Logo do Quiosque" class="login-logo-img">
+            <h1 id="login-nome-quiosque" class="login-nome-quiosque">Quiosque Rota do Forte</h1>
+            <div class="login-sub-quiosque" id="login-sub-quiosque">Gestão Empresarial ADM</div>
+          </div>
+
+          <!-- Formulário de Login Seguro -->
+          <form id="form-login-adm" onsubmit="return false;">
+            <div class="campo-login-grupo">
+              <label for="login-usuario" class="campo-login-rotulo">Usuário de Acesso</label>
+              <input type="text" id="login-usuario" class="input-login-padrao" placeholder="Digite seu usuário" autocomplete="username" spellcheck="false" required />
+            </div>
+
+            <div class="campo-login-grupo">
+              <label for="login-senha" class="campo-login-rotulo">Senha do Administrador</label>
+              <div class="input-senha-wrap">
+                <input type="password" id="login-senha" class="input-login-padrao" placeholder="Digite sua senha" autocomplete="current-password" required />
+                <button type="button" class="btn-olho-senha" id="btn-olho-senha" title="Mostrar ou ocultar senha">
+                  <svg id="svg-olho-aberto" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                  <svg id="svg-olho-fechado" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:none"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+                </button>
+              </div>
+            </div>
+
+            <div class="lembre-mim-row">
+              <label class="lembre-mim-label">
+                <input type="checkbox" id="chk-lembre-mim" checked />
+                <span>Lembrar de mim neste celular</span>
+              </label>
+              <button type="button" class="btn-esqueci-link" id="btn-abrir-esqueci-senha">Esqueci a senha</button>
+            </div>
+
+            <button type="submit" class="btn-acao" id="btn-entrar-adm" style="margin-top:0">
+              Entrar no Painel ADM
+            </button>
+
+            <div id="login-erro" class="aviso-erro-login" style="display:none">
+              Usuário ou senha incorretos. Apenas Administrador.
+            </div>
+            <div id="login-bloqueio" class="aviso-erro-login" style="display:none;background:#FFF3CD;border-color:#FFEBAA;color:#856404">
+              Muitas tentativas. Aguarde <span id="segundos-bloqueio">30</span>s.
+            </div>
+          </form>
+        </div>
+      </div>
+    </section>
+
+    <!-- MODAL DE RECUPERAÇÃO DE SENHA DO ADMINISTRADOR -->
+    <div class="mob-modal-overlay" id="modal-esqueci-senha-overlay">
+      <div class="mob-modal" id="modal-esqueci-senha" style="max-height:92vh">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;border-bottom:1.5px solid var(--borda);padding-bottom:10px">
+          <div style="font-size:18px;font-weight:900;color:var(--tinta);display:flex;align-items:center;gap:8px">
+            <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.3"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+            Recuperar Acesso ADM
+          </div>
+          <button class="btn-icone-topo" id="btn-fechar-modal-esqueci" style="width:36px;height:36px;background:var(--afundado);color:var(--tinta);border-color:var(--borda)" title="Fechar">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          </button>
+        </div>
+
+        <!-- Abas de Método -->
+        <div class="recupera-abas">
+          <button type="button" class="btn-recupera-aba ativo" id="aba-rec-email" data-metodo="email">
+            Código por E-mail
+          </button>
+          <button type="button" class="btn-recupera-aba" id="aba-rec-chave" data-metodo="chave">
+            Chave Mestra (Offline)
+          </button>
+        </div>
+
+        <!-- PAINEL 1: RECUPERAÇÃO POR E-MAIL -->
+        <div id="painel-rec-email">
+          <div id="etapa-email-1">
+            <p style="font-size:13.5px;color:var(--tinta-2);font-weight:700;margin-bottom:14px;line-height:1.45">
+              Informe seu usuário ou o e-mail do quiosque. Enviaremos um código temporário de 6 dígitos válido por 15 minutos.
+            </p>
+            <div class="campo-login-grupo">
+              <label class="campo-login-rotulo">Usuário ou E-mail Cadastrado</label>
+              <input type="text" id="rec-email-identificador" class="input-login-padrao" placeholder="contato@manostech-system.com.br" />
+            </div>
+            <button type="button" class="btn-acao" id="btn-solicitar-pin">
+              Gerar Código de 6 Dígitos
+            </button>
+          </div>
+
+          <div id="etapa-email-2" style="display:none">
+            <div style="background:var(--sucesso-leve);border:1.5px solid var(--sucesso);color:var(--sucesso);border-radius:10px;padding:12px;font-size:13.5px;font-weight:800;margin-bottom:14px" id="msg-pin-sucesso">
+              Código gerado com sucesso!
+            </div>
+            <div class="campo-login-grupo">
+              <label class="campo-login-rotulo">Código PIN de 6 Dígitos</label>
+              <input type="text" id="rec-pin-codigo" class="input-login-padrao" placeholder="000000" maxlength="6" style="text-align:center;font-size:22px;letter-spacing:4px" />
+            </div>
+            <div class="campo-login-grupo">
+              <label class="campo-login-rotulo">Nova Senha do Administrador</label>
+              <input type="password" id="rec-nova-senha" class="input-login-padrao" placeholder="Mínimo de 3 caracteres" />
+            </div>
+            <button type="button" class="btn-acao" id="btn-confirmar-pin">
+              Redefinir Senha e Entrar
+            </button>
+          </div>
+        </div>
+
+        <!-- PAINEL 2: CHAVE MESTRA LOCAL (OFFLINE) -->
+        <div id="painel-rec-chave" style="display:none">
+          <p style="font-size:13.5px;color:var(--tinta-2);font-weight:700;margin-bottom:14px;line-height:1.45">
+            Para quiosques sem conexão à internet, utilize a Chave Mestra gravada localmente no computador do quiosque em <code>dados/chave_mestra.txt</code>.
+          </p>
+          <div class="campo-login-grupo">
+            <label class="campo-login-rotulo">Chave Mestra do Quiosque</label>
+            <input type="text" id="rec-chave-mestra" class="input-login-padrao" placeholder="Ex: ROTA-MESTRE-9988" />
+          </div>
+          <div class="campo-login-grupo">
+            <label class="campo-login-rotulo">Nova Senha do Administrador</label>
+            <input type="password" id="rec-chave-nova-senha" class="input-login-padrao" placeholder="Digite a nova senha" />
+          </div>
+          <button type="button" class="btn-acao" id="btn-confirmar-chave">
+            Redefinir com Chave Mestra
+          </button>
+        </div>
+
+        <div id="rec-feedback-erro" class="aviso-erro-login" style="display:none;margin-top:12px"></div>
+      </div>
+    </div>
+
+    <!-- 1. ABA: HOME (DASHBOARD VISUAL CONSOLIDADO) -->
+    <section id="aba-home">
+      <!-- Saudação & Status Rápido -->
+      <div style="margin-bottom:14px;display:flex;justify-content:space-between;align-items:center">
+        <div>
+          <h2 style="font-size:19px;font-weight:900;color:var(--tinta)" id="home-saudacao">Visão Geral de Hoje</h2>
+          <span style="font-size:13px;color:var(--tinta-2);font-weight:700" id="home-data-hoje">Rota do Forte · Quiosque & Praia</span>
+        </div>
+        <span class="badge-estoque badge-estoque--ok" style="font-size:12.5px" id="home-badge-status-caixa">
+          Caixa Ativo
+        </span>
+      </div>
+
+      <!-- Banner de Alerta Crítico (se houver estoque baixo) -->
+      <div class="alerta-card" id="home-card-alerta-critico" style="display:none;cursor:pointer">
+        <div class="alerta-card__topo">
+          <span class="alerta-card__tit" style="color:var(--alerta);display:flex;align-items:center;gap:8px">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+            Atenção: Reposição Necessária!
+          </span>
+          <span class="badge-estoque badge-estoque--zerado" id="home-qtd-alerta-critico">0</span>
+        </div>
+        <div class="alerta-card__desc" id="home-txt-alerta-critico">
+          Há itens que atingiram o limite mínimo de estoque. Toque para ver e repor.
+        </div>
+      </div>
+
+      <!-- 4 KPIs Executivos do Dia com Números Grandes -->
+      <div class="mob-kpi-grid">
+        <div class="mob-kpi mob-kpi--destaque">
+          <div class="mob-kpi__rotulo">Faturamento Hoje</div>
+          <div class="mob-kpi__valor" id="home-kpi-fat">R$ 0,00</div>
+        </div>
+        <div class="mob-kpi">
+          <div class="mob-kpi__rotulo">Pedidos Emitidos</div>
+          <div class="mob-kpi__valor" id="home-kpi-vendas">0</div>
+        </div>
+      </div>
+
+      <div class="mob-kpi-grid">
+        <div class="mob-kpi">
+          <div class="mob-kpi__rotulo">Ticket Médio</div>
+          <div class="mob-kpi__valor" id="home-kpi-ticket">R$ 0,00</div>
+        </div>
+        <div class="mob-kpi">
+          <div class="mob-kpi__rotulo">Dinheiro em Gaveta</div>
+          <div class="mob-kpi__valor" id="home-kpi-gaveta">R$ 0,00</div>
+        </div>
+      </div>
+
+      <!-- Gráfico de Movimento por Hora (Pico do Dia) -->
+      <div class="painel-box">
+        <div class="painel-box__tit">
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="var(--primaria)" stroke-width="2.3"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+          Movimento de Vendas por Hora
+        </div>
+        <div class="grafico-horas-container" id="home-grafico-horas">
+          <!-- Colunas de horas renderizadas via JS -->
+        </div>
+        <div style="display:flex;justify-content:space-between;font-size:11.5px;color:var(--tinta-2);font-weight:700;margin-top:6px">
+          <span>8h (Manhã)</span>
+          <span>13h (Almoço)</span>
+          <span>17h (Tarde)</span>
+          <span>21h (Noite)</span>
+        </div>
+      </div>
+
+      <!-- Gráfico Proporcional por Forma de Pagamento -->
+      <div class="painel-box">
+        <div class="painel-box__tit">
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="var(--mar)" stroke-width="2.3"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>
+          Distribuição dos Pagamentos
+        </div>
+        <div class="barra-proporcional-pag" id="home-barra-pagamentos">
+          <div class="fatia-pag fatia-pag--pix" style="width:25%" title="PIX"></div>
+          <div class="fatia-pag fatia-pag--credito" style="width:25%" title="Crédito"></div>
+          <div class="fatia-pag fatia-pag--debito" style="width:25%" title="Débito"></div>
+          <div class="fatia-pag fatia-pag--dinheiro" style="width:25%" title="Dinheiro"></div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:13px;font-weight:700">
+          <div style="display:flex;align-items:center;gap:8px">
+            <span style="width:12px;height:12px;border-radius:3px;background:#E5A000;border:1px solid #C48800"></span>
+            <span>PIX: <b id="home-legenda-pix">R$ 0,00</b></span>
+          </div>
+          <div style="display:flex;align-items:center;gap:8px">
+            <span style="width:12px;height:12px;border-radius:3px;background:#D97724"></span>
+            <span>Crédito: <b id="home-legenda-credito">R$ 0,00</b></span>
+          </div>
+          <div style="display:flex;align-items:center;gap:8px">
+            <span style="width:12px;height:12px;border-radius:3px;background:#1971C2"></span>
+            <span>Débito: <b id="home-legenda-debito">R$ 0,00</b></span>
+          </div>
+          <div style="display:flex;align-items:center;gap:8px">
+            <span style="width:12px;height:12px;border-radius:3px;background:#2B8A3E"></span>
+            <span>Dinheiro: <b id="home-legenda-dinheiro">R$ 0,00</b></span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Vendas e Faturamento por Categorias -->
+      <div class="painel-box">
+        <div class="painel-box__tit">
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="var(--primaria)" stroke-width="2.3"><path d="m7.5 4.27 9 5.15"/><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/></svg>
+          Faturamento por Categoria
+        </div>
+        <div id="home-lista-categorias">
+          <!-- Renderizado dinamicamente por categoria -->
+        </div>
+      </div>
+    </section>
+
+    <!-- 2. ABA: ESTOQUE -->
+    <section id="aba-estoque" hidden>
+      <div class="mob-kpi-grid">
+        <div class="mob-kpi">
+          <div class="mob-kpi__rotulo">Cadastrados</div>
+          <div class="mob-kpi__valor" id="kpi-total-prods">0</div>
+        </div>
+        <div class="mob-kpi mob-kpi--destaque" id="card-kpi-alerta">
+          <div class="mob-kpi__rotulo">Estoque Baixo</div>
+          <div class="mob-kpi__valor" id="kpi-estoque-baixo">0</div>
+        </div>
+      </div>
+
+      <div class="mob-busca-box">
+        <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+        <input type="text" class="mob-busca-input" id="busca-estoque" placeholder="Buscar por produto, cerveja, pastel..." autocomplete="off">
+      </div>
+
+      <div class="mob-filtros" id="filtros-categoria">
+        <button class="mob-filtro-btn ativo" data-cat="todas">Todos</button>
+        <button class="mob-filtro-btn" data-cat="baixo" style="color:var(--alerta)">
+          <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+          Alertas
+        </button>
+        <button class="mob-filtro-btn" data-cat="cat-bebidas">Bebidas</button>
+        <button class="mob-filtro-btn" data-cat="cat-cervejas">Cervejas</button>
+        <button class="mob-filtro-btn" data-cat="cat-pasteis">Pastéis</button>
+        <button class="mob-filtro-btn" data-cat="cat-churros">Churros</button>
+        <button class="mob-filtro-btn" data-cat="cat-porcoes">Porções</button>
+      </div>
+
+      <div class="mob-lista" id="lista-estoque">
+        <!-- Renderizado dinamicamente -->
+      </div>
+    </section>
+
+    <!-- 3. ABA: ALERTAS DE REPOSIÇÃO -->
+    <section id="aba-alertas" hidden>
+      <div class="painel-box" style="border-left:6px solid var(--alerta)">
+        <div class="painel-box__tit" style="display:flex;align-items:center;gap:8px">
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="var(--alerta)" stroke-width="2.3"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+          Produtos com Reposição Urgente
+        </div>
+        <p style="font-size:13.5px;color:var(--tinta-2);font-weight:700">Itens que atingiram o limite mínimo definido no quiosque. Compre ou reponha hoje mesmo:</p>
+      </div>
+
+      <div id="lista-alertas-criticos" style="margin-bottom:16px">
+        <!-- Itens em estado crítico -->
+      </div>
+
+      <div class="painel-box">
+        <div class="painel-box__tit">Histórico de Alertas Registrados</div>
+        <div id="lista-historico-alertas">
+          <!-- Histórico -->
+        </div>
+      </div>
+    </section>
+
+    <!-- 4. ABA: FINANCEIRO EM TEMPO REAL -->
+    <section id="aba-financeiro" hidden>
+      <!-- Indicador Ao Vivo -->
+      <div style="background:var(--primaria-leve);border:1.5px solid var(--borda);border-radius:var(--raio-p);padding:10px 14px;margin-bottom:14px;display:flex;align-items:center;justify-content:space-between">
+        <div style="display:flex;align-items:center">
+          <span class="pulso-verde"></span>
+          <span style="font-size:13.5px;font-weight:900;color:var(--tinta)">MOVIMENTO AO VIVO DO QUIOSQUE</span>
+        </div>
+        <span id="fin-relogio-ao-vivo" style="font-size:12.5px;font-weight:800;color:var(--primaria)">Tempo Real</span>
+      </div>
+
+      <div class="mob-kpi-grid">
+        <div class="mob-kpi mob-kpi--destaque">
+          <div class="mob-kpi__rotulo">Faturamento Hoje</div>
+          <div class="mob-kpi__valor" id="fin-faturamento">R$ 0,00</div>
+        </div>
+        <div class="mob-kpi">
+          <div class="mob-kpi__rotulo">Pedidos / Vendas</div>
+          <div class="mob-kpi__valor" id="fin-vendas">0</div>
+        </div>
+      </div>
+
+      <div class="mob-kpi-grid">
+        <div class="mob-kpi">
+          <div class="mob-kpi__rotulo">Ticket Médio</div>
+          <div class="mob-kpi__valor" id="fin-ticket">R$ 0,00</div>
+        </div>
+        <div class="mob-kpi">
+          <div class="mob-kpi__rotulo">Gaveta / Dinheiro</div>
+          <div class="mob-kpi__valor" id="fin-dinheiro">R$ 0,00</div>
+        </div>
+      </div>
+
+      <div class="painel-box">
+        <div class="painel-box__tit">Recebimentos por Forma de Pagamento</div>
+        <div id="fin-pagamentos-lista">
+          <!-- Linhas de pagamentos -->
+        </div>
+      </div>
+
+      <!-- Feed de Vendas em Tempo Real -->
+      <div class="painel-box">
+        <div class="painel-box__tit" style="justify-content:space-between">
+          <div style="display:flex;align-items:center;gap:8px">
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="var(--primaria)" stroke-width="2.3"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+            Vendas do Dia em Tempo Real
+          </div>
+          <span style="font-size:12.5px;color:var(--tinta-2);font-weight:800" id="txt-contador-vendas-live">0 vendas</span>
+        </div>
+        <div id="fin-vendas-live-feed">
+          <!-- Cards de vendas renderizados ao vivo -->
+        </div>
+      </div>
+
+      <div class="painel-box">
+        <div class="painel-box__tit">Status da Sessão do Caixa</div>
+        <div id="fin-caixa-detalhe" style="font-size:13.5px;color:var(--tinta-2);line-height:1.7;font-weight:700">
+          <!-- Detalhes do Caixa -->
+        </div>
+      </div>
+    </section>
+
+    <!-- 5. ABA: NOTIFICAÇÕES & SONS -->
+    <section id="aba-config" hidden>
+      <div class="painel-box" style="border-left:6px solid var(--primaria)">
+        <div class="painel-box__tit">Sons de Alerta & Notificações</div>
+        <p style="font-size:13.5px;color:var(--tinta-2);font-weight:700;line-height:1.5">
+          Configure os sons automáticos que o sistema tocará a cada nova venda ou quando o estoque atingir o nível crítico.
+        </p>
+      </div>
+
+      <div class="painel-box">
+        <div class="painel-box__tit">Sons de Alerta</div>
+
+        <div class="campo-config">
+          <label>Som para Novas Vendas (Dinheiro entrando)</label>
+          <div style="display:flex;gap:10px">
+            <select class="select-config" id="cfg-som-venda" style="flex:1">
+              <option value="caixa_oficial" selected>Caixa Registradora (Cha-ching! - Som Oficial)</option>
+              <option value="voz_quiosque">Voz do Quiosque ("Vou vender de novo essa peste!")</option>
+              <option value="sino">Campainha de Balcão (Chime)</option>
+              <option value="bip">Bip Tecnológico</option>
+              <option value="silencioso">Silencioso (Sem som)</option>
+            </select>
+            <button class="btn-ajustar-mini" id="btn-testar-som-venda" style="flex:none;height:44px;padding:0 14px;font-size:13px">
+              <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/></svg>
+              Testar
+            </button>
+          </div>
+        </div>
+
+        <div class="campo-config">
+          <label>Som para Alerta de Estoque Crítico</label>
+          <div style="display:flex;gap:10px">
+            <select class="select-config" id="cfg-som-estoque" style="flex:1">
+              <option value="sirene_oficial" selected>Sirene de Urgência (Alarme Oficial)</option>
+              <option value="alarme">Alarme Sintetizado</option>
+              <option value="sino">Campainha de Balcão</option>
+              <option value="bip">Bip Duplo</option>
+              <option value="silencioso">Silencioso (Sem som)</option>
+            </select>
+            <button class="btn-ajustar-mini" id="btn-testar-som-estoque" style="flex:none;height:44px;padding:0 14px;font-size:13px">
+              <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/></svg>
+              Testar
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div class="painel-box">
+        <div class="painel-box__tit">Notificações com Tela Bloqueada</div>
+        <div style="font-size:13.5px;color:var(--tinta-2);font-weight:700;line-height:1.6;margin-bottom:14px" id="status-push-box">
+          Status no aparelho: <b id="txt-status-push-permissao">Verificando...</b>
+        </div>
+        <button class="btn-acao" id="btn-retestar-push" style="margin-top:0">
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.3"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+          Testar Notificação na Tela de Bloqueio
+        </button>
+      </div>
+
+      <div class="painel-box">
+        <div class="painel-box__tit">Segurança & Cópia de Backup</div>
+        <button class="btn-acao" id="btn-exportar-backup" style="background:var(--mar)">
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.3"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          Exportar Cópia de Backup (JSON)
+        </button>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- MODAL TOUCH DE AJUSTE RÁPIDO DE ESTOQUE -->
+  <div class="mob-modal-overlay" id="modal-ajuste">
+    <div class="mob-modal">
+      <div class="mob-modal__tit" id="modal-ajuste-nome">Ajustar Estoque</div>
+      <p style="text-align:center;font-size:13.5px;color:var(--tinta-2);font-weight:700;margin-top:-6px;margin-bottom:14px" id="modal-ajuste-meta"></p>
+
+      <div class="stepper-touch">
+        <button class="stepper-touch__btn" id="btn-menos-10">-10</button>
+        <button class="stepper-touch__btn" id="btn-menos-1">-1</button>
+        <div class="stepper-touch__val" id="modal-ajuste-val">0</div>
+        <button class="stepper-touch__btn" id="btn-mais-1">+1</button>
+        <button class="stepper-touch__btn" id="btn-mais-10">+10</button>
+      </div>
+
+      <div style="margin-bottom:16px">
+        <label style="font-size:12px;font-weight:800;color:var(--tinta-2);text-transform:uppercase">Motivo do Ajuste</label>
+        <input type="text" id="modal-ajuste-motivo" placeholder="Ex.: Compra externa, contagem física..." style="width:100%;height:44px;padding:0 12px;border:1.5px solid var(--borda-forte);border-radius:var(--raio-p);margin-top:5px;font-size:15px;font-weight:700" />
+      </div>
+
+      <button class="btn-acao" id="btn-salvar-ajuste">Salvar Novo Estoque</button>
+      <button class="btn-ajustar-mini" id="btn-fechar-modal-ajuste" style="width:100%;height:44px;margin-top:10px;font-size:14px;justify-content:center">Cancelar</button>
+    </div>
+  </div>
+
+  <!-- SCRIPTS DO SISTEMA -->
+  <script src="browser-mock.js"></script>
+  <script src="db.js"></script>
+  <script>
+    (function() {
+      let estadoDB = null;
+      let abaAtiva = 'home';
+      let categoriaFiltro = 'todas';
+      let termoBusca = '';
+      let prodEmAjuste = null;
+      let estoqueTemp = 0;
+      let swRegistration = null;
+      let idsVendasConhecidas = new Set();
+      let produtosAlertaConhecidos = new Set();
+      let primeiraCargaFeita = false;
+
+      const $ = s => document.querySelector(s);
+      const $$ = s => document.querySelectorAll(s);
+
+      /* ==================== SINTETIZADOR E TOCADOR DE SONS ==================== */
+      const SomAlerta = {
+        ctx: null,
+        obterCtx() {
+          if (!this.ctx) {
+            const AudioCtx = window.AudioContext || window.webkitAudioContext;
+            if (AudioCtx) this.ctx = new AudioCtx();
+          }
+          if (this.ctx && this.ctx.state === 'suspended') {
+            this.ctx.resume();
+          }
+          return this.ctx;
+        },
+        tocar(tipo) {
+          if (tipo === 'silencioso') return;
+
+          // Som 1 Oficial: Caixa Registradora (Cha-ching!)
+          if (tipo === 'caixa_oficial' || tipo === 'caixa') {
+            try {
+              const a = new Audio('assets/som-venda-caixa.mp3');
+              a.play().catch(() => this.tocarSintetizado('caixa'));
+              return;
+            } catch {
+              this.tocarSintetizado('caixa');
+              return;
+            }
+          }
+
+          // Som 2 Oficial: Voz do Quiosque ("Vou vender de novo essa peste!")
+          if (tipo === 'voz_quiosque') {
+            try {
+              const a = new Audio('assets/som-venda-voz.mp3');
+              a.play().catch(() => this.tocarSintetizado('caixa'));
+              return;
+            } catch {
+              this.tocarSintetizado('caixa');
+              return;
+            }
+          }
+
+          // Som 3 Oficial: Sirene de Estoque Crítico
+          if (tipo === 'sirene_oficial' || tipo === 'alarme') {
+            try {
+              const a = new Audio('assets/som-estoque-critico.mp3');
+              a.play().catch(() => this.tocarSintetizado('alarme'));
+              return;
+            } catch {
+              this.tocarSintetizado('alarme');
+              return;
+            }
+          }
+
+          this.tocarSintetizado(tipo);
+        },
+        tocarSintetizado(tipo) {
+          const c = this.obterCtx();
+          if (!c) return;
+          const t = c.currentTime;
+
+          if (tipo === 'caixa') {
+            const o1 = c.createOscillator();
+            const o2 = c.createOscillator();
+            const g1 = c.createGain();
+            const g2 = c.createGain();
+
+            o1.type = 'triangle';
+            o1.frequency.setValueAtTime(1318.51, t);
+            o1.frequency.exponentialRampToValueAtTime(1760, t + 0.12);
+            g1.gain.setValueAtTime(0.3, t);
+            g1.gain.exponentialRampToValueAtTime(0.001, t + 0.5);
+
+            o2.type = 'sine';
+            o2.frequency.setValueAtTime(2637, t + 0.08);
+            g2.gain.setValueAtTime(0.35, t + 0.08);
+            g2.gain.exponentialRampToValueAtTime(0.001, t + 0.65);
+
+            o1.connect(g1); g1.connect(c.destination);
+            o2.connect(g2); g2.connect(c.destination);
+            o1.start(t); o1.stop(t + 0.5);
+            o2.start(t + 0.08); o2.stop(t + 0.65);
+
+          } else if (tipo === 'alarme') {
+            for (let i = 0; i < 3; i++) {
+              const o = c.createOscillator();
+              const g = c.createGain();
+              const inicio = t + i * 0.18;
+              o.type = 'sawtooth';
+              o.frequency.setValueAtTime(880, inicio);
+              o.frequency.linearRampToValueAtTime(587.33, inicio + 0.14);
+              g.gain.setValueAtTime(0.25, inicio);
+              g.gain.exponentialRampToValueAtTime(0.001, inicio + 0.16);
+              o.connect(g); g.connect(c.destination);
+              o.start(inicio); o.stop(inicio + 0.16);
+            }
+
+          } else if (tipo === 'sino') {
+            const o = c.createOscillator();
+            const g = c.createGain();
+            o.type = 'sine';
+            o.frequency.setValueAtTime(783.99, t);
+            g.gain.setValueAtTime(0.3, t);
+            g.gain.exponentialRampToValueAtTime(0.001, t + 0.8);
+            o.connect(g); g.connect(c.destination);
+            o.start(t); o.stop(t + 0.8);
+
+          } else if (tipo === 'bip') {
+            [0, 0.1].forEach(delay => {
+              const o = c.createOscillator();
+              const g = c.createGain();
+              o.type = 'sine';
+              o.frequency.setValueAtTime(1046.50, t + delay);
+              g.gain.setValueAtTime(0.25, t + delay);
+              g.gain.exponentialRampToValueAtTime(0.001, t + delay + 0.07);
+              o.connect(g); g.connect(c.destination);
+              o.start(t + delay); o.stop(t + delay + 0.07);
+            });
+          }
+        }
+      };
+
+      /* ==================== CONTROLE DO MENU SANDUÍCHE LATERAL (DRAWER) ==================== */
+      const drawerOverlay = $('#drawer-overlay');
+      const btnAbrirDrawer = $('#btn-abrir-drawer');
+      const btnFecharDrawer = $('#btn-fechar-drawer');
+
+      function abrirDrawer() {
+        drawerOverlay.classList.add('aberto');
+      }
+
+      function fecharDrawer() {
+        drawerOverlay.classList.remove('aberto');
+      }
+
+      btnAbrirDrawer.onclick = abrirDrawer;
+      btnFecharDrawer.onclick = fecharDrawer;
+      drawerOverlay.onclick = e => {
+        if (e.target === drawerOverlay) fecharDrawer();
+      };
+
+      // Navegação pelos itens do Menu Sanduíche Lateral
+      $$('.drawer-item[data-nav]').forEach(btn => {
+        btn.onclick = () => {
+          SomAlerta.obterCtx();
+          const destino = btn.dataset.nav;
+          mudarAba(destino);
+          fecharDrawer();
+        };
+      });
+
+      $('#btn-drawer-sair').onclick = () => {
+        fecharDrawer();
+        sessionStorage.removeItem('mob_adm_logado');
+        localStorage.removeItem('mob_adm_logado');
+        verificarLogin();
+      };
+
+      /* ==================== PUSH NOTIFICATIONS & TELA BLOQUEADA ==================== */
+      async function registrarServiceWorker() {
+        if ('serviceWorker' in navigator) {
+          try {
+            swRegistration = await navigator.serviceWorker.register('sw.js');
+          } catch (err) {
+            console.warn('Falha ao registrar Service Worker:', err);
+          }
+        }
+        atualizarStatusPermissaoPush();
+      }
+
+      function atualizarStatusPermissaoPush() {
+        const txt = $('#txt-status-push-permissao');
+        const banner = $('#banner-solicitar-push');
+
+        if (!('Notification' in window)) {
+          if (txt) txt.textContent = 'Não suportado neste navegador';
+          if (banner) banner.hidden = true;
+          return;
+        }
+
+        if (Notification.permission === 'granted') {
+          if (txt) txt.innerHTML = '<span style="color:var(--sucesso)">Ativo e Autorizado (Notifica na Tela Bloqueada)</span>';
+          if (banner) banner.hidden = true;
+        } else if (Notification.permission === 'denied') {
+          if (txt) txt.innerHTML = '<span style="color:var(--alerta)">Bloqueado nas configurações do navegador</span>';
+          if (banner) banner.hidden = true;
+        } else {
+          if (txt) txt.innerHTML = '<span style="color:var(--aviso)">Aguardando autorização</span>';
+          if (banner) banner.hidden = false;
+        }
+      }
+
+      async function pedirPermissaoPush() {
+        if (!('Notification' in window)) return;
+        SomAlerta.obterCtx();
+        const perm = await Notification.requestPermission();
+        atualizarStatusPermissaoPush();
+        if (perm === 'granted') {
+          dispararPush('Notificações Ativas!', 'Você receberá avisos sonoros de vendas e reposição de estoque.');
+          SomAlerta.tocar('sino');
+        }
+      }
+
+      const btnAtivarPush = $('#btn-ativar-push');
+      if (btnAtivarPush) btnAtivarPush.onclick = pedirPermissaoPush;
+
+      $('#btn-retestar-push').onclick = async () => {
+        if (Notification.permission !== 'granted') {
+          await pedirPermissaoPush();
+        } else {
+          const somVenda = $('#cfg-som-venda')?.value || 'caixa_oficial';
+          SomAlerta.tocar(somVenda);
+          dispararPush(
+            'Teste Rota do Forte (Tela Bloqueada)',
+            'Pedido #005 finalizado com sucesso · R$ 42,00 (PIX)'
+          );
+        }
+      };
+
+      function dispararPush(titulo, corpo, tag = 'alerta-adm') {
+        if (!('Notification' in window) || Notification.permission !== 'granted') return;
+
+        if (swRegistration && swRegistration.active) {
+          swRegistration.active.postMessage({
+            type: 'NOTIFICAR',
+            titulo,
+            corpo,
+            tag,
+            icone: '/assets/logo-topo.png'
+          });
+        } else if (navigator.serviceWorker && navigator.serviceWorker.controller) {
+          navigator.serviceWorker.controller.postMessage({
+            type: 'NOTIFICAR',
+            titulo,
+            corpo,
+            tag,
+            icone: '/assets/logo-topo.png'
+          });
+        } else {
+          try {
+            new Notification(titulo, {
+              body: corpo,
+              icon: '/assets/logo-topo.png',
+              badge: '/assets/logo-topo.png',
+              tag
+            });
+          } catch {}
+        }
+      }
+
+      // Configuração de Sons
+      $('#btn-testar-som-venda').onclick = () => {
+        SomAlerta.tocar($('#cfg-som-venda').value);
+      };
+      $('#btn-testar-som-estoque').onclick = () => {
+        SomAlerta.tocar($('#cfg-som-estoque').value);
+      };
+
+      $('#cfg-som-venda').onchange = e => localStorage.setItem('cfg_som_venda', e.target.value);
+      $('#cfg-som-estoque').onchange = e => localStorage.setItem('cfg_som_estoque', e.target.value);
+
+      const somVendaSalvo = localStorage.getItem('cfg_som_venda') || 'caixa_oficial';
+      const somEstoqueSalvo = localStorage.getItem('cfg_som_estoque') || 'sirene_oficial';
+      if ($('#cfg-som-venda')) $('#cfg-som-venda').value = somVendaSalvo;
+      if ($('#cfg-som-estoque')) $('#cfg-som-estoque').value = somEstoqueSalvo;
+
+      /* ==================== IDENTIDADE VISUAL DO ESTABELECIMENTO ==================== */
+      function aplicarMarcaQuiosque() {
+        const cfg = (typeof DB !== 'undefined' && DB.estado && DB.estado.config) ? DB.estado.config : {};
+        const nomeLoja = cfg.loja || 'Rota do Forte';
+        const logoLoja = cfg.logo || 'assets/logo.png';
+        const logoTopo = cfg.logo || 'assets/logo-topo.png';
+
+        // Atualiza a Tela de Login
+        const imgLogin = $('#login-logo-img');
+        const titLogin = $('#login-nome-quiosque');
+        const subLogin = $('#login-sub-quiosque');
+        if (imgLogin) imgLogin.src = logoLoja;
+        if (titLogin) titLogin.textContent = nomeLoja;
+        if (subLogin) subLogin.textContent = 'Gestão Empresarial ADM';
+
+        // Atualiza a Barra Superior Fixa
+        const titTopo = $('#mob-topo-tit');
+        const logoTopoEl = $('#mob-topo-logo');
+        if (titTopo) titTopo.textContent = nomeLoja;
+        if (logoTopoEl) logoTopoEl.src = logoTopo;
+
+        // Atualiza o Cabeçalho do Drawer Lateral
+        const titDrawer = $('#drawer-nome-loja');
+        const logoDrawer = $('#drawer-logo');
+        if (titDrawer) titDrawer.textContent = nomeLoja;
+        if (logoDrawer) logoDrawer.src = logoTopo;
+
+        // Atualiza o Título do Documento
+        document.title = `${nomeLoja} — Gestão ADM Móvel`;
+
+        // Atualiza a Home se estiver renderizada
+        const titHome = $('#home-saudacao');
+        if (titHome) {
+          const agora = new Date();
+          const hora = agora.getHours();
+          let saudacaoTxt = 'Bom dia!';
+          if (hora >= 12 && hora < 18) saudacaoTxt = 'Boa tarde!';
+          else if (hora >= 18 || hora < 5) saudacaoTxt = 'Boa noite!';
+          titHome.textContent = `${saudacaoTxt} ${nomeLoja}`;
+        }
+      }
+
+      // Mostrar/Ocultar Senha (Olho)
+      const btnOlhoSenha = $('#btn-olho-senha');
+      const inputLoginSenha = $('#login-senha');
+      const svgOlhoAberto = $('#svg-olho-aberto');
+      const svgOlhoFechado = $('#svg-olho-fechado');
+      if (btnOlhoSenha && inputLoginSenha) {
+        btnOlhoSenha.onclick = () => {
+          if (inputLoginSenha.type === 'password') {
+            inputLoginSenha.type = 'text';
+            if (svgOlhoAberto) svgOlhoAberto.style.display = 'none';
+            if (svgOlhoFechado) svgOlhoFechado.style.display = 'block';
+          } else {
+            inputLoginSenha.type = 'password';
+            if (svgOlhoAberto) svgOlhoAberto.style.display = 'block';
+            if (svgOlhoFechado) svgOlhoFechado.style.display = 'none';
+          }
+        };
+      }
+
+      // Preenchimento de "Lembrar de Mim"
+      const inputLoginUser = $('#login-usuario');
+      const chkLembreMim = $('#chk-lembre-mim');
+      const usuarioSalvo = localStorage.getItem('mob_adm_salvo_user');
+      const lembrarAtivo = localStorage.getItem('mob_adm_lembrar') === 'true';
+      if (chkLembreMim) chkLembreMim.checked = lembrarAtivo;
+      if (inputLoginUser && usuarioSalvo && lembrarAtivo) {
+        inputLoginUser.value = usuarioSalvo;
+      }
+
+      // Controle de Sessão ADM Mobile
+      function estaAutenticado() {
+        return sessionStorage.getItem('mob_adm_logado') === 'true' || localStorage.getItem('mob_adm_logado') === 'true';
+      }
+
+      function verificarLogin() {
+        aplicarMarcaQuiosque();
+
+        if (!estaAutenticado()) {
+          $('#tela-login').hidden = false;
+          $('#aba-home').hidden = true;
+          $('#aba-estoque').hidden = true;
+          $('#aba-alertas').hidden = true;
+          $('#aba-financeiro').hidden = true;
+          $('#aba-config').hidden = true;
+          $('#btn-abrir-drawer').style.visibility = 'hidden';
+        } else {
+          $('#tela-login').hidden = true;
+          $('#btn-abrir-drawer').style.visibility = 'visible';
+          mudarAba(abaAtiva);
+        }
+      }
+
+      // Proteção de Força Bruta (Bloqueio após 5 tentativas incorretas)
+      let tentativasIncorretas = 0;
+      let bloqueadoAte = 0;
+
+      $('#form-login-adm').onsubmit = async (e) => {
+        if (e) e.preventDefault();
+        const agora = Date.now();
+        if (agora < bloqueadoAte) {
+          const restam = Math.ceil((bloqueadoAte - agora) / 1000);
+          $('#segundos-bloqueio').textContent = restam;
+          $('#login-bloqueio').style.display = 'block';
+          return;
+        }
+
+        const usuario = ($('#login-usuario')?.value || 'admin').trim();
+        const senha = ($('#login-senha')?.value || '').trim();
+        const lembrar = $('#chk-lembre-mim')?.checked;
+
+        if (!senha) {
+          $('#login-erro').textContent = 'Informe a senha de administrador.';
+          $('#login-erro').style.display = 'block';
+          return;
+        }
+
+        // Tenta conferir login com o usuário digitado ou 'admin'
+        let conf = await DB.conferirLogin(usuario, senha);
+        if (!conf && usuario.toLowerCase() !== 'admin') {
+          conf = await DB.conferirLogin('admin', senha);
+        }
+
+        if (conf && conf.papel === 'admin') {
+          tentativasIncorretas = 0;
+          $('#login-erro').style.display = 'none';
+          $('#login-bloqueio').style.display = 'none';
+
+          if (lembrar) {
+            localStorage.setItem('mob_adm_logado', 'true');
+            localStorage.setItem('mob_adm_lembrar', 'true');
+            localStorage.setItem('mob_adm_salvo_user', usuario);
+          } else {
+            sessionStorage.setItem('mob_adm_logado', 'true');
+            localStorage.removeItem('mob_adm_logado');
+            localStorage.removeItem('mob_adm_lembrar');
+          }
+
+          SomAlerta.obterCtx();
+          verificarLogin();
+        } else {
+          tentativasIncorretas++;
+          $('#login-erro').textContent = 'Usuário ou senha incorretos. Apenas Administrador.';
+          $('#login-erro').style.display = 'block';
+
+          if (tentativasIncorretas >= 5) {
+            bloqueadoAte = Date.now() + 30000; // 30 segundos
+            $('#segundos-bloqueio').textContent = '30';
+            $('#login-bloqueio').style.display = 'block';
+            const timer = setInterval(() => {
+              const r = Math.ceil((bloqueadoAte - Date.now()) / 1000);
+              if (r <= 0) {
+                clearInterval(timer);
+                tentativasIncorretas = 0;
+                $('#login-bloqueio').style.display = 'none';
+              } else {
+                $('#segundos-bloqueio').textContent = r;
+              }
+            }, 1000);
+          }
+        }
+      };
+
+      /* ==================== MODAL DE ESQUECI A SENHA ==================== */
+      const modalEsqueciOverlay = $('#modal-esqueci-senha-overlay');
+      const btnAbrirEsqueci = $('#btn-abrir-esqueci-senha');
+      const btnFecharEsqueci = $('#btn-fechar-modal-esqueci');
+
+      function abrirModalEsqueci() {
+        if (!modalEsqueciOverlay) return;
+        modalEsqueciOverlay.classList.add('aberto');
+        $('#rec-feedback-erro').style.display = 'none';
+        $('#etapa-email-1').style.display = 'block';
+        $('#etapa-email-2').style.display = 'none';
+        const u = $('#login-usuario')?.value || '';
+        if ($('#rec-email-identificador')) $('#rec-email-identificador').value = u;
+      }
+
+      function fecharModalEsqueci() {
+        if (modalEsqueciOverlay) modalEsqueciOverlay.classList.remove('aberto');
+      }
+
+      if (btnAbrirEsqueci) btnAbrirEsqueci.onclick = abrirModalEsqueci;
+      if (btnFecharEsqueci) btnFecharEsqueci.onclick = fecharModalEsqueci;
+      if (modalEsqueciOverlay) {
+        modalEsqueciOverlay.onclick = e => {
+          if (e.target === modalEsqueciOverlay) fecharModalEsqueci();
+        };
+      }
+
+      // Alternância de Abas na Recuperação (Email vs Chave Mestra)
+      const abaRecEmail = $('#aba-rec-email');
+      const abaRecChave = $('#aba-rec-chave');
+      const painelRecEmail = $('#painel-rec-email');
+      const painelRecChave = $('#painel-rec-chave');
+
+      if (abaRecEmail && abaRecChave) {
+        abaRecEmail.onclick = () => {
+          abaRecEmail.classList.add('ativo');
+          abaRecChave.classList.remove('ativo');
+          painelRecEmail.style.display = 'block';
+          painelRecChave.style.display = 'none';
+          $('#rec-feedback-erro').style.display = 'none';
+        };
+        abaRecChave.onclick = () => {
+          abaRecChave.classList.add('ativo');
+          abaRecEmail.classList.remove('ativo');
+          painelRecEmail.style.display = 'none';
+          painelRecChave.style.display = 'block';
+          $('#rec-feedback-erro').style.display = 'none';
+        };
+      }
+
+      // Solicitar Código PIN por E-mail
+      const btnSolicitarPin = $('#btn-solicitar-pin');
+      if (btnSolicitarPin) {
+        btnSolicitarPin.onclick = async () => {
+          const ident = ($('#rec-email-identificador')?.value || '').trim();
+          if (!ident) {
+            mostrarErroRec('Informe seu usuário ou e-mail cadastrado.');
+            return;
+          }
+
+          btnSolicitarPin.disabled = true;
+          btnSolicitarPin.textContent = 'Enviando código...';
+
+          try {
+            const resp = await fetch('/api/recuperar-senha', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ acao: 'solicitar', identificador: ident })
+            });
+            const dados = await resp.json();
+
+            if (dados.ok) {
+              $('#etapa-email-1').style.display = 'none';
+              $('#etapa-email-2').style.display = 'block';
+              $('#msg-pin-sucesso').innerHTML = `Código temporário de 6 dígitos enviado para <strong>${dados.emailMascarado}</strong> (Válido por 15 minutos).`;
+              $('#rec-feedback-erro').style.display = 'none';
+
+              // Preenche automaticamente o código para demonstração imediata caso retornado
+              if (dados.pinDemonstracao && $('#rec-pin-codigo')) {
+                $('#rec-pin-codigo').value = dados.pinDemonstracao;
+              }
+            } else {
+              mostrarErroRec(dados.erro || 'Falha ao solicitar código.');
+            }
+          } catch (err) {
+            mostrarErroRec('Erro de conexão com o servidor local. Verifique sua rede.');
+          } finally {
+            btnSolicitarPin.disabled = false;
+            btnSolicitarPin.textContent = 'Gerar Código de 6 Dígitos';
+          }
+        };
+      }
+
+      // Confirmar Código PIN e Redefinir Senha
+      const btnConfirmarPin = $('#btn-confirmar-pin');
+      if (btnConfirmarPin) {
+        btnConfirmarPin.onclick = async () => {
+          const pin = ($('#rec-pin-codigo')?.value || '').trim();
+          const novaSenha = ($('#rec-nova-senha')?.value || '').trim();
+          const ident = ($('#rec-email-identificador')?.value || 'admin').trim();
+
+          if (pin.length !== 6) {
+            mostrarErroRec('Digite o código de 6 dígitos recebido.');
+            return;
+          }
+          if (novaSenha.length < 3) {
+            mostrarErroRec('A nova senha deve ter no mínimo 3 dígitos.');
+            return;
+          }
+
+          btnConfirmarPin.disabled = true;
+          btnConfirmarPin.textContent = 'Redefinindo...';
+
+          try {
+            const resp = await fetch('/api/recuperar-senha', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ acao: 'confirmar', usuario: ident, pin, novaSenha })
+            });
+            const dados = await resp.json();
+
+            if (dados.ok) {
+              alert('Senha redefinida com sucesso! Você será conectado automaticamente.');
+              fecharModalEsqueci();
+              if ($('#login-senha')) $('#login-senha').value = novaSenha;
+              sessionStorage.setItem('mob_adm_logado', 'true');
+              verificarLogin();
+            } else {
+              mostrarErroRec(dados.erro || 'Falha ao redefinir senha.');
+            }
+          } catch (err) {
+            mostrarErroRec('Erro de conexão ao redefinir senha.');
+          } finally {
+            btnConfirmarPin.disabled = false;
+            btnConfirmarPin.textContent = 'Redefinir Senha e Entrar';
+          }
+        };
+      }
+
+      // Confirmar Redefinição via Chave Mestra Offline
+      const btnConfirmarChave = $('#btn-confirmar-chave');
+      if (btnConfirmarChave) {
+        btnConfirmarChave.onclick = async () => {
+          const chave = ($('#rec-chave-mestra')?.value || '').trim();
+          const novaSenha = ($('#rec-chave-nova-senha')?.value || '').trim();
+          const usuario = ($('#login-usuario')?.value || 'admin').trim();
+
+          if (!chave) {
+            mostrarErroRec('Informe a Chave Mestra gravada no arquivo dados/chave_mestra.txt');
+            return;
+          }
+          if (novaSenha.length < 3) {
+            mostrarErroRec('A nova senha deve ter no mínimo 3 dígitos.');
+            return;
+          }
+
+          btnConfirmarChave.disabled = true;
+          btnConfirmarChave.textContent = 'Validando chave...';
+
+          try {
+            const resp = await fetch('/api/recuperar-senha', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ acao: 'chave-mestra', usuario, chave, novaSenha })
+            });
+            const dados = await resp.json();
+
+            if (dados.ok) {
+              alert('Senha redefinida com sucesso via Chave Mestra! Conectando ao painel...');
+              fecharModalEsqueci();
+              if ($('#login-senha')) $('#login-senha').value = novaSenha;
+              sessionStorage.setItem('mob_adm_logado', 'true');
+              verificarLogin();
+            } else {
+              mostrarErroRec(dados.erro || 'Chave Mestra incorreta.');
+            }
+          } catch (err) {
+            mostrarErroRec('Erro de comunicação com o servidor.');
+          } finally {
+            btnConfirmarChave.disabled = false;
+            btnConfirmarChave.textContent = 'Redefinir com Chave Mestra';
+          }
+        };
+      }
+
+      function mostrarErroRec(msg) {
+        const box = $('#rec-feedback-erro');
+        if (box) {
+          box.textContent = msg;
+          box.style.display = 'block';
+        }
+      }
+
+      // Alternador de Abas Centrais
+      function mudarAba(novaAba) {
+        abaAtiva = novaAba;
+        $$('.drawer-item[data-nav]').forEach(b => b.classList.toggle('ativo', b.dataset.nav === novaAba));
+        $('#aba-home').hidden = novaAba !== 'home';
+        $('#aba-estoque').hidden = novaAba !== 'estoque';
+        $('#aba-alertas').hidden = novaAba !== 'alertas';
+        $('#aba-financeiro').hidden = novaAba !== 'financeiro';
+        $('#aba-config').hidden = novaAba !== 'config';
+        window.scrollTo(0, 0);
+
+        if (novaAba === 'home') renderHome();
+        if (novaAba === 'estoque') renderEstoque();
+        if (novaAba === 'alertas') renderAlertas();
+        if (novaAba === 'financeiro') renderFinanceiro();
+      }
+
+      /* ==================== 1. ABA HOME (DASHBOARD VISUAL CONSOLIDADO) ==================== */
+      function renderHome() {
+        if (!estadoDB) return;
+        const vendasHoje = DB.vendasNoPeriodo('hoje');
+        const fat = vendasHoje.reduce((s, v) => s + v.total, 0);
+        const ticket = vendasHoje.length ? fat / vendasHoje.length : 0;
+        const cx = DB.caixaAberto();
+        const alertas = DB.produtosAbaixoDoMinimo();
+
+        // 1. Saudação & Horário Dinâmico da Loja do Dono
+        const agora = new Date();
+        const hora = agora.getHours();
+        let saudacaoTxt = 'Bom dia!';
+        if (hora >= 12 && hora < 18) saudacaoTxt = 'Boa tarde!';
+        else if (hora >= 18 || hora < 5) saudacaoTxt = 'Boa noite!';
+
+        const nomeLoja = DB?.estado?.config?.loja || 'Rota do Forte';
+        $('#home-saudacao').textContent = `${saudacaoTxt} ${nomeLoja}`;
+        const diaSemana = ['Domingo', 'Segunda-feira', 'Terça-feira', 'Quarta-feira', 'Quinta-feira', 'Sexta-feira', 'Sábado'][agora.getDay()];
+        $('#home-data-hoje').textContent = `${nomeLoja} · ${diaSemana}, ${agora.toLocaleDateString('pt-BR')}`;
+
+        // 2. Status do Caixa no Cabeçalho da Home com Operador Real
+        const badgeCx = $('#home-badge-status-caixa');
+        if (cx) {
+          const nomeOp = cx.operador || 'Administrador';
+          badgeCx.className = 'badge-estoque badge-estoque--ok';
+          badgeCx.textContent = `Aberto por ${nomeOp}`;
+        } else {
+          badgeCx.className = 'badge-estoque badge-estoque--zerado';
+          badgeCx.textContent = 'Caixa Fechado';
+        }
+
+        // 3. Banner de Alertas Críticos na Home
+        const cardAlerta = $('#home-card-alerta-critico');
+        if (alertas.length > 0) {
+          cardAlerta.style.display = 'block';
+          $('#home-qtd-alerta-critico').textContent = `${alertas.length} produto(s)`;
+          $('#home-txt-alerta-critico').textContent = `${alertas.map(a => a.nome).slice(0, 3).join(', ')}${alertas.length > 3 ? ' e outros' : ''} atingiram o estoque mínimo. Toque para ver e repor.`;
+          cardAlerta.onclick = () => mudarAba('alertas');
+        } else {
+          cardAlerta.style.display = 'none';
+        }
+
+        // 4. KPIs Executivos
+        $('#home-kpi-fat').textContent = DB.moeda(fat);
+        $('#home-kpi-vendas').textContent = vendasHoje.length;
+        $('#home-kpi-ticket').textContent = DB.moeda(ticket);
+
+        const porPag = { dinheiro: 0, pix: 0, debito: 0, credito: 0 };
+        vendasHoje.forEach(v => {
+          if (porPag[v.pagamento] != null) porPag[v.pagamento] += v.total;
+        });
+        const dinheiroGaveta = cx ? ((cx.fundo || 0) + porPag.dinheiro) : 0;
+        $('#home-kpi-gaveta').textContent = DB.moeda(dinheiroGaveta);
+
+        // 5. Gráfico de Vendas por Hora do Dia (8h às 21h)
+        const graficoContainer = $('#home-grafico-horas');
+        const contagemPorHora = {};
+        for (let h = 8; h <= 21; h++) contagemPorHora[h] = 0;
+
+        vendasHoje.forEach(v => {
+          if (v.data) {
+            const h = new Date(v.data).getHours();
+            if (contagemPorHora[h] != null) contagemPorHora[h] += v.total;
+          }
+        });
+
+        const maxFatHora = Math.max(...Object.values(contagemPorHora), 10);
+        graficoContainer.innerHTML = Object.entries(contagemPorHora).map(([h, valor]) => {
+          const perc = Math.round((valor / maxFatHora) * 100);
+          const ehPico = valor > 0 && valor === Math.max(...Object.values(contagemPorHora));
+          return `
+            <div class="coluna-hora" title="${h}h: ${DB.moeda(valor)}">
+              <div class="barra-hora ${ehPico ? 'pico' : ''}" style="height:${Math.max(perc, 5)}%"></div>
+              <span class="rotulo-hora">${h}</span>
+            </div>
+          `;
+        }).join('');
+
+        // 6. Barra Proporcional de Pagamentos
+        const totalPag = (porPag.pix + porPag.credito + porPag.debito + porPag.dinheiro) || 1;
+        const pPix = Math.round((porPag.pix / totalPag) * 100);
+        const pCred = Math.round((porPag.credito / totalPag) * 100);
+        const pDeb = Math.round((porPag.debito / totalPag) * 100);
+        const pDin = 100 - (pPix + pCred + pDeb);
+
+        $('#home-barra-pagamentos').innerHTML = `
+          <div class="fatia-pag fatia-pag--pix" style="width:${pPix}%"></div>
+          <div class="fatia-pag fatia-pag--credito" style="width:${pCred}%"></div>
+          <div class="fatia-pag fatia-pag--debito" style="width:${pDeb}%"></div>
+          <div class="fatia-pag fatia-pag--dinheiro" style="width:${Math.max(pDin, 0)}%"></div>
+        `;
+
+        $('#home-legenda-pix').textContent = DB.moeda(porPag.pix);
+        $('#home-legenda-credito').textContent = DB.moeda(porPag.credito);
+        $('#home-legenda-debito').textContent = DB.moeda(porPag.debito);
+        $('#home-legenda-dinheiro').textContent = DB.moeda(porPag.dinheiro);
+
+        // 7. Vendas por Categoria (Barras de Progresso)
+        const cats = DB.categorias();
+        const vendasPorCat = {};
+        cats.forEach(c => { vendasPorCat[c.id] = { nome: c.nome, total: 0, qtd: 0 }; });
+
+        vendasHoje.forEach(v => {
+          (v.itens || []).forEach(i => {
+            const p = DB.produto(i.produtoId);
+            const catId = p?.categoriaId || 'cat-bebidas';
+            if (vendasPorCat[catId]) {
+              vendasPorCat[catId].total += (i.preco * i.qtd);
+              vendasPorCat[catId].qtd += i.qtd;
+            }
+          });
+        });
+
+        const listaCategorias = Object.values(vendasPorCat).sort((a, b) => b.total - a.total);
+        const maxCatTotal = Math.max(...listaCategorias.map(c => c.total), 1);
+
+        $('#home-lista-categorias').innerHTML = listaCategorias.map(c => {
+          const perc = Math.round((c.total / maxCatTotal) * 100);
+          return `
+            <div class="cat-barra-linha">
+              <div class="cat-barra-topo">
+                <span>${c.nome} <small style="font-weight:700;color:var(--tinta-2)">(${c.qtd} un)</small></span>
+                <span>${DB.moeda(c.total)}</span>
+              </div>
+              <div class="cat-barra-pista">
+                <div class="cat-barra-progresso" style="width:${perc}%"></div>
+              </div>
+            </div>
+          `;
+        }).join('');
+      }
+
+      /* ==================== 2. ABA ESTOQUE ==================== */
+      function renderEstoque() {
+        if (!estadoDB) return;
+        const prods = DB.produtos().filter(p => p.controlaEstoque);
+        const alertas = DB.produtosAbaixoDoMinimo();
+
+        $('#kpi-total-prods').textContent = prods.length;
+        $('#kpi-estoque-baixo').textContent = alertas.length;
+
+        const badgeDrawer = $('#drawer-badge-alertas');
+        if (alertas.length > 0) {
+          badgeDrawer.textContent = alertas.length;
+          badgeDrawer.hidden = false;
+        } else {
+          badgeDrawer.hidden = true;
+        }
+
+        let filtrados = prods;
+        if (categoriaFiltro === 'baixo') {
+          filtrados = alertas;
+        } else if (categoriaFiltro !== 'todas') {
+          filtrados = prods.filter(p => p.categoriaId === categoriaFiltro);
+        }
+
+        if (termoBusca) {
+          const t = termoBusca.toLowerCase();
+          filtrados = filtrados.filter(p => p.nome.toLowerCase().includes(t) || (p.codigo && p.codigo.includes(t)));
+        }
+
+        const lista = $('#lista-estoque');
+        if (!filtrados.length) {
+          lista.innerHTML = `<div style="text-align:center;padding:36px 10px;color:var(--tinta-2);font-weight:800;font-size:15px">Nenhum produto encontrado com este filtro.</div>`;
+          return;
+        }
+
+        lista.innerHTML = filtrados.map(p => {
+          const min = p.estoqueMinimo != null ? Number(p.estoqueMinimo) : 5;
+          const status = p.estoque <= 0 ? 'zerado' : (p.estoque <= min ? 'baixo' : 'ok');
+          const rotulo = p.estoque <= 0 ? 'Zerado' : (p.estoque <= min ? `Alerta (min ${min})` : 'Normal');
+
+          return `
+            <div class="mob-item">
+              <div class="mob-item__info">
+                <div class="mob-item__nome">${p.nome}</div>
+                <div class="mob-item__meta">${DB.nomeCategoria(p.categoriaId)} · ${DB.moeda(p.preco)}</div>
+              </div>
+              <div class="mob-item__dir">
+                <span class="badge-estoque badge-estoque--${status}">
+                  ${p.estoque} un · ${rotulo}
+                </span>
+                <button class="btn-ajustar-mini" data-ajustar="${p.id}">Ajustar</button>
+              </div>
+            </div>
+          `;
+        }).join('');
+
+        $$('[data-ajustar]').forEach(b => {
+          b.onclick = () => abrirModalAjuste(b.dataset.ajustar);
+        });
+      }
+
+      // Filtros de Categoria na aba Estoque
+      $$('#filtros-categoria .mob-filtro-btn').forEach(b => {
+        b.onclick = () => {
+          $$('#filtros-categoria .mob-filtro-btn').forEach(x => x.classList.remove('ativo'));
+          b.classList.add('ativo');
+          categoriaFiltro = b.dataset.cat;
+          renderEstoque();
+        };
+      });
+
+      $('#card-kpi-alerta').onclick = () => {
+        $$('#filtros-categoria .mob-filtro-btn').forEach(x => x.classList.toggle('ativo', x.dataset.cat === 'baixo'));
+        categoriaFiltro = 'baixo';
+        renderEstoque();
+      };
+
+      $('#busca-estoque').oninput = e => {
+        termoBusca = e.target.value.trim();
+        renderEstoque();
+      };
+
+      // Modal de Ajuste Rápido Touch
+      function abrirModalAjuste(pid) {
+        prodEmAjuste = DB.produto(pid);
+        if (!prodEmAjuste) return;
+        estoqueTemp = prodEmAjuste.estoque || 0;
+        $('#modal-ajuste-nome').textContent = prodEmAjuste.nome;
+        $('#modal-ajuste-meta').textContent = `Estoque Atual: ${prodEmAjuste.estoque} un · Limite Mínimo: ${prodEmAjuste.estoqueMinimo || 5}`;
+        $('#modal-ajuste-val').textContent = estoqueTemp;
+        $('#modal-ajuste-motivo').value = '';
+        $('#modal-ajuste').classList.add('aberto');
+      }
+
+      function fecharModalAjuste() {
+        $('#modal-ajuste').classList.remove('aberto');
+        prodEmAjuste = null;
+      }
+
+      $('#btn-fechar-modal-ajuste').onclick = fecharModalAjuste;
+      $('#btn-menos-1').onclick = () => { estoqueTemp = Math.max(0, estoqueTemp - 1); $('#modal-ajuste-val').textContent = estoqueTemp; };
+      $('#btn-mais-1').onclick = () => { estoqueTemp++; $('#modal-ajuste-val').textContent = estoqueTemp; };
+      $('#btn-menos-10').onclick = () => { estoqueTemp = Math.max(0, estoqueTemp - 10); $('#modal-ajuste-val').textContent = estoqueTemp; };
+      $('#btn-mais-10').onclick = () => { estoqueTemp += 10; $('#modal-ajuste-val').textContent = estoqueTemp; };
+
+      $('#btn-salvar-ajuste').onclick = async () => {
+        if (!prodEmAjuste) return;
+        const motivo = $('#modal-ajuste-motivo').value.trim() || 'Ajuste Mobile ADM';
+        DB.ajustarEstoque(prodEmAjuste.id, estoqueTemp, motivo);
+        fecharModalAjuste();
+        renderEstoque();
+        renderAlertas();
+        renderHome();
+      };
+
+      /* ==================== 3. ABA ALERTAS ==================== */
+      function renderAlertas() {
+        const criticos = DB.produtosAbaixoDoMinimo();
+        const listaCrit = $('#lista-alertas-criticos');
+
+        if (!criticos.length) {
+          listaCrit.innerHTML = `<div style="text-align:center;padding:20px;background:var(--papel);border-radius:var(--raio-p);color:var(--sucesso);font-weight:800;font-size:14px;border:1.5px solid #A3E0B5">Estoque em dia! Nenhum produto atingiu o nível de alerta de reposição.</div>`;
+        } else {
+          listaCrit.innerHTML = criticos.map(p => `
+            <div class="alerta-card ${p.estoque <= 0 ? '' : 'alerta-card--baixo'}">
+              <div class="alerta-card__topo">
+                <span class="alerta-card__tit">${p.nome}</span>
+                <span class="badge-estoque ${p.estoque <= 0 ? 'badge-estoque--zerado' : 'badge-estoque--baixo'}">
+                  ${p.estoque <= 0 ? 'ZERADO' : `${p.estoque} un`}
+                </span>
+              </div>
+              <div class="alerta-card__desc">
+                Limite Mínimo: <b>${p.estoqueMinimo || 5} un</b> · Categoria: ${DB.nomeCategoria(p.categoriaId)}
+              </div>
+              <button class="btn-ajustar-mini" data-ajustar="${p.id}" style="margin-top:10px">Repor / Ajustar Estoque</button>
+            </div>
+          `).join('');
+
+          listaCrit.querySelectorAll('[data-ajustar]').forEach(b => {
+            b.onclick = () => abrirModalAjuste(b.dataset.ajustar);
+          });
+        }
+
+        const historico = DB.alertasEstoque();
+        const listaHist = $('#lista-historico-alertas');
+        if (!historico.length) {
+          listaHist.innerHTML = `<div style="font-size:13.5px;color:var(--tinta-2);font-weight:700">Nenhum alerta gravado ainda.</div>`;
+        } else {
+          listaHist.innerHTML = historico.slice(0, 15).map(a => `
+            <div style="padding:10px 0;border-bottom:1.5px solid var(--borda);font-size:13.5px">
+              <div style="display:flex;justify-content:space-between">
+                <b>${a.produtoNome}</b>
+                <span style="color:var(--tinta-2);font-weight:800">${a.data ? a.data.slice(0, 10).split('-').reverse().join('/') : ''}</span>
+              </div>
+              <div style="color:var(--tinta-2);font-weight:700">Ficou com ${a.estoqueAtual} un (mínimo era ${a.estoqueMinimo})</div>
+            </div>
+          `).join('');
+        }
+      }
+
+      /* ==================== 4. ABA FINANCEIRO ==================== */
+      function renderFinanceiro() {
+        const vendasHoje = DB.vendasNoPeriodo('hoje');
+        const fat = vendasHoje.reduce((s, v) => s + v.total, 0);
+        const ticket = vendasHoje.length ? fat / vendasHoje.length : 0;
+
+        $('#fin-faturamento').textContent = DB.moeda(fat);
+        $('#fin-vendas').textContent = vendasHoje.length;
+        $('#fin-ticket').textContent = DB.moeda(ticket);
+
+        const porPag = { dinheiro: 0, pix: 0, debito: 0, credito: 0 };
+        vendasHoje.forEach(v => {
+          if (porPag[v.pagamento] != null) porPag[v.pagamento] += v.total;
+        });
+
+        const nomesPag = { dinheiro: 'Dinheiro', pix: 'PIX', debito: 'Cartão de Débito', credito: 'Cartão de Crédito' };
+        $('#fin-pagamentos-lista').innerHTML = Object.entries(porPag).map(([f, valor]) => `
+          <div class="linha-pag">
+            <span>${nomesPag[f] || f}</span>
+            <b style="font-size:15px">${DB.moeda(valor)}</b>
+          </div>
+        `).join('');
+
+        // Status do Caixa com Operador que abriu
+        const cx = DB.caixaAberto();
+        const dot = $('#dot-status');
+        const txt = $('#txt-status-caixa');
+        const det = $('#fin-caixa-detalhe');
+
+        if (cx) {
+          const nomeOp = cx.operador || 'Administrador';
+          const horaAbertura = cx.abertoEm ? new Date(cx.abertoEm).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }) : '';
+          dot.className = 'status-dot status-dot--aberto';
+          txt.textContent = `Caixa Aberto · Aberto por: ${nomeOp}`;
+          det.innerHTML = `
+            <div><b>Status:</b> Aberto às ${horaAbertura}</div>
+            <div><b>Aberto por:</b> ${nomeOp}</div>
+            <div><b>Fundo de Troco Inicial:</b> ${DB.moeda(cx.fundo)}</div>
+          `;
+          $('#fin-dinheiro').textContent = DB.moeda((cx.fundo || 0) + porPag.dinheiro);
+        } else {
+          dot.className = 'status-dot status-dot--fechado';
+          txt.textContent = 'Caixa Fechado';
+          det.innerHTML = `<div>Nenhum caixa aberto no quiosque no momento.</div>`;
+          $('#fin-dinheiro').textContent = 'R$ 0,00';
+        }
+
+        // Feed Ao Vivo de Vendas Recentes
+        $('#txt-contador-vendas-live').textContent = `${vendasHoje.length} venda(s) hoje`;
+        const feedLive = $('#fin-vendas-live-feed');
+
+        if (!vendasHoje.length) {
+          feedLive.innerHTML = `<div style="text-align:center;padding:28px 10px;color:var(--tinta-2);font-weight:700;font-size:14px">Nenhuma venda realizada ainda hoje. Quando o caixa vender, aparecerá aqui instantaneamente!</div>`;
+        } else {
+          feedLive.innerHTML = vendasHoje.slice(0, 30).map(v => {
+            const horaStr = v.data ? new Date(v.data).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }) : '';
+            const itensTexto = (v.itens || []).map(i => `${i.qtd}x ${i.nome}`).join(' · ');
+
+            return `
+              <div class="venda-live-card">
+                <div class="venda-live-card__topo">
+                  <span class="venda-live-card__tit">Pedido #${DB.numeroComanda(v.numeroComanda || v.numero)}</span>
+                  <span class="venda-live-card__hora">${horaStr}</span>
+                </div>
+                <div class="venda-live-card__itens">${itensTexto}</div>
+                <div class="venda-live-card__rodape">
+                  <span>Operador: <b>${v.operador || 'Caixa'}</b> ${v.cliente ? `· ${v.cliente}` : ''}</span>
+                  <span style="font-weight:900;color:var(--tinta);font-size:15px">
+                    ${DB.moeda(v.total)} <span class="badge-estoque badge-estoque--ok" style="font-size:11.5px">${nomesPag[v.pagamento] || v.pagamento}</span>
+                  </span>
+                </div>
+              </div>
+            `;
+          }).join('');
+        }
+      }
+
+      /* ==================== SINCRONIZAÇÃO EM TEMPO REAL & EVENTOS ==================== */
+      async function sincronizarTudo() {
+        await DB.carregar();
+        estadoDB = DB.estado;
+        aplicarMarcaQuiosque();
+
+        const vendasHoje = DB.vendasNoPeriodo('hoje');
+        if (primeiraCargaFeita) {
+          vendasHoje.forEach(v => {
+            if (!idsVendasConhecidas.has(v.id)) {
+              const somVenda = $('#cfg-som-venda')?.value || 'caixa_oficial';
+              if (somVenda !== 'silencioso') SomAlerta.tocar(somVenda);
+
+              const descPag = { dinheiro: 'Dinheiro', pix: 'PIX', debito: 'Débito', credito: 'Crédito' }[v.pagamento] || v.pagamento;
+              dispararPush(
+                `Nova Venda! Pedido #${DB.numeroComanda(v.numeroComanda || v.numero)} · ${DB.moeda(v.total)}`,
+                `${(v.itens || []).map(i => `${i.qtd}x ${i.nome}`).join(', ')} (${descPag}) · Op: ${v.operador || 'Caixa'}`
+              );
+            }
+          });
+        }
+        vendasHoje.forEach(v => idsVendasConhecidas.add(v.id));
+
+        const alertasAtuais = DB.produtosAbaixoDoMinimo();
+        if (primeiraCargaFeita) {
+          alertasAtuais.forEach(p => {
+            if (!produtosAlertaConhecidos.has(p.id)) {
+              const somEstoque = $('#cfg-som-estoque')?.value || 'sirene_oficial';
+              if (somEstoque !== 'silencioso') SomAlerta.tocar(somEstoque);
+
+              dispararPush(
+                `Estoque Crítico: ${p.nome}`,
+                `Atingiu ${p.estoque} unidades (limite mínimo é ${p.estoqueMinimo || 5}). Reponha hoje!`
+              );
+            }
+          });
+        }
+        produtosAlertaConhecidos = new Set(alertasAtuais.map(p => p.id));
+        primeiraCargaFeita = true;
+
+        renderHome();
+        renderEstoque();
+        renderAlertas();
+        renderFinanceiro();
+
+        const agora = new Date();
+        $('#txt-hora-sync').textContent = `${agora.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}`;
+        $('#fin-relogio-ao-vivo').textContent = `Atualizado às ${agora.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}`;
+      }
+
+      $('#btn-recarregar').onclick = () => {
+        SomAlerta.obterCtx();
+        sincronizarTudo();
+      };
+      $('#btn-exportar-backup').onclick = () => DB.exportar();
+
+      // Inicialização
+      async function iniciar() {
+        await registrarServiceWorker();
+        await sincronizarTudo();
+        verificarLogin();
+
+        setInterval(sincronizarTudo, 6000);
+      }
+
+      iniciar();
+    })();
+  </script>
+</body>
+</html>

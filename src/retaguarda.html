@@ -1,0 +1,496 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Rota do Forte — Gestão & Retaguarda</title>
+  <link rel="stylesheet" href="retaguarda.css" />
+</head>
+<body>
+  <div class="gestao-layout">
+    <!-- Sidebar Corporativa -->
+    <aside class="sidebar">
+      <div class="sidebar__brand">
+        <div class="sidebar__logo">
+          <svg viewBox="0 0 24 24" class="ic"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+        </div>
+        <div class="sidebar__titles">
+          <h2>Rota do Forte</h2>
+          <span>Painel de Gestão</span>
+        </div>
+      </div>
+
+      <nav class="sidebar__nav">
+        <div class="nav-section">PRINCIPAL</div>
+        <button class="nav-item ativo" data-tela="dashboard">
+          <svg class="ic" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/></svg>
+          <span>Visão Geral</span>
+        </button>
+
+        <div class="nav-section">ESTOQUE & PRODUTOS</div>
+        <button class="nav-item" data-tela="produtos">
+          <svg class="ic" viewBox="0 0 24 24"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>
+          <span>Catálogo de Produtos</span>
+        </button>
+        <button class="nav-item" data-tela="entradas-xml">
+          <svg class="ic" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><polyline points="9 15 12 12 15 15"/></svg>
+          <span>Entradas por XML (NF-e)</span>
+        </button>
+        <button class="nav-item" data-tela="categorias">
+          <svg class="ic" viewBox="0 0 24 24"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+          <span>Categorias</span>
+        </button>
+
+        <div class="nav-section">FINANCEIRO & FISCAL</div>
+        <button class="nav-item" data-tela="vendas">
+          <svg class="ic" viewBox="0 0 24 24"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+          <span>Histórico de Vendas</span>
+        </button>
+        <button class="nav-item" data-tela="contabilidade">
+          <svg class="ic" viewBox="0 0 24 24"><path d="M4 22h14a2 2 0 0 0 2-2V7.5L14.5 2H6a2 2 0 0 0-2 2v4"/><polyline points="14 2 14 8 20 8"/><path d="M2 15h10"/><path d="m9 18 3-3-3-3"/></svg>
+          <span>Lote Contábil (XML)</span>
+        </button>
+        <button class="nav-item" data-tela="caixas">
+          <svg class="ic" viewBox="0 0 24 24"><rect x="3" y="6" width="18" height="13" rx="2"/><circle cx="12" cy="12.5" r="2.5"/><path d="M6 6V5a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v1"/></svg>
+          <span>Fechamentos de Caixa</span>
+        </button>
+
+        <div class="nav-section">SISTEMA</div>
+        <button class="nav-item" data-tela="funcionarios">
+          <svg class="ic" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+          <span>Equipe & Permissões</span>
+        </button>
+        <button class="nav-item" data-tela="config">
+          <svg class="ic" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.9l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.9-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1A1.7 1.7 0 0 0 9 19.4a1.7 1.7 0 0 0-1.9.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.9 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1A1.7 1.7 0 0 0 4.6 9a1.7 1.7 0 0 0-.3-1.9l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.9.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.9-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.9V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg>
+          <span>Configurações & Loja</span>
+        </button>
+      </nav>
+
+      <div class="sidebar__footer">
+        <a href="index.html" class="btn-voltar-pdv" title="Abrir Frente de Caixa">
+          <svg class="ic" viewBox="0 0 24 24"><path d="M6 6h15l-1.5 9h-12z"/><circle cx="9" cy="20" r="1.5"/><circle cx="18" cy="20" r="1.5"/><path d="M6 6 5 3H2"/></svg>
+          <span>Ir para o PDV Caixa</span>
+        </a>
+      </div>
+    </aside>
+
+    <!-- Área Principal de Conteúdo -->
+    <main class="main-content">
+      <!-- Topbar Administrativo -->
+      <header class="admin-topbar">
+        <div class="topbar-left">
+          <h1 id="topbar-titulo">Visão Geral</h1>
+          <span class="topbar-subtitle" id="topbar-sub">Métricas e gestão do quiosque em tempo real</span>
+        </div>
+        <div class="topbar-right">
+          <div class="user-badge">
+            <div class="user-avatar" id="admin-avatar">AD</div>
+            <div class="user-info">
+              <b id="admin-user-nome">Administrador</b>
+              <span>Gestão Central</span>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <!-- Container de Telas -->
+      <div class="content-body">
+        
+        <!-- TELA: DASHBOARD -->
+        <section class="tela ativa" id="tela-dashboard">
+          <div class="kpi-grid">
+            <div class="card-kpi">
+              <div class="kpi-icon kpi-icon--verde">
+                <svg viewBox="0 0 24 24"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+              </div>
+              <div class="kpi-data">
+                <span>Faturamento Total</span>
+                <b id="dash-faturamento">R$ 0,00</b>
+                <small id="dash-vendas-qtd">0 vendas registradas</small>
+              </div>
+            </div>
+
+            <div class="card-kpi">
+              <div class="kpi-icon kpi-icon--azul">
+                <svg viewBox="0 0 24 24"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>
+              </div>
+              <div class="kpi-data">
+                <span>Produtos Cadastrados</span>
+                <b id="dash-produtos-qtd">0</b>
+                <small id="dash-produtos-baixo">0 com estoque baixo</small>
+              </div>
+            </div>
+
+            <div class="card-kpi">
+              <div class="kpi-icon kpi-icon--laranja">
+                <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+              </div>
+              <div class="kpi-data">
+                <span>Notas Fiscais de Entrada</span>
+                <b id="dash-nfe-qtd">0</b>
+                <small id="dash-nfe-valor">R$ 0,00 comprados</small>
+              </div>
+            </div>
+
+            <div class="card-kpi">
+              <div class="kpi-icon kpi-icon--roxo">
+                <svg viewBox="0 0 24 24"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/></svg>
+              </div>
+              <div class="kpi-data">
+                <span>Vendas Eletrônicas (Contábil)</span>
+                <b id="dash-contabil-valor">R$ 0,00</b>
+                <small>PIX e Cartões</small>
+              </div>
+            </div>
+          </div>
+
+          <div class="grid-2-col" style="margin-top:24px">
+            <div class="card-painel">
+              <div class="card-painel__head">
+                <h3>Vendas por Meio de Pagamento</h3>
+              </div>
+              <div id="dash-grafico-pag" class="grafico-barras"></div>
+            </div>
+
+            <div class="card-painel">
+              <div class="card-painel__head">
+                <h3>Produtos com Maior Saída</h3>
+              </div>
+              <div id="dash-grafico-prod" class="grafico-barras"></div>
+            </div>
+          </div>
+        </section>
+
+        <!-- TELA: PRODUTOS -->
+        <section class="tela" id="tela-produtos">
+          <div class="card-painel">
+            <div class="card-painel__head">
+              <div class="search-box">
+                <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                <input type="text" id="ret-prod-busca" placeholder="Pesquisar por nome ou código..." />
+              </div>
+              <div class="head-actions">
+                <button class="btn-acao btn-acao--secundario" id="ret-btn-importar-xml">
+                  <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                  Importar NF-e (XML)
+                </button>
+                <button class="btn-acao btn-acao--primario" id="ret-btn-novo-prod">
+                  <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                  Novo Produto
+                </button>
+              </div>
+            </div>
+
+            <div class="table-container">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>Item / Código</th>
+                    <th>Categoria</th>
+                    <th class="dir">Preço Venda</th>
+                    <th class="dir">Estoque Atual</th>
+                    <th>Destino Cozinha</th>
+                    <th class="dir">Ações</th>
+                  </tr>
+                </thead>
+                <tbody id="ret-prod-tbody"></tbody>
+              </table>
+              <div class="empty-state" id="ret-prod-vazio" hidden>Nenhum produto cadastrado no catálogo.</div>
+            </div>
+          </div>
+        </section>
+
+        <!-- TELA: ENTRADAS POR XML (NF-E) -->
+        <section class="tela" id="tela-entradas-xml">
+          <div class="card-painel">
+            <div class="card-painel__head">
+              <div>
+                <h3>Notas Fiscais de Fornecedores (Entrada de Estoque)</h3>
+                <p class="sub">Importação automática com conversão de fardo/caixa em unidades e histórico</p>
+              </div>
+              <button class="btn-acao btn-acao--primario" id="ret-btn-importar-xml-2">
+                <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                Importar Novo XML de Compra
+              </button>
+            </div>
+
+            <div class="table-container">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>Número NF-e</th>
+                    <th>Emissão</th>
+                    <th>Fornecedor / Razão Social</th>
+                    <th class="dir">Qtd Itens</th>
+                    <th class="dir">Valor Total da Nota</th>
+                    <th class="dir">Data de Importação</th>
+                  </tr>
+                </thead>
+                <tbody id="ret-compras-tbody"></tbody>
+              </table>
+              <div class="empty-state" id="ret-compras-vazio" hidden>Nenhuma nota fiscal importada ainda. Clique em "Importar Novo XML de Compra" para dar entrada.</div>
+            </div>
+          </div>
+        </section>
+
+        <!-- TELA: CONTABILIDADE -->
+        <section class="tela" id="tela-contabilidade">
+          <div class="card-painel">
+            <div class="card-painel__head">
+              <div>
+                <h3>Exportação Contábil (Lote XML para Contador)</h3>
+                <p class="sub">Geração estrita de vendas eletrônicas rastreáveis. Vendas em dinheiro são 100% excluídas.</p>
+              </div>
+            </div>
+
+            <div class="alert-box alert-box--warning">
+              <svg viewBox="0 0 24 24"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+              <div>
+                <b>FILTRO DE SEGURANÇA FISCAL ATIVO:</b> O pacote XML enviado ao escritório de contabilidade contém apenas vendas por <b>PIX, Cartão de Débito e Cartão de Crédito</b>. Nenhuma informação de vendas em dinheiro é informada.
+              </div>
+            </div>
+
+            <div class="filter-bar">
+              <div class="form-group">
+                <label>Data Início</label>
+                <input type="date" id="ret-contabil-inicio" />
+              </div>
+              <div class="form-group">
+                <label>Data Fim</label>
+                <input type="date" id="ret-contabil-fim" />
+              </div>
+              <button class="btn-acao btn-acao--secundario" id="ret-btn-contabil-filtrar">
+                <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                Filtrar Período
+              </button>
+              <button class="btn-acao btn-acao--verde" id="ret-btn-contabil-exportar" style="margin-left:auto">
+                <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                Gerar XML da Contabilidade
+              </button>
+            </div>
+
+            <div class="kpi-mini-grid" style="margin-top:16px">
+              <div class="kpi-mini">
+                <span>Vendas Eletrônicas Declaradas</span>
+                <b id="ret-contabil-qtd">0</b>
+                <small>PIX e Cartões</small>
+              </div>
+              <div class="kpi-mini">
+                <span>Total Eletrônico Rastreável</span>
+                <b id="ret-contabil-total">R$ 0,00</b>
+                <small>Valor transmitido no lote</small>
+              </div>
+              <div class="kpi-mini kpi-mini--protegido">
+                <span>Vendas em Dinheiro Excluídas</span>
+                <b id="ret-contabil-dinheiro-qtd">0 vendas</b>
+                <small style="color:#2E7D32">100% protegidas fora do XML</small>
+              </div>
+            </div>
+
+            <div class="table-container" style="margin-top:16px">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>Cupom</th>
+                    <th>Data / Hora</th>
+                    <th>Meio de Pagamento</th>
+                    <th>Itens</th>
+                    <th class="dir">Valor</th>
+                    <th>Status no Pacote</th>
+                  </tr>
+                </thead>
+                <tbody id="ret-contabil-tbody"></tbody>
+              </table>
+              <div class="empty-state" id="ret-contabil-vazio" hidden>Nenhuma venda eletrônica no período selecionado.</div>
+            </div>
+          </div>
+        </section>
+
+        <!-- TELA: CATEGORIAS -->
+        <section class="tela" id="tela-categorias">
+          <div class="card-painel">
+            <div class="card-painel__head">
+              <div>
+                <h3>Gestão de Categorias</h3>
+                <p class="sub">Estrutura de organização do catálogo no PDV</p>
+              </div>
+              <button class="btn-acao btn-acao--primario" id="ret-btn-nova-cat">
+                <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                Nova Categoria
+              </button>
+            </div>
+
+            <div class="table-container">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th style="width:70px">Ordem</th>
+                    <th>Nome da Categoria</th>
+                    <th class="dir">Produtos Vinculados</th>
+                    <th class="dir">Ações</th>
+                  </tr>
+                </thead>
+                <tbody id="ret-cat-tbody"></tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <!-- TELA: HISTÓRICO DE VENDAS -->
+        <section class="tela" id="tela-vendas">
+          <div class="card-painel">
+            <div class="card-painel__head">
+              <div>
+                <h3>Todas as Vendas Realizadas</h3>
+                <p class="sub">Histórico completo de cupons e transações</p>
+              </div>
+            </div>
+
+            <div class="table-container">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>Cupom</th>
+                    <th>Data / Hora</th>
+                    <th>Operador</th>
+                    <th>Cliente / Mesa</th>
+                    <th>Forma</th>
+                    <th class="dir">Total</th>
+                  </tr>
+                </thead>
+                <tbody id="ret-vendas-tbody"></tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <!-- TELA: FECHAMENTOS DE CAIXA -->
+        <section class="tela" id="tela-caixas">
+          <div class="card-painel">
+            <div class="card-painel__head">
+              <div>
+                <h3>Histórico de Fechamentos de Caixa</h3>
+                <p class="sub">Conferência de gaveta, faturamento e diferenças por turno</p>
+              </div>
+            </div>
+
+            <div class="table-container">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>Abertura</th>
+                    <th>Fechamento</th>
+                    <th>Operador</th>
+                    <th class="dir">Vendas</th>
+                    <th class="dir">Faturamento</th>
+                    <th class="dir">Dinheiro Esperado</th>
+                    <th class="dir">Contado</th>
+                    <th class="dir">Diferença</th>
+                  </tr>
+                </thead>
+                <tbody id="ret-caixas-tbody"></tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <!-- TELA: FUNCIONÁRIOS -->
+        <section class="tela" id="tela-funcionarios">
+          <div class="card-painel">
+            <div class="card-painel__head">
+              <div>
+                <h3>Usuários e Operadores</h3>
+                <p class="sub">Controle de acessos, senhas e perfis administrativos</p>
+              </div>
+              <button class="btn-acao btn-acao--primario" id="ret-btn-novo-func">
+                <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                Novo Usuário
+              </button>
+            </div>
+
+            <div class="table-container">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>Nome</th>
+                    <th>Usuário (Login)</th>
+                    <th>Papel</th>
+                    <th>Status</th>
+                    <th class="dir">Ações</th>
+                  </tr>
+                </thead>
+                <tbody id="ret-func-tbody"></tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <!-- TELA: CONFIGURAÇÕES -->
+        <section class="tela" id="tela-config">
+          <div class="grid-2-col">
+            <div class="card-painel">
+              <div class="card-painel__head">
+                <h3>Dados do Estabelecimento</h3>
+              </div>
+              <div class="form-body">
+                <div class="form-group">
+                  <label>Nome do Quiosque</label>
+                  <input type="text" id="ret-cfg-loja" />
+                </div>
+                <div class="form-group">
+                  <label>Endereço Completo</label>
+                  <input type="text" id="ret-cfg-endereco" />
+                </div>
+                <div class="form-group">
+                  <label>Telefone / WhatsApp</label>
+                  <input type="text" id="ret-cfg-telefone" />
+                </div>
+                <div class="form-group">
+                  <label>CNPJ</label>
+                  <input type="text" id="ret-cfg-cnpj" />
+                </div>
+                <button class="btn-acao btn-acao--primario" id="ret-btn-salvar-loja" style="margin-top:8px">
+                  Salvar Dados
+                </button>
+              </div>
+            </div>
+
+            <div class="card-painel">
+              <div class="card-painel__head">
+                <h3>Backup e Segurança</h3>
+              </div>
+              <div class="form-body">
+                <p class="sub">Exporte uma cópia completa de segurança com todos os produtos, vendas, estoques e histórico.</p>
+                <button class="btn-acao btn-acao--secundario" id="ret-btn-backup" style="margin-top:12px">
+                  <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                  Exportar Backup Completo (JSON)
+                </button>
+              </div>
+            </div>
+          </div>
+        </section>
+
+      </div>
+    </main>
+  </div>
+
+  <!-- Modal Central de Gestão -->
+  <div class="gestao-modal-fundo" id="modal-gestao" hidden>
+    <div class="gestao-modal">
+      <div class="gestao-modal__head">
+        <h3 id="modal-gestao-tit">Título</h3>
+        <button class="btn-modal-close" id="modal-gestao-x"><svg class="ic" viewBox="0 0 24 24" style="width:14px;height:14px"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></button>
+      </div>
+      <div class="gestao-modal__body" id="modal-gestao-corpo"></div>
+      <div class="gestao-modal__foot" id="modal-gestao-pe"></div>
+    </div>
+  </div>
+
+  <div class="toast-gestao" id="toast-gestao" hidden></div>
+
+  <script src="browser-mock.js"></script>
+  <script src="db.js"></script>
+  <script src="fiscal.js"></script>
+  <script src="retaguarda-app.js"></script>
+</body>
+</html>

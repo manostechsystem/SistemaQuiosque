@@ -1,0 +1,880 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Rota do Forte — PDV</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <!-- Tela de login -->
+  <div class="login" id="tela-login">
+    <div class="login__caixa">
+      <img src="assets/logo-topo.png" alt="Rota do Forte" class="login__logo" id="app-logo-login" />
+      <h1 class="login__tit">Rota do Forte</h1>
+      <p class="login__sub" id="login-sub">Quem está operando?</p>
+      <div class="login__usuarios" id="login-usuarios"></div>
+      <form class="login__form" id="login-form" hidden>
+        <div class="login__campo">
+          <svg class="ic" viewBox="0 0 24 24"><rect x="4" y="11" width="16" height="9" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>
+          <input type="password" id="login-senha" placeholder="Senha" autocomplete="current-password" />
+        </div>
+        <button class="btn-primario login__entrar" type="submit">Entrar</button>
+        <button class="btn-fantasma login__voltar" id="login-voltar" type="button">Escolher outro</button>
+      </form>
+      <p class="login__erro" id="login-erro" hidden>Senha incorreta.</p>
+
+      <!-- Atalho de Recuperação em Computador Novo (ManosTech System) -->
+      <div style="margin-top:18px;padding-top:14px;border-top:1px dashed var(--borda);text-align:center">
+        <button class="btn-link" id="btn-login-restaurar-cnpj" type="button" style="font-size:12px;color:var(--tinta-2);text-decoration:underline;cursor:pointer;background:none;border:none">
+          Computador novo? Restaurar backup por CNPJ
+        </button>
+        <div style="font-size:11px;color:var(--tinta-3);margin-top:4px">
+          ManosTech System · v2.4.0
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Barra superior -->
+  <header class="topo">
+    <div class="topo__marca">
+      <img src="assets/logo-topo.png" alt="Logo Rota do Forte" class="topo__logo" id="app-logo-topo" />
+      <span class="topo__nome" id="topo-badge">PDV</span>
+    </div>
+    <div class="topo__centro">
+      <span class="topo__loja" id="topo-loja">Rota do Forte</span>
+      <button class="topo__caixa-pill fechado" id="topo-caixa-status" type="button" title="Clique para gerenciar a sessão do Caixa">
+        <span class="status-dot"></span>
+        <span id="topo-caixa-txt">Caixa fechado</span>
+      </button>
+    </div>
+    <div class="topo__dir">
+      <span class="topo__relogio" id="relogio">--:--</span>
+      <button class="topo__user" id="btn-user" title="Usuário" hidden>
+        <svg class="ic" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/></svg>
+        <span id="topo-usuario">—</span>
+      </button>
+      <button class="topo__sair" id="btn-sair" title="Encerrar sessão" hidden>
+        <svg class="ic" viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="m16 17 5-5-5-5"/><path d="M21 12H9"/></svg>
+      </button>
+    </div>
+  </header>
+
+  <div class="casca">
+    <!-- Trilho lateral -->
+    <nav class="trilho" id="trilho">
+      <!-- MODO FRENTE DE CAIXA (PDV) -->
+      <div class="trilho__grupo" id="trilho-pdv">
+        <button class="trilho__btn ativo" data-vista="venda" title="Venda (F1)">
+          <svg viewBox="0 0 24 24"><path d="M6 6h15l-1.5 9h-12z"/><circle cx="9" cy="20" r="1.5"/><circle cx="18" cy="20" r="1.5"/><path d="M6 6 5 3H2"/></svg>
+          <span>Venda</span>
+        </button>
+        <button class="trilho__btn" data-vista="caixa" title="Caixa (F2)">
+          <svg viewBox="0 0 24 24"><rect x="3" y="6" width="18" height="13" rx="2"/><circle cx="12" cy="12.5" r="2.5"/><path d="M6 6V5a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v1"/></svg>
+          <span>Caixa</span>
+        </button>
+        <button class="trilho__btn" data-vista="retaguarda" title="Gestão da Empresa (F3)">
+          <svg viewBox="0 0 24 24"><path d="M21 8 12 3 3 8v8l9 5 9-5z"/><path d="M3 8l9 5 9-5"/><path d="M12 13v8"/></svg>
+          <span>Gestão</span>
+        </button>
+        <button class="trilho__btn" data-vista="config" title="Configurações (F4)">
+          <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.9l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.9-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1A1.7 1.7 0 0 0 9 19.4a1.7 1.7 0 0 0-1.9.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.9 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1A1.7 1.7 0 0 0 4.6 9a1.7 1.7 0 0 0-.3-1.9l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.9.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.9-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.9V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg>
+          <span>Ajustes</span>
+        </button>
+      </div>
+
+      <!-- MODO RETAGUARDA (GESTÃO EMPRESARIAL) -->
+      <div class="trilho__grupo" id="trilho-retaguarda" hidden>
+        <button class="trilho__btn ativo" data-ret-nav="financeiro" title="Visão Geral & Financeiro">
+          <svg viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+          <span>Financeiro</span>
+        </button>
+        <button class="trilho__btn" data-ret-nav="estoque" title="Controle de Estoque & Produtos" style="position:relative">
+          <svg viewBox="0 0 24 24"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>
+          <span>Estoque</span>
+          <span class="trilho__badge-alerta" id="ret-badge-estoque" hidden>0</span>
+        </button>
+        <button class="trilho__btn" data-ret-nav="alertas" title="Central de Alertas de Reposição de Estoque" style="position:relative">
+          <svg viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+          <span>Alertas</span>
+          <span class="trilho__badge-alerta" id="ret-badge-alertas" hidden>0</span>
+        </button>
+        <button class="trilho__btn" data-ret-nav="funcionarios" title="Gestão de Funcionários">
+          <svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+          <span>Equipe</span>
+        </button>
+        <button class="trilho__btn" data-ret-nav="compras" title="Entradas de Mercadorias (XML)">
+          <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+          <span>Entradas</span>
+        </button>
+        <button class="trilho__btn" data-ret-nav="contabilidade" title="Envio Contabilidade Fiscal">
+          <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+          <span>Fiscal</span>
+        </button>
+        <button class="trilho__btn" data-vista="config" title="Configurações do Sistema">
+          <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.9l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.9-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1A1.7 1.7 0 0 0 9 19.4a1.7 1.7 0 0 0-1.9.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.9 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1A1.7 1.7 0 0 0 4.6 9a1.7 1.7 0 0 0-.3-1.9l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.9.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.9-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.9V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg>
+          <span>Ajustes</span>
+        </button>
+
+        <button class="trilho__btn trilho__btn--voltar" id="btn-voltar-pdv" title="Retornar à Frente de Caixa (PDV)">
+          <svg viewBox="0 0 24 24"><path d="M9 14 4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 5.5 5.5v0a5.5 5.5 0 0 1-5.5 5.5H11"/></svg>
+          <span>Frente PDV</span>
+        </button>
+      </div>
+    </nav>
+
+    <main class="conteudo">
+      <!-- VISTA: VENDA -->
+      <section class="vista ativa" id="vista-venda">
+        <div class="venda__esq">
+          <!-- Alerta de Caixa Fechado -->
+          <div class="banner-aviso-caixa" id="banner-caixa-fechado" hidden>
+            <div style="display:flex;align-items:center;gap:10px">
+              <svg class="ic" viewBox="0 0 24 24" style="color:#D84315;width:22px;height:22px;flex:none"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+              <span><b>Caixa Fechado:</b> Abra a sessão com o fundo de troco para liberar vendas no PDV.</span>
+            </div>
+            <button class="btn-primario btn-pequeno" id="btn-abrir-caixa-venda" type="button">Abrir Caixa</button>
+          </div>
+
+          <!-- Barra de Busca -->
+          <div class="venda__busca">
+            <svg class="ic" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
+            <input type="text" id="busca" placeholder="Busca rápida por nome ou código de barras… (Pressione / para buscar)" autocomplete="off" />
+          </div>
+
+          <!-- Seção de Acesso Rápido / Mais Vendidos (Cards Menores) -->
+          <div class="venda-rapida" id="venda-rapida">
+            <div class="venda-rapida__cabecalho">
+              <div class="venda-rapida__tit">
+                <span class="venda-rapida__icone"><svg class="ic" viewBox="0 0 24 24"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg></span>
+                <b>ACESSO RÁPIDO · MAIS VENDIDOS</b>
+                <span class="venda-rapida__sub">Cards menores para toque ágil</span>
+              </div>
+              <span class="venda-rapida__dica">Toque para lançar direto</span>
+            </div>
+            <div class="grade-rapida" id="grade-rapida"></div>
+          </div>
+
+          <!-- Categorias Fixadas no Menu de Venda -->
+          <div class="venda-cats-wrapper">
+            <div class="cats" id="cats"></div>
+          </div>
+
+          <!-- Catálogo de Produtos Separado por Categorias -->
+          <div class="venda-catalogo" id="venda-catalogo">
+            <div class="grade" id="grade"></div>
+            <div class="vazio" id="grade-vazio" hidden>Nenhum produto encontrado.</div>
+          </div>
+        </div>
+
+        <aside class="carrinho">
+          <div class="carrinho__tit">
+            <div style="display:flex;align-items:center;gap:8px">
+              <h2>Carrinho</h2>
+              <span id="carrinho-badge-comanda" class="chip" style="font-size:11px;padding:3px 8px;font-weight:800;background:var(--papel);color:var(--primaria);border:1px solid var(--borda-suave);border-radius:6px" title="Pedido atual do dia (reinicia diariamente)">Pedido #001</span>
+            </div>
+            <button class="btn-fantasma" id="btn-limpar" title="Esvaziar carrinho">
+              <svg class="ic" viewBox="0 0 24 24"><path d="M3 6h18"/><path d="M8 6V4h8v2"/><path d="M19 6l-1 14H6L5 6"/></svg>
+            </button>
+          </div>
+          <div class="carrinho__lista" id="itens"></div>
+          <div class="carrinho__vazio" id="carrinho-vazio">
+            <svg viewBox="0 0 24 24"><circle cx="9" cy="20" r="1.5"/><circle cx="18" cy="20" r="1.5"/><path d="M6 6h15l-1.5 9h-12z"/><path d="M6 6 5 3H2"/></svg>
+            <p>Carrinho vazio<br><span>Toque nos produtos para iniciar</span></p>
+          </div>
+          <div class="carrinho__pe">
+            <div class="linha-tot"><span>Subtotal</span><b id="tot-subtotal">R$ 0,00</b></div>
+            <div class="linha-tot linha-desc">
+              <span>Desconto</span>
+              <div class="desc-controle">
+                <button class="mini" id="desc-menos" title="Diminuir desconto">−</button>
+                <b id="tot-desc">R$ 0,00</b>
+                <button class="mini" id="desc-mais" title="Aumentar desconto">+</button>
+                <button class="mini mini--x" id="desc-limpar" title="Zerar desconto"><svg class="ic" viewBox="0 0 24 24" style="width:12px;height:12px"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></button>
+              </div>
+            </div>
+            <div class="linha-total">
+              <span>Total</span>
+              <strong id="tot-total">R$ 0,00</strong>
+            </div>
+            <button class="btn-primario btn-pagar" id="btn-pagar">
+              <svg class="ic" viewBox="0 0 24 24"><path d="M5 12h14"/><path d="m13 6 6 6-6 6"/></svg>
+              Pagar <span id="pagar-valor">R$ 0,00</span>
+            </button>
+          </div>
+        </aside>
+      </section>
+
+      <!-- VISTA: RETAGUARDA (GESTÃO EMPRESARIAL) -->
+      <section class="vista" id="vista-retaguarda">
+        <div class="cabecalho-vista" id="cabecalho-retaguarda">
+          <div>
+            <h1 id="ret-titulo">Gestão Empresarial</h1>
+            <p class="sub" id="ret-sub">Painel administrativo e controle geral</p>
+          </div>
+        </div>
+
+        <!-- ABA RETAGUARDA: FINANCEIRO -->
+        <div class="ret-painel ativa" id="ret-financeiro">
+          <!-- BANNER ALERTA DE ESTOQUE BAIXO NO PAINEL PRINCIPAL -->
+          <div class="banner-alerta-estoque" id="ret-fin-alerta-estoque" hidden>
+            <div style="display:flex;align-items:center;gap:12px">
+              <svg class="ic" viewBox="0 0 24 24" style="color:#D84315;width:26px;height:26px;flex:none"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+              <div>
+                <b id="ret-fin-alerta-texto" style="font-size:13.5px">ALERTA: PRODUTOS COM ESTOQUE BAIXO OU ZERADO!</b>
+                <span id="ret-fin-alerta-sub" style="font-size:12px;display:block;opacity:.85;margin-top:2px">Itens precisam de reposição para evitar perda de vendas.</span>
+              </div>
+            </div>
+            <button class="btn-secundario" id="btn-ir-estoque-alerta" type="button" style="background:#fff;border-color:#F58220;color:#9E3B06;font-weight:700;flex:none">Ver Estoque</button>
+          </div>
+
+          <div class="kpis" style="margin:0 24px 20px">
+            <div class="kpi"><span class="kpi__r">Faturamento Total</span><b class="kpi__v" id="ret-fin-faturamento">R$ 0,00</b><span class="kpi__s">Total vendido</span></div>
+            <div class="kpi"><span class="kpi__r">Total de Vendas</span><b class="kpi__v" id="ret-fin-qtd">0</b><span class="kpi__s">Cupons emitidos</span></div>
+            <div class="kpi"><span class="kpi__r">Ticket Médio</span><b class="kpi__v" id="ret-fin-ticket">R$ 0,00</b><span class="kpi__s">Por venda</span></div>
+            <div class="kpi"><span class="kpi__r">Dinheiro em Gaveta</span><b class="kpi__v" id="ret-fin-dinheiro">R$ 0,00</b><span class="kpi__s">Sessão ativa</span></div>
+          </div>
+
+          <div class="rel-duas" style="margin-bottom:20px">
+            <div class="painel">
+              <h3>Recebimentos por Forma de Pagamento</h3>
+              <div id="ret-fin-pagamentos" class="barras"></div>
+            </div>
+            <div class="painel">
+              <h3>Itens de Maior Faturamento</h3>
+              <div id="ret-fin-produtos" class="barras"></div>
+            </div>
+          </div>
+
+          <div class="painel" style="margin:0 24px">
+            <h3>Histórico Financeiro de Fechamentos de Caixa</h3>
+            <table class="tabela">
+              <thead>
+                <tr>
+                  <th>Abertura</th><th>Aberto por</th><th>Fechamento</th><th>Fechado por</th>
+                  <th class="dir">Vendas</th><th class="dir">Faturamento</th><th class="dir">Esperado</th><th class="dir">Diferença</th>
+                </tr>
+              </thead>
+              <tbody id="ret-fin-caixas-corpo"></tbody>
+            </table>
+            <div class="vazio" id="ret-fin-caixas-vazio" hidden>Nenhum caixa fechado ainda.</div>
+          </div>
+        </div>
+
+        <!-- ABA RETAGUARDA: ESTOQUE & PRODUTOS COM MENU LATERAL EXPANSÍVEL DE CATEGORIAS -->
+        <div class="ret-painel" id="ret-estoque" hidden>
+          <div class="estoque-layout">
+            <!-- MENU LATERAL EXPANSÍVEL DE CATEGORIAS -->
+            <aside class="cat-sidebar" id="cat-sidebar">
+              <div class="cat-sidebar__topo">
+                <span class="cat-sidebar__titulo">
+                  <svg class="ic" viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h7"/></svg>
+                  Categorias
+                </span>
+                <div style="display:flex;align-items:center;gap:4px">
+                  <button class="cat-sidebar__btn-mini btn-primario cat-sidebar__acoes" id="btn-nova-cat-rapida" type="button" title="Cadastrar nova categoria" style="padding:4px 8px;font-size:11.5px;border-radius:6px;gap:2px">
+                    + Nova
+                  </button>
+                  <button class="cat-sidebar__toggle" id="btn-toggle-cat-sidebar" type="button" title="Recolher / Expandir Menu de Categorias">
+                    <svg class="ic" viewBox="0 0 24 24"><path d="m15 18-6-6 6-6"/></svg>
+                  </button>
+                </div>
+              </div>
+              <div class="cat-sidebar__lista" id="cat-sidebar-lista">
+                <!-- Renderizado dinamicamente via JS -->
+              </div>
+            </aside>
+
+            <!-- CONTEÚDO PRINCIPAL DO ESTOQUE -->
+            <div class="estoque-principal">
+              <!-- ALERTA DE ESTOQUE BAIXO -->
+              <div id="alerta-estoque-box" style="margin:16px 24px 14px" hidden>
+                <div class="faixa-info" style="background:#FFF3EB;border-color:#F58220;color:#9E3B06;padding:14px 18px;display:flex;align-items:flex-start;gap:12px;border-radius:12px">
+                  <svg class="ic" viewBox="0 0 24 24" style="width:24px;height:24px;flex:none;color:#D84315"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                  <div style="flex:1">
+                    <div style="font-size:14px;font-weight:800;margin-bottom:4px">ATENÇÃO: PRODUTOS COM ESTOQUE BAIXO OU ZERADO!</div>
+                    <div id="alerta-estoque-lista" style="font-size:12.5px;line-height:1.5"></div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="acoes-ret" style="margin-top:14px">
+                <div class="busca-mini">
+                  <svg class="ic" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
+                  <input type="text" id="prod-busca" placeholder="Filtrar por nome ou código…" />
+                </div>
+                <button class="btn-primario" id="btn-novo-produto">
+                  <svg class="ic" viewBox="0 0 24 24"><path d="M12 5v14"/><path d="M5 12h14"/></svg>
+                  Novo produto
+                </button>
+              </div>
+
+              <div class="tabela-caixa">
+                <table class="tabela" id="prod-tabela">
+                  <thead>
+                    <tr>
+                      <th>Produto</th><th>Categoria</th><th class="dir">Preço</th>
+                      <th class="dir">Estoque</th><th>Tipo</th><th class="centro">Acesso Rápido (PDV)</th><th class="dir">Ações</th>
+                    </tr>
+                  </thead>
+                  <tbody id="prod-corpo"></tbody>
+                </table>
+                <div class="vazio" id="prod-vazio" hidden>Sem produtos cadastrados nesta categoria.</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ABA RETAGUARDA: CENTRAL DE ALERTAS DE ESTOQUE -->
+        <div class="ret-painel" id="ret-alertas" hidden>
+          <div class="acoes-ret" style="margin-bottom:16px;flex-wrap:wrap;gap:12px">
+            <div>
+              <h2 style="font-size:18px;font-weight:800;color:var(--tinta);display:flex;align-items:center;gap:8px">
+                <svg class="ic" viewBox="0 0 24 24" style="color:var(--primaria-forte);width:22px;height:22px"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+                Central de Alertas de Reposição de Estoque
+              </h2>
+              <p class="sub" style="margin:2px 0 0">Monitore itens que atingiram o limite mínimo configurado e consulte o histórico por data</p>
+            </div>
+            <div style="display:flex;align-items:center;gap:8px;margin-left:auto">
+              <button class="btn-secundario" id="btn-alerta-verificar-agora" type="button" title="Verificar estoque agora">
+                <svg class="ic" viewBox="0 0 24 24"><path d="M21.5 2v6h-6"/><path d="M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/></svg>
+                Verificar Agora
+              </button>
+              <button class="btn-primario" id="btn-alerta-ir-estoque" type="button">
+                <svg class="ic" viewBox="0 0 24 24"><path d="M12 5v14"/><path d="M5 12h14"/></svg>
+                Gerenciar Estoque
+              </button>
+            </div>
+          </div>
+
+          <!-- CARDS DE PRODUTOS CRÍTICOS NO MOMENTO -->
+          <div style="margin:0 24px 20px" id="alertas-cards-criticos-container">
+            <h3 style="font-size:14px;font-weight:800;color:var(--tinta);margin-bottom:10px;display:flex;align-items:center;gap:8px">
+              <span class="alerta-pulsar"></span>
+              Produtos que precisam de reposição AGORA
+              <span class="badge-mini" id="alertas-qtd-criticos" style="background:#D84315;color:#fff;font-size:11px;padding:2px 8px;border-radius:12px">0</span>
+            </h3>
+            <div class="alertas-grade-criticos" id="alertas-grade-criticos">
+              <!-- Renderizado dinamicamente via JS -->
+            </div>
+          </div>
+
+          <!-- MINI CALENDÁRIO E FILTROS DO HISTÓRICO -->
+          <div class="painel" style="margin:0 24px 20px;padding:16px 20px">
+            <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px">
+              <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+                <span style="font-size:13px;font-weight:700;color:var(--tinta-2);display:inline-flex;align-items:center;gap:6px">
+                  <svg class="ic" viewBox="0 0 24 24" style="width:16px;height:16px"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                  Mini Calendário:
+                </span>
+                <input type="date" id="filtro-calendario-alertas" class="campo-data-alerta" title="Selecione um dia específico para filtrar o histórico" />
+                <div class="segs" id="segs-filtro-alertas">
+                  <button class="seg ativo" data-filtro-alerta="todos">Todos</button>
+                  <button class="seg" data-filtro-alerta="hoje">Hoje</button>
+                  <button class="seg" data-filtro-alerta="7dias">Últimos 7 dias</button>
+                </div>
+              </div>
+              <div style="font-size:12.5px;color:var(--tinta-3)" id="alertas-resumo-filtro">
+                Exibindo todo o histórico
+              </div>
+            </div>
+          </div>
+
+          <!-- CAIXAS EXPANSÍVEIS (ACCORDIONS) DO HISTÓRICO POR DIA -->
+          <div style="margin:0 24px 24px">
+            <h3 style="font-size:14px;font-weight:800;color:var(--tinta);margin-bottom:12px;display:flex;align-items:center;gap:6px">
+              <svg class="ic" viewBox="0 0 24 24" style="width:16px;height:16px"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+              Histórico de Alertas Registrados por Data
+            </h3>
+            <div id="alertas-lista-expansivel" class="alertas-lista-expansivel">
+              <!-- Renderizado com <details class="alerta-dia-box" open> -->
+            </div>
+            <div class="vazio" id="alertas-vazio" hidden>
+              Nenhum alerta registrado para o filtro selecionado. O estoque está em níveis seguros!
+            </div>
+          </div>
+        </div>
+
+        <div class="ret-painel" id="ret-categorias" hidden>
+          <div class="acoes-ret">
+            <p class="sub" id="cat-contagem">—</p>
+            <button class="btn-primario" id="btn-nova-categoria">
+              <svg class="ic" viewBox="0 0 24 24"><path d="M12 5v14"/><path d="M5 12h14"/></svg>
+              Nova categoria
+            </button>
+          </div>
+          <div class="tabela-caixa">
+            <table class="tabela" id="cat-tabela">
+              <thead>
+                <tr><th class="dir">Ordem</th><th>Nome</th><th class="dir">Produtos</th><th class="dir">Ações</th></tr>
+              </thead>
+              <tbody id="cat-corpo"></tbody>
+            </table>
+            <div class="vazio" id="cat-vazio" hidden>Nenhuma categoria.</div>
+          </div>
+        </div>
+
+        <div class="ret-painel" id="ret-compras" hidden>
+          <div class="acoes-ret">
+            <p class="sub" id="compras-contagem">Entradas de mercadorias via NF-e</p>
+            <button class="btn-primario" id="btn-compras-importar">
+              <svg class="ic" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+              Importar XML de Compra
+            </button>
+          </div>
+          <div class="tabela-caixa">
+            <table class="tabela" id="compras-tabela">
+              <thead>
+                <tr><th>NF-e</th><th>Data Emissão</th><th>Fornecedor</th><th class="dir">Itens</th><th class="dir">Valor Total</th><th class="dir">Importado Em</th></tr>
+              </thead>
+              <tbody id="compras-corpo"></tbody>
+            </table>
+            <div class="vazio" id="compras-vazio" hidden>Nenhuma nota importada ainda. Importe seu primeiro XML de compra!</div>
+          </div>
+        </div>
+
+        <div class="ret-painel" id="ret-contabilidade" hidden>
+          <div class="acoes-ret" style="margin-bottom:16px">
+            <div>
+              <h2 style="font-size:18px;font-weight:800;color:var(--tinta)">Envio para Contabilidade (XML)</h2>
+              <p class="sub" style="margin:2px 0 0">Geração de lote fiscal eletrônico das vendas com exclusão estrita de vendas em dinheiro</p>
+            </div>
+          </div>
+
+          <!-- DADOS DE ENVIO / CONTABILIDADE -->
+          <div class="painel" style="margin:0 24px 18px;padding:16px 20px">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;flex-wrap:wrap;gap:8px">
+              <h3 style="margin:0;font-size:14px;font-weight:800;color:var(--tinta);display:flex;align-items:center;gap:8px">
+                <svg class="ic" viewBox="0 0 24 24" style="color:var(--primaria-forte);width:18px;height:18px"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+                Contabilidade & E-mails de Envio
+              </h3>
+              <button class="btn-secundario" id="btn-salvar-emails-fiscal" type="button" style="padding:5px 12px;font-size:12px;display:inline-flex;align-items:center;gap:6px">
+                <svg class="ic" viewBox="0 0 24 24" style="width:14px;height:14px"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+                Salvar E-mails
+              </button>
+            </div>
+            <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(240px, 1fr));gap:14px">
+              <div class="campo" style="margin:0">
+                <label for="cfg-email-contador" style="font-size:11px;font-weight:700">E-mail do Contador / Escritório</label>
+                <input type="email" id="cfg-email-contador" placeholder="contador@escritorio.com.br" style="height:38px" />
+              </div>
+              <div class="campo" style="margin:0">
+                <label for="cfg-email-remetente" style="font-size:11px;font-weight:700">E-mail de Quem Vai Enviar (Remetente)</label>
+                <input type="email" id="cfg-email-remetente" placeholder="quiosque@rotadoforte.com.br" style="height:38px" />
+              </div>
+              <div class="campo" style="margin:0">
+                <label for="cfg-nome-remetente" style="font-size:11px;font-weight:700">Nome / Empresa de Quem Envia</label>
+                <input type="text" id="cfg-nome-remetente" placeholder="Rota do Forte Beach" style="height:38px" />
+              </div>
+            </div>
+          </div>
+
+          <div class="painel" style="margin:0 24px 20px">
+            <div class="faixa-info" style="margin-bottom:16px;background:rgba(235, 140, 20, .09);border-color:rgba(235, 140, 20, .3);color:#8A4B10">
+              <b>REGRA CONTÁBIL ATIVA:</b> As vendas recebidas em <u>DINHEIRO</u> são estritamente excluídas. Apenas transações eletrônicas rastreáveis (<b>PIX, Cartão de Débito e Cartão de Crédito</b>) são incluídas no arquivo XML.
+            </div>
+
+            <div style="display:flex;gap:16px;align-items:flex-end;flex-wrap:wrap">
+              <div class="campo" style="margin:0">
+                <label>Data Inicial</label>
+                <input type="date" id="contabil-inicio" style="height:40px" />
+              </div>
+              <div class="campo" style="margin:0">
+                <label>Data Final</label>
+                <input type="date" id="contabil-fim" style="height:40px" />
+              </div>
+              <button class="btn-secundario" id="btn-contabil-filtrar" type="button" style="height:40px">
+                <svg class="ic" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
+                Filtrar Vendas
+              </button>
+              <button class="btn-primario" id="btn-contabil-exportar" type="button" style="height:40px">
+                <svg class="ic" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                Gerar XML & Salvar Lote
+              </button>
+            </div>
+
+            <div class="kpis" style="margin:20px 0 0" id="contabil-kpis">
+              <div class="kpi"><span class="kpi__r">Vendas Declaradas</span><b class="kpi__v" id="contabil-qtd">0</b><span class="kpi__s">PIX e Cartões</span></div>
+              <div class="kpi"><span class="kpi__r">Total Declarado</span><b class="kpi__v" id="contabil-total">R$ 0,00</b><span class="kpi__s">Rastreável</span></div>
+              <div class="kpi" style="opacity:.65"><span class="kpi__r">Vendas em Dinheiro</span><b class="kpi__v" id="contabil-dinheiro-qtd">0</b><span class="kpi__s" style="color:var(--verde)">100% Protegidas (Excluídas)</span></div>
+            </div>
+          </div>
+
+          <!-- TABELA DE VENDAS DO PERÍODO -->
+          <div style="margin:0 24px 8px">
+            <h3 style="font-size:13.5px;font-weight:700;color:var(--tinta-2)">Vendas Eletrônicas Declaradas no Período Selecionado</h3>
+          </div>
+          <div class="tabela-caixa">
+            <table class="tabela" id="contabil-tabela">
+              <thead>
+                <tr><th>Cupom</th><th>Data / Hora</th><th>Forma de Pagamento</th><th>Itens</th><th class="dir">Valor (R$)</th><th>Status Contábil</th></tr>
+              </thead>
+              <tbody id="contabil-corpo"></tbody>
+            </table>
+            <div class="vazio" id="contabil-vazio" hidden>Nenhuma venda eletrônica no período selecionado.</div>
+          </div>
+
+          <!-- HISTÓRICO DE LOTES SALVOS NO SISTEMA -->
+          <div style="margin:24px 24px 10px">
+            <h3 style="font-size:14px;font-weight:800;color:var(--tinta);display:flex;align-items:center;gap:8px">
+              <svg class="ic" viewBox="0 0 24 24" style="width:16px;height:16px"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+              Lotes Fiscais Salvos no Sistema & Histórico de Envios ao Contador
+            </h3>
+          </div>
+          <div class="tabela-caixa" style="margin-bottom:30px">
+            <table class="tabela" id="tabela-lotes-fiscais">
+              <thead>
+                <tr>
+                  <th>Lote / Arquivo</th>
+                  <th>Gerado em</th>
+                  <th>Período Fiscal</th>
+                  <th class="dir">Vendas</th>
+                  <th class="dir">Total Declarado</th>
+                  <th>Status de Envio</th>
+                  <th class="dir">Ações</th>
+                </tr>
+              </thead>
+              <tbody id="lotes-fiscais-corpo"></tbody>
+            </table>
+            <div class="vazio" id="lotes-fiscais-vazio" hidden>Nenhum lote fiscal gerado ainda. Clique em "Gerar XML & Salvar Lote" acima.</div>
+          </div>
+        </div>
+
+        <div class="ret-painel" id="ret-funcionarios" hidden>
+          <div class="acoes-ret" style="display:flex;justify-content:space-between;align-items:center;margin:0 24px 16px">
+            <div>
+              <span id="func-contagem" style="font-size:13px;font-weight:600;color:var(--tinta-2)">Carregando colaboradores…</span>
+            </div>
+            <button class="btn-primario" id="btn-novo-funcionario" type="button">
+              <svg class="ic" viewBox="0 0 24 24"><path d="M12 5v14"/><path d="M5 12h14"/></svg>
+              Novo funcionário
+            </button>
+          </div>
+          <div class="tabela-caixa">
+            <table class="tabela" id="func-tabela">
+              <thead>
+                <tr><th>Nome</th><th>Usuário</th><th>Papel</th><th>Pagamento</th><th>Status</th><th class="dir">Ações</th></tr>
+              </thead>
+              <tbody id="func-corpo"></tbody>
+            </table>
+            <div class="vazio" id="func-vazio" hidden>Nenhum funcionário cadastrado.</div>
+          </div>
+        </div>
+      </section>
+
+      <!-- VISTA: CAIXA -->
+      <section class="vista" id="vista-caixa">
+        <div class="cabecalho-vista">
+          <div>
+            <h1>Caixa</h1>
+            <p class="sub" id="rel-data">—</p>
+          </div>
+          <div class="acoes-cabecalho">
+            <div class="segs" id="rel-periodo">
+              <button class="seg ativo" data-periodo="hoje">Hoje</button>
+              <button class="seg" data-periodo="7">7 dias</button>
+              <button class="seg" data-periodo="30">30 dias</button>
+            </div>
+            <button class="btn-secundario" id="btn-imprimir-mov">
+              <svg class="ic" viewBox="0 0 24 24"><path d="M6 9V3h12v6"/><rect x="6" y="14" width="12" height="7"/><path d="M6 18H4a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v3a2 2 0 0 1-2 2h-2"/></svg>
+              Imprimir movimento
+            </button>
+          </div>
+        </div>
+
+        <div class="painel caixa-status" id="caixa-status"></div>
+
+        <div class="kpis" id="kpis">
+          <div class="kpi"><span class="kpi__r">Faturamento</span><b class="kpi__v" id="kpi-fat">R$ 0,00</b><span class="kpi__s" id="kpi-fat-s">no período</span></div>
+          <div class="kpi"><span class="kpi__r">Vendas</span><b class="kpi__v" id="kpi-qtd">0</b><span class="kpi__s" id="kpi-qtd-s">cupons emitidos</span></div>
+          <div class="kpi"><span class="kpi__r">Ticket médio</span><b class="kpi__v" id="kpi-ticket">R$ 0,00</b><span class="kpi__s">por venda</span></div>
+          <div class="kpi kpi--alerta" id="kpi-estoque-card"><span class="kpi__r">Estoque baixo</span><b class="kpi__v" id="kpi-estoque">0</b><span class="kpi__s">itens no limite</span></div>
+        </div>
+
+        <div class="rel-duas">
+          <div class="painel">
+            <h3>Por forma de pagamento</h3>
+            <div id="rel-pagamento" class="barras"></div>
+          </div>
+          <div class="painel">
+            <h3>Produtos mais vendidos</h3>
+            <div id="rel-produtos" class="barras"></div>
+          </div>
+        </div>
+
+        <div class="painel">
+          <h3>Vendas recentes</h3>
+          <table class="tabela">
+            <thead><tr><th>Pedido / Cupom</th><th>Data</th><th>Itens</th><th>Pagamento</th><th>Operador</th><th class="dir">Total</th><th class="dir">Ações</th></tr></thead>
+            <tbody id="rel-corpo"></tbody>
+          </table>
+          <div class="vazio" id="rel-vazio" hidden>Nenhuma venda no período.</div>
+        </div>
+
+        <div class="painel">
+          <h3>Histórico de caixas</h3>
+          <table class="tabela">
+            <thead>
+              <tr>
+                <th>Abertura</th><th>Aberto por</th><th>Fechamento</th><th>Fechado por</th><th class="dir">Vendas</th>
+                <th class="dir">Faturamento</th><th class="dir">Esperado</th><th class="dir">Diferença</th>
+              </tr>
+            </thead>
+            <tbody id="cxhist-corpo"></tbody>
+          </table>
+          <div class="vazio" id="cxhist-vazio" hidden>Nenhum caixa fechado ainda.</div>
+        </div>
+      </section>
+
+      <!-- VISTA: CONFIG -->
+      <section class="vista" id="vista-config">
+        <div class="cabecalho-vista">
+          <div><h1>Configurações</h1><p class="sub">Dados da loja, cupom e backup</p></div>
+          <div style="display:flex;align-items:center;gap:10px">
+            <button class="btn-secundario" id="btn-conectar-celular-qrcode" type="button" style="display:inline-flex;align-items:center;gap:6px;border:1.5px solid var(--primaria);color:var(--primaria-forte);font-weight:800">
+              <svg class="ic" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+              Conectar Celular do Dono (QR Code)
+            </button>
+            <button class="btn-secundario" id="btn-abrir-previa-impressao" type="button" style="display:inline-flex;align-items:center;gap:6px">
+              <svg class="ic" viewBox="0 0 24 24"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>
+              Ver Prévia de Impressão (Cliente & Cozinha)
+            </button>
+            <button class="btn-primario" id="btn-salvar-config">
+              <svg class="ic" viewBox="0 0 24 24"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><path d="M17 21v-8H7v8"/><path d="M7 3v5h8"/></svg>
+              Salvar
+            </button>
+          </div>
+        </div>
+
+        <div class="config-grade">
+          <div class="painel">
+            <h3>Dados da loja</h3>
+            <div class="campo"><label>Nome</label><input type="text" id="cfg-loja" placeholder="Nome do quiosque" /></div>
+            <div class="campo"><label>Endereço</label><input type="text" id="cfg-endereco" placeholder="Rua, número, bairro" /></div>
+            <div class="campo"><label>Telefone</label><input type="text" id="cfg-telefone" placeholder="(00) 00000-0000" /></div>
+            <div class="campo"><label>CNPJ (opcional)</label><input type="text" id="cfg-cnpj" placeholder="Só informe se emitir nota fiscal" /></div>
+
+            <!-- LOGO DO SISTEMA E IMPRESSÃO -->
+            <div class="campo" style="margin-top:16px;padding-top:14px;border-top:1px dashed var(--borda)">
+              <label style="display:flex;justify-content:space-between;align-items:center">
+                <span>Logomarca do Estabelecimento</span>
+                <span style="font-size:10.5px;color:var(--tinta-3);text-transform:none">Sistema & Impressão Térmica</span>
+              </label>
+
+              <div class="logo-config-box" style="margin-top:4px">
+                <input type="file" id="cfg-logo-input" accept="image/png,image/jpeg,image/webp,image/svg+xml" style="display:none" />
+                <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+                  <button class="btn-secundario" id="btn-escolher-logo" type="button" style="padding:7px 12px;font-size:12px;display:inline-flex;align-items:center;gap:6px">
+                    <svg class="ic" viewBox="0 0 24 24" style="width:15px;height:15px"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                    Carregar Nova Logo
+                  </button>
+                  <button class="btn-secundario" id="btn-remover-logo" type="button" style="padding:7px 10px;font-size:11.5px;color:#C15A3C;width:auto" title="Remover e restaurar logo padrão">
+                    Restaurar Padrão
+                  </button>
+                </div>
+
+                <!-- Prévia Dupla: Sistema vs Impressão Térmica P&B -->
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px">
+                  <div class="painel" style="padding:10px;background:var(--afundado);border-radius:10px;text-align:center">
+                    <span style="display:block;font-size:10.5px;font-weight:700;color:var(--tinta-2);margin-bottom:6px">1. No Sistema (Colorida)</span>
+                    <div style="height:60px;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.04);border-radius:6px;overflow:hidden;padding:4px">
+                      <img id="cfg-logo-preview-cor" src="assets/logo-topo.png" alt="Prévia Sistema" style="max-height:100%;max-width:100%;object-fit:contain" />
+                    </div>
+                  </div>
+
+                  <div class="painel" style="padding:10px;background:#FFF;border:1px solid #000;border-radius:10px;text-align:center">
+                    <span style="display:block;font-size:10.5px;font-weight:700;color:#000;margin-bottom:6px">2. Na Impressora (P&B Térmico)</span>
+                    <div style="height:60px;display:flex;align-items:center;justify-content:center;background:#FFF;border-radius:6px;overflow:hidden;padding:4px">
+                      <img id="cfg-logo-preview-pb" src="assets/logo-topo.png" alt="Prévia P&B" style="max-height:100%;max-width:100%;object-fit:contain;image-rendering:pixelated;filter:grayscale(100%) contrast(250%)" />
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Controle de Sensibilidade P&B para Impressão -->
+                <div style="margin-top:10px;background:var(--afundado);padding:8px 12px;border-radius:8px">
+                  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
+                    <span style="font-size:11px;font-weight:600;color:var(--tinta-2)">Contraste / Binarização P&B:</span>
+                    <span id="cfg-logo-threshold-val" style="font-size:11px;font-weight:800;color:var(--primaria-forte)">160</span>
+                  </div>
+                  <input type="range" id="cfg-logo-threshold" min="70" max="220" value="160" step="5" style="width:100%;cursor:pointer;accent-color:var(--primaria)" />
+                  <div style="display:flex;justify-content:space-between;font-size:9.5px;color:var(--tinta-3);margin-top:2px">
+                    <span>Mais Claro</span>
+                    <span>Padrão Térmico</span>
+                    <span>Mais Escuro</span>
+                  </div>
+                </div>
+
+                <label class="alternador" style="margin-top:10px">
+                  <input type="checkbox" id="cfg-imprimir-logo" checked />
+                  <span class="alternador__pista"></span>
+                  <span class="alternador__txt">Imprimir logo nos cupons<small>Cabeçalho dos recibos do caixa e fechamentos</small></span>
+                </label>
+
+                <button class="btn-secundario" id="btn-previa-logo-cupom" type="button" style="margin-top:10px;width:100%;justify-content:center;font-size:12px">
+                  <svg class="ic" viewBox="0 0 24 24" style="width:14px;height:14px"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>
+                  Ver Prévia Real do Cupom com Esta Logo
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div class="painel">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+              <h3 style="margin:0">Impressora do Caixa (PDV)</h3>
+              <button class="btn-secundario" id="btn-atualizar-impressoras" type="button" style="padding:4px 10px;font-size:11.5px;display:inline-flex;align-items:center;gap:6px" title="Atualizar lista de impressoras detectadas no Windows">
+                <svg class="ic" viewBox="0 0 24 24" style="width:14px;height:14px"><path d="M21.5 2v6h-6"/><path d="M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/></svg>
+                Recarregar
+              </button>
+            </div>
+            <div class="campo">
+              <label for="cfg-imp-caixa">Dispositivo de Impressão</label>
+              <select id="cfg-imp-caixa" class="campo-select">
+                <option value="">Padrão do Windows (Automático)</option>
+              </select>
+            </div>
+            <div class="campo">
+              <label>Largura do papel do caixa</label>
+              <div class="segs segs--larg" id="cfg-largura">
+                <button class="seg" data-l="58">58 mm</button>
+                <button class="seg ativo" data-l="80">80 mm</button>
+              </div>
+            </div>
+            <div style="display:flex;gap:8px;margin-top:6px;flex-wrap:wrap">
+              <button class="btn-secundario" id="btn-previa-caixa" type="button" style="flex:1">
+                <svg class="ic" viewBox="0 0 24 24"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>
+                Prévia do Cliente
+              </button>
+              <button class="btn-secundario" id="btn-teste-caixa" type="button" style="flex:1">
+                <svg class="ic" viewBox="0 0 24 24"><path d="M6 9V3h12v6"/><rect x="6" y="14" width="12" height="7"/><path d="M6 18H4a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v3a2 2 0 0 1-2 2h-2"/></svg>
+                Imprimir Teste
+              </button>
+            </div>
+          </div>
+
+          <div class="painel">
+            <h3>Comanda da Cozinha</h3>
+            <label class="alternador">
+              <input type="checkbox" id="cfg-cozinha-ativa" checked />
+              <span class="alternador__pista"></span>
+              <span class="alternador__txt">Ativar comanda da cozinha<br><small>Imprime automaticamente na confirmação do pagamento</small></span>
+            </label>
+            <div class="campo">
+              <label for="cfg-imp-cozinha">Impressora da Cozinha</label>
+              <select id="cfg-imp-cozinha" class="campo-select">
+                <option value="mesma">Mesma impressora do caixa</option>
+                <option value="">Padrão do Windows</option>
+              </select>
+            </div>
+            <div class="campo">
+              <label>Largura do papel da cozinha</label>
+              <div class="segs segs--larg" id="cfg-largura-cozinha">
+                <button class="seg" data-l="58">58 mm</button>
+                <button class="seg ativo" data-l="80">80 mm</button>
+              </div>
+            </div>
+            <div style="display:flex;gap:8px;margin-top:6px;flex-wrap:wrap">
+              <button class="btn-secundario" id="btn-previa-cozinha" type="button" style="flex:1">
+                <svg class="ic" viewBox="0 0 24 24"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>
+                Prévia da Cozinha
+              </button>
+              <button class="btn-secundario" id="btn-teste-cozinha" type="button" style="flex:1">
+                <svg class="ic" viewBox="0 0 24 24"><path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2"/><path d="M7 2v20"/><path d="M21 15V2a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3Zm0 0v7"/></svg>
+                Imprimir Teste
+              </button>
+            </div>
+          </div>
+
+          <div class="painel">
+            <h3>Opções e Sistema</h3>
+            <label class="alternador">
+              <input type="checkbox" id="cfg-silenciosa" />
+              <span class="alternador__pista"></span>
+              <span class="alternador__txt">Imprimir sem abrir janela (Silencioso)<br><small>Envia direto para a impressora configurada</small></span>
+            </label>
+            <div class="faixa-info">Ao confirmar uma venda no PDV, os itens de cozinha são filtrados e enviados diretamente para a cozinha, enquanto o cupom geral sai no caixa.</div>
+            <div class="campo">
+              <label>Backup Local Manual</label>
+              <button class="btn-secundario" id="btn-backup" type="button">
+                <svg class="ic" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="m7 10 5 5 5-5"/><path d="M12 15V3"/></svg>
+                Exportar cópia dos dados (JSON)
+              </button>
+            </div>
+          </div>
+
+          <!-- NOVO: NUVEM CLOUDFLARE & DISASTER RECOVERY POR CNPJ -->
+          <div class="painel" style="border: 2px solid var(--primaria); background: #FFFDF9">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+              <h3 style="margin:0;color:var(--primaria-forte);display:flex;align-items:center;gap:8px">
+                <svg class="ic" viewBox="0 0 24 24" style="color:var(--primaria)"><path d="M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9Z"/></svg>
+                Backup Inteligente em Nuvem (Cloudflare)
+              </h3>
+              <span style="font-size:11.5px;font-weight:900;padding:3px 10px;background:var(--sucesso-leve);color:var(--sucesso);border-radius:12px">
+                Ativo & Seguro
+              </span>
+            </div>
+
+            <p style="font-size:12.5px;color:var(--tinta-2);line-height:1.45;margin-bottom:12px">
+              Cópia automática gerada <b>a cada 3 horas</b> (com vendas novas) e <b>no fechamento do caixa</b>. Retenção automática de <b>15 dias</b> com compactação de alta performance.
+            </p>
+
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px">
+              <button class="btn-secundario" id="btn-gerar-backup-nuvem" type="button" style="font-weight:800;justify-content:center">
+                <svg class="ic" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                Fazer Backup Agora
+              </button>
+
+              <button class="btn-primario" id="btn-restaurar-backup-cnpj" type="button" style="font-weight:800;justify-content:center">
+                <svg class="ic" viewBox="0 0 24 24"><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/><path d="M3 21h5v-5"/></svg>
+                Restaurar por CNPJ
+              </button>
+            </div>
+
+            <div id="status-ultimo-backup" style="font-size:12px;color:var(--tinta-3);font-weight:700;border-top:1px dashed var(--borda);padding-top:8px">
+              Último backup em nuvem: Verificando...
+            </div>
+          </div>
+
+          <!-- NOVO: CRÉDITOS MANOSTECH SYSTEM & ATUALIZAÇÕES -->
+          <div class="painel" style="background:var(--afundado);border:1.5px solid var(--borda-forte);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px">
+            <div>
+              <div style="font-size:14px;font-weight:900;color:var(--tinta)">
+                Desenvolvido por: <span style="color:var(--primaria-forte)">ManosTech System</span>
+              </div>
+              <div style="font-size:12px;color:var(--tinta-2);font-weight:700;margin-top:2px">
+                Versão do Software: <b id="lbl-versao-sistema">v2.4.0 (Build 2026)</b> · Canal Estável
+              </div>
+            </div>
+
+            <button class="btn-secundario" id="btn-verificar-atualizacoes" type="button" style="font-weight:800;display:inline-flex;align-items:center;gap:6px">
+              <svg class="ic" viewBox="0 0 24 24"><path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16"/><path d="M16 21h5v-5"/></svg>
+              Verificar Atualizações
+            </button>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <!-- Modal (pagamento / produto) -->
+  <div class="fundo-modal" id="modal" hidden>
+    <div class="modal" role="dialog" aria-modal="true">
+      <div class="modal__tit"><h2 id="modal-tit">—</h2>
+        <button class="btn-fantasma" id="modal-x"><svg class="ic" viewBox="0 0 24 24"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></button>
+      </div>
+      <div class="modal__corpo" id="modal-corpo"></div>
+      <div class="modal__pe" id="modal-pe"></div>
+    </div>
+  </div>
+
+  <!-- Aviso rápido -->
+  <div class="toast" id="toast" hidden></div>
+
+  <script src="browser-mock.js"></script>
+  <script src="db.js"></script>
+  <script src="fiscal.js"></script>
+  <script src="printer.js"></script>
+  <script src="components.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

@@ -1,0 +1,25 @@
+# Dependencias
+node_modules/
+package-lock.json
+
+# Builds e empacotamento
+dist/
+build/
+*.exe
+*.zip
+*.tar.gz
+
+# Dados locais e senhas
+dados/chave_mestra.txt
+dados/pin_recuperacao.json
+dados/backups_nuvem/
+*.log
+
+# Variaveis de ambiente
+.env
+.env.local
+.env.production
+
+# Sistema operacional
+.DS_Store
+Thumbs.db
