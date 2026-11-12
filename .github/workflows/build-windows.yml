@@ -32,7 +32,9 @@ jobs:
         run: npm install
 
       - name: Build Windows Installer & Portable Executable
-        run: npm run dist
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: npx electron-builder --win --publish never
 
       - name: Upload Windows Setup Artifact (.exe)
         uses: actions/upload-artifact@v4
