@@ -3010,7 +3010,7 @@ ${emailRemetente ? `E-mail de contato: ${emailRemetente}` : ''}`;
 
   async function abrirQrCodeConexaoMobile() {
     UI.abrirModal({
-      titulo: 'Conectar Celular do Administrador (App Móvel)',
+      titulo: 'Conectar Celular do Dono & Aparelhos Conectados',
       corpo: `
         <div style="text-align:center;padding:24px 0">
           <p style="font-size:14px;color:var(--tinta-2);font-weight:700">
@@ -3019,51 +3019,121 @@ ${emailRemetente ? `E-mail de contato: ${emailRemetente}` : ''}`;
         </div>
       `,
       rodape: `<button class="btn-secundario" id="modal-qr-fechar">Fechar</button>`,
-      largo: false
+      largo: true
     });
 
     const btnFechar = $('#modal-qr-fechar');
     if (btnFechar) btnFechar.onclick = UI.fecharModal;
 
-    try {
-      const resp = await fetch('/api/qrcode-mobile');
-      const dados = await resp.json();
-      if (!dados.ok) throw new Error(dados.erro || 'Falha ao gerar');
+    async function recarregarModalDispositivos() {
+      try {
+        const resp = await fetch('/api/qrcode-mobile');
+        const dados = await resp.json();
+        if (!dados.ok) throw new Error(dados.erro || 'Falha ao gerar');
 
-      const elCorpo = document.getElementById('modal-corpo');
-      if (elCorpo) {
+        const elCorpo = document.getElementById('modal-corpo');
+        if (!elCorpo) return;
+
+        const dispositivos = dados.dispositivos || [];
+        const ativosQtd = dispositivos.filter(d => d.ativo).length;
+
         elCorpo.innerHTML = `
-          <div style="text-align:center">
-            <div style="margin-bottom:12px">
-              <span style="display:inline-block;padding:5px 14px;background:var(--primaria-leve);color:var(--primaria-forte);border-radius:14px;font-size:13px;font-weight:900">
-                ${UI.escapar(dados.loja)} · Acesso ADM
-              </span>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;align-items:start">
+            
+            <!-- COLUNA 1: QR CODE DE CONEXÃO -->
+            <div style="text-align:center;background:var(--afundado);border-radius:14px;padding:16px;border:1.5px solid var(--borda)">
+              <div style="margin-bottom:10px">
+                <span style="display:inline-block;padding:4px 12px;background:var(--primaria-leve);color:var(--primaria-forte);border-radius:12px;font-size:12.5px;font-weight:900">
+                  ${UI.escapar(dados.loja)} · QR Code Seguro
+                </span>
+              </div>
+
+              <!-- Imagem do QR Code -->
+              <div style="background:#FFF;padding:10px;display:inline-block;border-radius:14px;box-shadow:0 4px 14px rgba(0,0,0,0.08);border:1.5px solid var(--borda);margin-bottom:12px">
+                <img src="${dados.qrCode}" alt="QR Code" style="width:200px;height:200px;display:block" />
+              </div>
+
+              <!-- Instruções -->
+              <div style="font-size:12px;line-height:1.45;color:var(--tinta-2);text-align:left;background:#FFF;padding:10px 12px;border-radius:10px;border:1px solid var(--borda);margin-bottom:10px">
+                <div style="font-weight:800;color:var(--primaria-forte);margin-bottom:3px">Como conectar o celular:</div>
+                <div>1. Abra a <b>câmera</b> do celular (iPhone ou Android).</div>
+                <div>2. Aponte para este QR Code.</div>
+                <div>3. O celular conecta automaticamente sem precisar digitar senha!</div>
+              </div>
+
+              <!-- Link direto -->
+              <div style="display:flex;align-items:center;gap:6px">
+                <input type="text" value="${dados.urlFinal}" id="input-url-qrcode" readonly style="flex:1;height:34px;padding:0 8px;border:1px solid var(--borda-forte);border-radius:8px;font-size:11.5px;background:#FFF;font-weight:700;color:var(--tinta)" />
+                <button class="btn-secundario" id="btn-copiar-url-qrcode" type="button" style="height:34px;padding:0 10px;font-size:11.5px;font-weight:800;white-space:nowrap">
+                  Copiar Link
+                </button>
+              </div>
             </div>
 
-            <!-- Imagem do QR Code em Alta Resolução -->
-            <div style="background:#FFF;padding:12px;display:inline-block;border-radius:16px;box-shadow:0 4px 18px rgba(0,0,0,0.12);border:2px solid var(--borda);margin-bottom:14px">
-              <img src="${dados.qrCode}" alt="QR Code" style="width:230px;height:230px;display:block" />
-            </div>
+            <!-- COLUNA 2: APARELHOS CONECTADOS (ESTILO WHATSAPP) -->
+            <div style="display:flex;flex-direction:column;gap:12px">
+              <div style="display:flex;justify-content:space-between;align-items:center;border-bottom:1.5px solid var(--borda);padding-bottom:8px">
+                <div>
+                  <h3 style="font-size:15px;font-weight:900;color:var(--tinta);display:flex;align-items:center;gap:6px">
+                    <svg class="ic" viewBox="0 0 24 24" style="color:var(--primaria)"><rect width="14" height="20" x="5" y="2" rx="2" ry="2"/><path d="M12 18h.01"/></svg>
+                    Aparelhos Conectados
+                  </h3>
+                  <div style="font-size:11.5px;color:var(--tinta-3);font-weight:700">Controle de sessões ativas no quiosque</div>
+                </div>
+                <span style="font-size:11px;font-weight:900;padding:2px 8px;border-radius:10px;background:${ativosQtd > 0 ? 'var(--sucesso-leve)' : 'var(--afundado)'};color:${ativosQtd > 0 ? 'var(--sucesso)' : 'var(--tinta-3)'}">
+                  ${ativosQtd} ativo${ativosQtd !== 1 ? 's' : ''}
+                </span>
+              </div>
 
-            <!-- Instruções Claras para o Dono -->
-            <div style="background:var(--afundado);border-radius:12px;padding:12px 14px;text-align:left;font-size:13px;line-height:1.55;color:var(--tinta);border:1px solid var(--borda);margin-bottom:12px">
-              <div style="font-weight:900;margin-bottom:4px;color:var(--primaria-forte)">Como conectar o celular do dono:</div>
-              <div>1. Abra a <b>câmera</b> do celular (iPhone ou Android).</div>
-              <div>2. Aponte para este <b>QR Code</b> na tela do computador.</div>
-              <div>3. Toque no aviso que surgir na câmera para abrir o app deste quiosque.</div>
-              <div>4. No navegador, toque em <b>Adicionar à Tela de Início</b> para salvar como App!</div>
-            </div>
+              <!-- Lista de aparelhos -->
+              <div id="lista-aparelhos-conectados" style="max-height:330px;overflow-y:auto;display:flex;flex-direction:column;gap:8px">
+                ${dispositivos.length === 0 ? `
+                  <div style="text-align:center;padding:30px 10px;background:var(--afundado);border-radius:10px;border:1px dashed var(--borda);color:var(--tinta-3);font-size:12.5px;font-weight:700">
+                    <svg viewBox="0 0 24 24" width="32" height="32" fill="none" stroke="currentColor" stroke-width="1.8" style="margin:0 auto 8px auto;display:block;opacity:0.6"><rect width="14" height="20" x="5" y="2" rx="2" ry="2"/><path d="M12 18h.01"/></svg>
+                    Nenhum celular conectado ainda.<br>Aponte a câmera para o QR Code ao lado.
+                  </div>
+                ` : dispositivos.map(disp => {
+                  const dataConexao = new Date(disp.conectadoEm).toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' });
+                  return `
+                    <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 12px;background:#FFF;border:1.5px solid ${disp.ativo ? 'var(--borda-forte)' : 'var(--borda)'};border-radius:10px;box-shadow:0 1px 3px rgba(0,0,0,0.03)">
+                      <div style="display:flex;align-items:center;gap:10px;min-width:0">
+                        <div style="width:34px;height:34px;border-radius:8px;background:${disp.ativo ? 'rgba(232, 130, 10, .12)' : 'rgba(0,0,0,0.06)'};color:${disp.ativo ? 'var(--primaria-forte)' : 'var(--tinta-3)'};display:flex;align-items:center;justify-content:center;flex:none">
+                          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><rect width="14" height="20" x="5" y="2" rx="2" ry="2"/><path d="M12 18h.01"/></svg>
+                        </div>
+                        <div style="min-width:0">
+                          <div style="font-size:13px;font-weight:900;color:var(--tinta);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">
+                            ${UI.escapar(disp.nome)}
+                          </div>
+                          <div style="font-size:11px;color:var(--tinta-2);font-weight:600">
+                            ${disp.usuario} · ${dataConexao}
+                          </div>
+                        </div>
+                      </div>
 
-            <!-- Link direto e botão de copiar -->
-            <div style="display:flex;align-items:center;gap:8px">
-              <input type="text" value="${dados.urlFinal}" id="input-url-qrcode" readonly style="flex:1;height:38px;padding:0 10px;border:1.5px solid var(--borda);border-radius:8px;font-size:12.5px;background:#FFF;font-weight:700;color:var(--tinta)" />
-              <button class="btn-secundario" id="btn-copiar-url-qrcode" type="button" style="height:38px;padding:0 14px;font-size:12.5px;font-weight:800;white-space:nowrap">
-                Copiar Link
-              </button>
+                      <div style="flex:none;margin-left:8px">
+                        ${disp.ativo ? `
+                          <button class="btn-secundario btn-pequeno btn-desconectar-aparelho" data-id="${disp.id}" type="button" style="color:var(--erro);border-color:rgba(192, 68, 43, .3);font-weight:800;font-size:11px;padding:4px 8px">
+                            Desconectar
+                          </button>
+                        ` : `
+                          <button class="btn-secundario btn-pequeno btn-remover-aparelho" data-id="${disp.id}" type="button" style="color:var(--tinta-3);font-size:11px;padding:4px 8px">
+                            Remover
+                          </button>
+                        `}
+                      </div>
+                    </div>
+                  `;
+                }).join('')}
+              </div>
+
+              <div style="font-size:11px;color:var(--tinta-3);text-align:center;line-height:1.4">
+                Ao clicar em <b>Desconectar</b>, a sessão do celular é encerrada na hora.
+              </div>
             </div>
           </div>
         `;
 
+        // Evento Copiar Link
         const btnCopiar = document.getElementById('btn-copiar-url-qrcode');
         if (btnCopiar) {
           btnCopiar.onclick = () => {
@@ -3075,18 +3145,68 @@ ${emailRemetente ? `E-mail de contato: ${emailRemetente}` : ''}`;
             }
           };
         }
-      }
-    } catch (err) {
-      const elCorpo = document.getElementById('modal-corpo');
-      if (elCorpo) {
-        elCorpo.innerHTML = `
-          <div style="text-align:center;padding:20px;color:var(--alerta)">
-            <p style="font-weight:800;margin-bottom:8px">Falha ao gerar o QR Code no servidor local.</p>
-            <p style="font-size:12px">${UI.escapar(err.message)}</p>
-          </div>
-        `;
+
+        // Eventos Desconectar Aparelho
+        $$('.btn-desconectar-aparelho').forEach(btn => {
+          btn.onclick = async () => {
+            const id = btn.dataset.id;
+            const confirma = await UI.confirmar(
+              'Desconectar Aparelho',
+              'Deseja realmente encerrar a sessão deste celular? Ele precisará ler o QR Code novamente para se reconectar.',
+              'Sim, Desconectar'
+            );
+            if (confirma) {
+              btn.disabled = true;
+              btn.textContent = 'Desconectando...';
+              try {
+                const r = await fetch('/api/dispositivos/desconectar', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({ id })
+                });
+                const d = await r.json();
+                if (d.ok) {
+                  UI.toast('Aparelho desconectado com sucesso!', 'ok');
+                  recarregarModalDispositivos();
+                } else {
+                  UI.toast(d.erro || 'Falha ao desconectar', 'alerta');
+                }
+              } catch (err) {
+                UI.toast(err.message, 'alerta');
+              }
+            }
+          };
+        });
+
+        // Eventos Remover Histórico
+        $$('.btn-remover-aparelho').forEach(btn => {
+          btn.onclick = async () => {
+            const id = btn.dataset.id;
+            try {
+              await fetch('/api/dispositivos/remover', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ id })
+              });
+              recarregarModalDispositivos();
+            } catch {}
+          };
+        });
+
+      } catch (err) {
+        const elCorpo = document.getElementById('modal-corpo');
+        if (elCorpo) {
+          elCorpo.innerHTML = `
+            <div style="text-align:center;padding:20px;color:var(--alerta)">
+              <p style="font-weight:800;margin-bottom:8px">Falha ao carregar conexões no servidor local.</p>
+              <p style="font-size:12px">${UI.escapar(err.message)}</p>
+            </div>
+          `;
+        }
       }
     }
+
+    recarregarModalDispositivos();
   }
 
   /* ================== EVENTOS ================== */

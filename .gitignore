@@ -13,6 +13,7 @@ build/
 dados/chave_mestra.txt
 dados/pin_recuperacao.json
 dados/config_nuvem.json
+dados/dispositivos.json
 dados/backups_nuvem/
 *.log
 

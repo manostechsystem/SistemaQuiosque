@@ -4,6 +4,7 @@ const path = require('path');
 const os = require('os');
 const QRCode = require('qrcode');
 const Backup = require('./backup.js');
+const Dispositivos = require('./dispositivos.js');
 
 const PORT = 3000;
 const SRC_DIR = path.join(__dirname, 'src');
@@ -164,7 +165,9 @@ const server = http.createServer((req, res) => {
         const nomeLoja = db.config?.loja || 'Rota do Forte';
         const urlLocal = `http://${ipLocal}:${PORT}/mobile.html`;
         const urlTunnel = db.config?.urlTunnel || '';
-        const urlFinal = urlTunnel || urlLocal;
+        const tokenPareamento = Dispositivos.gerarTokenPareamento();
+        const urlBase = urlTunnel || urlLocal;
+        const urlFinal = `${urlBase}?conectar=${tokenPareamento}`;
 
         const qrCodeDataUrl = await QRCode.toDataURL(urlFinal, {
           width: 320,
@@ -175,6 +178,8 @@ const server = http.createServer((req, res) => {
           }
         });
 
+        const dispositivos = Dispositivos.listarDispositivos();
+
         res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
         res.end(JSON.stringify({
           ok: true,
@@ -183,13 +188,105 @@ const server = http.createServer((req, res) => {
           urlLocal,
           urlTunnel,
           urlFinal,
-          qrCode: qrCodeDataUrl
+          tokenPareamento,
+          qrCode: qrCodeDataUrl,
+          dispositivos
         }));
       } catch (err) {
         res.writeHead(500, { 'Content-Type': 'application/json; charset=utf-8' });
         res.end(JSON.stringify({ ok: false, erro: err.message }));
       }
     })();
+    return;
+  }
+
+  // Endpoints do Gerenciador de Aparelhos Conectados (Estilo WhatsApp)
+  if (pathname === '/api/dispositivos/listar') {
+    const lista = Dispositivos.listarDispositivos();
+    res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
+    res.end(JSON.stringify({ ok: true, dispositivos: lista }));
+    return;
+  }
+
+  if (pathname === '/api/dispositivos/registrar') {
+    if (req.method === 'POST') {
+      let corpo = '';
+      req.on('data', chunk => { corpo += chunk; });
+      req.on('end', () => {
+        try {
+          const dados = JSON.parse(corpo);
+          const ipClient = req.headers['x-forwarded-for'] || req.socket.remoteAddress || '127.0.0.1';
+          const ipLimpo = String(ipClient).replace(/^.*:/, '');
+
+          const resultado = Dispositivos.registrarDispositivo({
+            tokenPareamento: dados.tokenPareamento,
+            userAgent: req.headers['user-agent'] || '',
+            ip: ipLimpo,
+            nomePersonalizado: dados.nomePersonalizado || ''
+          });
+
+          const db = fs.existsSync(DATA_FILE) ? JSON.parse(fs.readFileSync(DATA_FILE, 'utf8')) : {};
+          const nomeLoja = db.config?.loja || 'Rota do Forte';
+
+          res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
+          res.end(JSON.stringify({
+            ...resultado,
+            loja: nomeLoja
+          }));
+        } catch (err) {
+          res.writeHead(400, { 'Content-Type': 'application/json; charset=utf-8' });
+          res.end(JSON.stringify({ ok: false, erro: err.message }));
+        }
+      });
+      return;
+    }
+  }
+
+  if (pathname === '/api/dispositivos/desconectar') {
+    if (req.method === 'POST') {
+      let corpo = '';
+      req.on('data', chunk => { corpo += chunk; });
+      req.on('end', () => {
+        try {
+          const { id } = JSON.parse(corpo);
+          if (!id) throw new Error('ID do dispositivo não informado.');
+          const resultado = Dispositivos.desconectarDispositivo(id);
+          res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
+          res.end(JSON.stringify(resultado));
+        } catch (err) {
+          res.writeHead(400, { 'Content-Type': 'application/json; charset=utf-8' });
+          res.end(JSON.stringify({ ok: false, erro: err.message }));
+        }
+      });
+      return;
+    }
+  }
+
+  if (pathname === '/api/dispositivos/remover') {
+    if (req.method === 'POST') {
+      let corpo = '';
+      req.on('data', chunk => { corpo += chunk; });
+      req.on('end', () => {
+        try {
+          const { id } = JSON.parse(corpo);
+          if (!id) throw new Error('ID do dispositivo não informado.');
+          const resultado = Dispositivos.removerDispositivo(id);
+          res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
+          res.end(JSON.stringify(resultado));
+        } catch (err) {
+          res.writeHead(400, { 'Content-Type': 'application/json; charset=utf-8' });
+          res.end(JSON.stringify({ ok: false, erro: err.message }));
+        }
+      });
+      return;
+    }
+  }
+
+  if (pathname === '/api/dispositivos/validar') {
+    const token = urlObj.searchParams.get('token') || req.headers['x-session-token'];
+    const resultado = Dispositivos.validarSessao(token);
+    res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
+    res.end(JSON.stringify(resultado));
     return;
   }
 

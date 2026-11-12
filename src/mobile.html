@@ -2352,10 +2352,65 @@
       // Inicialização
       async function iniciar() {
         await registrarServiceWorker();
+        await verificarPareamentoQrCode();
         await sincronizarTudo();
         verificarLogin();
 
-        setInterval(sincronizarTudo, 6000);
+        setInterval(async () => {
+          const ativa = await validarSessaoAtiva();
+          if (ativa) {
+            await sincronizarTudo();
+          }
+        }, 6000);
+      }
+
+      async function verificarPareamentoQrCode() {
+        const params = new URLSearchParams(window.location.search);
+        const tokenPareamento = params.get('conectar');
+        if (!tokenPareamento) return;
+
+        try {
+          const resp = await fetch('/api/dispositivos/registrar', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ tokenPareamento })
+          });
+          const dados = await resp.json();
+          if (dados.ok && dados.sessionToken) {
+            localStorage.setItem('mob_adm_logado', 'true');
+            localStorage.setItem('mob_session_token', dados.sessionToken);
+            if (dados.dispositivo?.id) localStorage.setItem('mob_dispositivo_id', dados.dispositivo.id);
+            localStorage.setItem('mob_adm_salvo_user', 'admin');
+            localStorage.setItem('mob_adm_lembrar', 'true');
+
+            // Limpa o parâmetro da URL sem recarregar a página
+            window.history.replaceState({}, document.title, window.location.pathname);
+            console.log('[MOBILE] Conectado e autenticado via QR Code');
+          } else {
+            alert(dados.erro || 'Código de conexão expirado ou inválido.');
+            window.history.replaceState({}, document.title, window.location.pathname);
+          }
+        } catch (err) {
+          console.warn('[MOBILE] Erro no pareamento QR Code:', err);
+        }
+      }
+
+      async function validarSessaoAtiva() {
+        const token = localStorage.getItem('mob_session_token');
+        if (!token) return true;
+        try {
+          const resp = await fetch(`/api/dispositivos/validar?token=${token}`);
+          const res = await resp.json();
+          if (res && res.valido === false) {
+            localStorage.removeItem('mob_adm_logado');
+            localStorage.removeItem('mob_session_token');
+            sessionStorage.removeItem('mob_adm_logado');
+            alert('Atenção: Este aparelho foi desconectado pelo computador principal do quiosque.');
+            verificarLogin();
+            return false;
+          }
+        } catch {}
+        return true;
       }
 
       iniciar();
