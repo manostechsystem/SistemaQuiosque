@@ -1,0 +1,43 @@
+name: Build Windows Executable (.exe)
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - 'src/**'
+      - 'main.js'
+      - 'preload.js'
+      - 'server.js'
+      - 'backup.js'
+      - 'dispositivos.js'
+      - 'package.json'
+      - 'build/**'
+      - '.github/workflows/build-windows.yml'
+  workflow_dispatch:
+
+jobs:
+  build-windows:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      - name: Install Dependencies
+        run: npm install
+
+      - name: Build Windows Installer & Portable Executable
+        run: npm run dist
+
+      - name: Upload Windows Setup Artifact (.exe)
+        uses: actions/upload-artifact@v4
+        with:
+          name: ManosTech-PDV-Instalador-Windows
+          path: dist/*.exe
+          retention-days: 30
