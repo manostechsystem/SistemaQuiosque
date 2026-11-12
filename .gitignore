@@ -4,8 +4,10 @@ package-lock.json
 
 # Builds e empacotamento
 dist/
+dist_mobile/
 build/
 *.exe
+*.apk
 *.zip
 *.tar.gz
 

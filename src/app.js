@@ -3600,7 +3600,7 @@ ${emailRemetente ? `E-mail de contato: ${emailRemetente}` : ''}`;
                 </p>
                 <div style="background:var(--afundado);border-radius:10px;padding:10px;font-size:12px;color:var(--tinta-3);text-align:left">
                   <div><b>Software House:</b> ManosTech System</div>
-                  <div><b>Repositório:</b> GitHub Oficial Integrado</div>
+                  <div><b>Canal de Atualização:</b> Nuvem Oficial ManosTech</div>
                   <div><b>Status do Servidor:</b> Operando em 100% de integridade</div>
                 </div>
               </div>
