@@ -12,13 +12,15 @@
 const fs = require('fs');
 const path = require('path');
 const crypto = require('crypto');
+const { DATA_DIR } = require('./pasta-dados.js');
 
-const DATA_DIR = path.join(__dirname, 'dados');
 const DISPOSITIVOS_FILE = path.join(DATA_DIR, 'dispositivos.json');
 
-if (!fs.existsSync(DATA_DIR)) {
-  fs.mkdirSync(DATA_DIR, { recursive: true });
-}
+try {
+  if (!fs.existsSync(DATA_DIR)) {
+    fs.mkdirSync(DATA_DIR, { recursive: true });
+  }
+} catch (e) {}
 
 // Chaves temporárias de pareamento QR Code ativas (válidas por 15 minutos)
 const tokensPareamento = new Map();

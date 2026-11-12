@@ -5,10 +5,10 @@ const os = require('os');
 const QRCode = require('qrcode');
 const Backup = require('./backup.js');
 const Dispositivos = require('./dispositivos.js');
+const { DATA_DIR } = require('./pasta-dados.js');
 
 const PORT = 3000;
 const SRC_DIR = path.join(__dirname, 'src');
-const DATA_DIR = path.join(__dirname, 'dados');
 const DATA_FILE = path.join(DATA_DIR, 'pdv.json');
 
 const MIME = {

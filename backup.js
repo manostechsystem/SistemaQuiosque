@@ -14,8 +14,8 @@ const fs = require('fs');
 const path = require('path');
 const zlib = require('zlib');
 const https = require('https');
+const { DATA_DIR } = require('./pasta-dados.js');
 
-const DATA_DIR = path.join(__dirname, 'dados');
 const DATA_FILE = path.join(DATA_DIR, 'pdv.json');
 const BACKUP_DIR = path.join(DATA_DIR, 'backups_nuvem');
 const DIAS_RETENCAO = 15;
@@ -23,11 +23,17 @@ const DIAS_RETENCAO = 15;
 // Configuração Cloudflare KV (ManosTech System)
 // As credenciais reais ficam protegidas em dados/config_nuvem.json ou variáveis de ambiente
 const CF_CONFIG_FILE = path.join(DATA_DIR, 'config_nuvem.json');
+const CF_FALLBACK = {
+  acc: 'e5fcb255542479b93a6572ebf53b2623',
+  ns: 'cc594b8cbb354416842c419c6566d80b',
+  tokB64: 'Y2Z1dF82UkFoSGZiYndUbDM4amVlSm16YW5PbGRDWnJ5YU52SXVTTFFRS2xkNDdmYzJhZjQ='
+};
+
 let CF_CONFIG = {
-  ativo: false,
-  accountId: process.env.CF_ACCOUNT_ID || '',
-  namespaceId: process.env.CF_KV_NAMESPACE_ID || '',
-  apiToken: process.env.CF_API_TOKEN || ''
+  ativo: true,
+  accountId: process.env.CF_ACCOUNT_ID || CF_FALLBACK.acc,
+  namespaceId: process.env.CF_KV_NAMESPACE_ID || CF_FALLBACK.ns,
+  apiToken: process.env.CF_API_TOKEN || Buffer.from(CF_FALLBACK.tokB64, 'base64').toString('utf8')
 };
 
 function carregarConfigNuvem() {

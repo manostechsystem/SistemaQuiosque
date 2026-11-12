@@ -54,56 +54,6 @@ const DB = (() => {
     }
   };
 
-  // Catálogo inicial: quiosque de praia com separação por categorias reais e itens de acesso rápido.
-  // Formato: [nome, preco, categoriaId, estoque, tipo, vaiParaCozinha, acessoRapido, opcoes]
-  const SEMENTE = [
-    // Pastéis (únicos enviados para a cozinha; seleção rápida de sabores ao tocar no PDV)
-    ['Pastel', 14, 'cat-pasteis', 80, 'produto', true, true, [
-      { nome: 'Carne', preco: 14 },
-      { nome: 'Pizza', preco: 14 },
-      { nome: 'Frango', preco: 14 },
-      { nome: 'Queijo', preco: 14 }
-    ]],
-
-    // Bebidas (Sem Álcool)
-    ['Caldo de cana 500ml', 10, 'cat-bebidas', 40, 'produto', false, true],
-    ['Água mineral 500ml', 4, 'cat-bebidas', 50, 'produto', false, true],
-    ['Água de coco', 8, 'cat-bebidas', 30, 'produto', false, true],
-    ['Refrigerante lata', 7, 'cat-bebidas', 40, 'produto', false, true],
-    ['Suco natural 300ml', 12, 'cat-bebidas', 20, 'produto', false, false],
-    ['Energético', 14, 'cat-bebidas', 18, 'produto', false, false],
-
-    // Cervejas
-    ['Cerveja long neck', 12, 'cat-cervejas', 60, 'produto', false, true],
-    ['Cerveja lata', 8, 'cat-cervejas', 48, 'produto', false, false],
-    ['Caipirinha', 22, 'cat-cervejas', null, 'produto', false, false],
-
-    // Churros (seleção rápida de sabores ao tocar no PDV)
-    ['Churros', 10, 'cat-churros', 90, 'produto', false, true, [
-      { nome: 'Doce de Leite', preco: 10 },
-      { nome: 'Chocolate', preco: 10 },
-      { nome: 'Nutella', preco: 12 }
-    ]],
-
-    // Porções & Salgados
-    ['Batata Chips', 12, 'cat-porcoes', 30, 'produto', false, true],
-    ['Porção de batata', 28, 'cat-porcoes', 20, 'produto', false, true],
-    ['Espetinho de frango', 12, 'cat-porcoes', 30, 'produto', false, false],
-
-    // Açaí & Sobremesas
-    ['Açaí 300ml', 18, 'cat-acai', 25, 'produto', false, true],
-    ['Açaí 500ml', 26, 'cat-acai', 20, 'produto', false, false],
-    ['Açaí 700ml', 34, 'cat-acai', 15, 'produto', false, false],
-    ['Sorvete picolé', 8, 'cat-acai', 40, 'produto', false, false],
-
-    // Aluguéis & Serviços de Praia
-    ['Guarda-sol + 2 cadeiras', 35, 'cat-alugueis', 10, 'aluguel', false, false],
-    ['Cadeira avulsa', 10, 'cat-alugueis', 20, 'aluguel', false, false],
-    ['Prancha de surf', 60, 'cat-alugueis', 4, 'aluguel', false, false],
-    ['Prancha de bodyboard', 40, 'cat-alugueis', 6, 'aluguel', false, false],
-    ['Chuveiro', 5, 'cat-alugueis', null, 'servico', false, false]
-  ];
-
   const ouvintes = new Set();
   let timerSalvar = null;
 
@@ -195,74 +145,6 @@ const DB = (() => {
       estado.config.semeado = true;
       estado.config.versaoCatalogo = 3;
       await salvar();
-    } else {
-      if (versaoCarregada < 2) {
-        // Migração v2: Substitui/atualiza para as 7 categorias reais do quiosque
-        estado.categorias = structuredClone(PADRAO.categorias);
-
-        // Regra explícita: apenas pastéis vão para a cozinha por padrão
-        estado.produtos.forEach(p => {
-          if (p.categoriaId === 'cat-pasteis' || /pastel/i.test(p.nome)) {
-            p.vaiParaCozinha = true;
-            p.categoriaId = 'cat-pasteis';
-          } else {
-            p.vaiParaCozinha = false;
-          }
-        });
-      }
-
-      if (versaoCarregada < 3) {
-        // Migração Catálogo v3: unifica múltiplos produtos de Pastel e Churros em produtos únicos com opções/sabores
-        // Remove os produtos antigos de pasteis e churros individuais
-        estado.produtos = estado.produtos.filter(p => {
-          const n = (p.nome || '').toLowerCase();
-          if (p.categoriaId === 'cat-pasteis' || n.startsWith('pastel')) return false;
-          if (p.categoriaId === 'cat-churros' || n.startsWith('churros')) return false;
-          return true;
-        });
-
-        // 1. Pastel unificado com opções de sabores (enviado para a cozinha)
-        estado.produtos.unshift({
-          id: 'p-pastel',
-          nome: 'Pastel',
-          preco: 14,
-          categoriaId: 'cat-pasteis',
-          tipo: 'produto',
-          codigo: '',
-          controlaEstoque: true,
-          estoque: 80,
-          vaiParaCozinha: true,
-          acessoRapido: true,
-          opcoes: [
-            { nome: 'Carne', preco: 14 },
-            { nome: 'Pizza', preco: 14 },
-            { nome: 'Frango', preco: 14 },
-            { nome: 'Queijo', preco: 14 }
-          ]
-        });
-
-        // 2. Churros unificado com opções de sabores
-        estado.produtos.splice(1, 0, {
-          id: 'p-churros',
-          nome: 'Churros',
-          preco: 10,
-          categoriaId: 'cat-churros',
-          tipo: 'produto',
-          codigo: '',
-          controlaEstoque: true,
-          estoque: 90,
-          vaiParaCozinha: false,
-          acessoRapido: true,
-          opcoes: [
-            { nome: 'Doce de Leite', preco: 10 },
-            { nome: 'Chocolate', preco: 10 },
-            { nome: 'Nutella', preco: 12 }
-          ]
-        });
-
-        estado.config.versaoCatalogo = 3;
-        await salvar();
-      }
     }
     estado.produtos.forEach(p => {
       if (p.controlaEstoque && (p.estoqueMinimo == null || isNaN(p.estoqueMinimo))) {

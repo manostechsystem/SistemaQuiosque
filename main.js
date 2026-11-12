@@ -2,8 +2,8 @@ const { app, BrowserWindow, ipcMain, dialog } = require('electron');
 const path = require('path');
 const fs = require('fs');
 const crypto = require('crypto');
+const { DATA_DIR } = require('./pasta-dados.js');
 
-const DATA_DIR = path.join(app.getPath('userData'), 'dados');
 const DATA_FILE = path.join(DATA_DIR, 'pdv.json');
 
 const PADRAO = {

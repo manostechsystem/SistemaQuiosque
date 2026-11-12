@@ -2709,11 +2709,16 @@ ${emailRemetente ? `E-mail de contato: ${emailRemetente}` : ''}`;
 
   // Aplica a logomarca no sistema (topo e login)
   function aplicarLogoSistema(logoUrl) {
-    const src = logoUrl || 'assets/manostech-logo.png';
+    let src = logoUrl;
+    if (!src || src.includes('logo-topo') || src.includes('logo-pordosol') || src.includes('logo.png')) {
+      src = 'assets/manostech-logo.png';
+    }
     const logoTopo = $('#app-logo-topo');
     if (logoTopo) logoTopo.src = src;
     const logoLogin = $('#app-logo-login');
     if (logoLogin) logoLogin.src = src;
+    const initLogo = $('#init-logo-preview');
+    if (initLogo) initLogo.src = 'assets/manostech-logo.png';
   }
 
   // Tratamento da logo para impressão térmica em preto e branco (binarização com canvas)
@@ -3220,6 +3225,118 @@ ${emailRemetente ? `E-mail de contato: ${emailRemetente}` : ''}`;
     recarregarModalDispositivos();
   }
 
+  async function abrirModalRestaurarPorCnpj() {
+    const cnpjAtual = (cfg().cnpj || '').replace(/\D/g, '');
+    UI.abrirModal({
+      titulo: 'Restaurar Banco de Dados por CNPJ (Disaster Recovery)',
+      largo: true,
+      corpo: `
+        <div style="padding:10px 0">
+          <p style="font-size:13.5px;color:var(--tinta-2);font-weight:700;margin-bottom:14px;line-height:1.5">
+            Informe o CNPJ da empresa para localizar todas as cópias de segurança salvas nos últimos 15 dias na nuvem.
+          </p>
+          <div style="display:flex;gap:10px;align-items:center;margin-bottom:16px">
+            <input type="text" id="restaura-cnpj-input" value="${cnpjAtual}" placeholder="Digite o CNPJ" style="flex:1;height:44px;padding:0 14px;border:2px solid var(--borda-forte);border-radius:10px;font-size:16px;font-weight:800;color:var(--tinta)" />
+            <button class="btn-primario" id="btn-buscar-backups-cnpj" type="button" style="height:44px;padding:0 18px;font-weight:800">
+              Buscar Backups
+            </button>
+          </div>
+          <div id="lista-backups-disponiveis" style="max-height:280px;overflow-y:auto;border:1.5px solid var(--borda);border-radius:12px;padding:8px;background:var(--afundado)">
+            <div style="text-align:center;padding:20px;color:var(--tinta-3);font-size:13px;font-weight:700">
+              Clique em "Buscar Backups" para consultar os pontos de recuperação.
+            </div>
+          </div>
+        </div>
+      `,
+      rodape: `<button class="btn-secundario" id="modal-restaura-fechar">Cancelar</button>`
+    });
+
+    const btnFechar = $('#modal-restaura-fechar');
+    if (btnFechar) btnFechar.onclick = UI.fecharModal;
+
+    const btnBuscar = $('#btn-buscar-backups-cnpj');
+    if (btnBuscar) {
+      btnBuscar.onclick = async () => {
+        const inputCnpj = ($('#restaura-cnpj-input')?.value || '').trim();
+        const container = $('#lista-backups-disponiveis');
+        container.innerHTML = '<div style="text-align:center;padding:20px;font-weight:800">Consultando nuvem segura...</div>';
+
+        try {
+          const resp = await fetch(apiUrl(`/api/backup/listar?cnpj=${inputCnpj}`));
+          const dados = await resp.json();
+          if (dados.ok && dados.backups && dados.backups.length > 0) {
+            container.innerHTML = dados.backups.map(b => {
+              const dataFormatada = new Date(b.dataArquivo).toLocaleString('pt-BR');
+              const motivoDesc = {
+                fechamento_caixa: 'Fechamento de Caixa',
+                rotina_3h: 'Rotina Inteligente (3h)',
+                manual: 'Cópia Manual',
+                teste_inicial: 'Instalação'
+              }[b.meta?.motivo] || b.meta?.motivo || 'Rotina';
+
+              return `
+                <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 14px;background:#FFF;border:1.5px solid var(--borda);border-radius:10px;margin-bottom:8px">
+                  <div>
+                    <div style="font-size:14px;font-weight:900;color:var(--tinta)">
+                      ${dataFormatada} · <span style="color:var(--primaria-forte)">${b.meta?.loja || 'ManosTech'}</span>
+                    </div>
+                    <div style="font-size:12px;color:var(--tinta-2);font-weight:700;margin-top:2px">
+                      Tipo: <b>${motivoDesc}</b> · <b>${b.meta?.qtdVendas || 0}</b> vendas salvas · ${b.tamanhoKb} KB
+                    </div>
+                  </div>
+                  <button class="btn-primario btn-pequeno btn-executar-restauro" data-arquivo="${b.arquivo}" type="button" style="font-weight:800">
+                    Restaurar Este
+                  </button>
+                </div>
+              `;
+            }).join('');
+
+            $$('.btn-executar-restauro').forEach(btn => {
+              btn.onclick = async () => {
+                const arq = btn.dataset.arquivo;
+                const confirma = await UI.confirmar(
+                  'Confirmar Restauração Completa',
+                  `Deseja realmente restaurar o banco a partir desta cópia? O banco atual será substituído integralmente.`,
+                  'Sim, Restaurar Agora'
+                );
+                if (confirma) {
+                  btn.disabled = true;
+                  btn.textContent = 'Restaurando...';
+                  try {
+                    const resRest = await fetch(apiUrl('/api/backup/restaurar'), {
+                      method: 'POST',
+                      headers: { 'Content-Type': 'application/json' },
+                      body: JSON.stringify({ arquivo: arq })
+                    });
+                    const rJson = await resRest.json();
+                    if (rJson.ok) {
+                      UI.fecharModal();
+                      await DB.carregar();
+                      UI.toast('Banco de dados restaurado com 100% de sucesso!', 'ok');
+                      irPara('venda');
+                    } else {
+                      UI.toast(rJson.erro || 'Falha ao restaurar banco.', 'erro');
+                    }
+                  } catch (e) {
+                    UI.toast('Erro ao comunicar com o servidor de restauração.', 'erro');
+                  }
+                }
+              };
+            });
+
+          } else {
+            container.innerHTML = '<div style="text-align:center;padding:20px;color:var(--tinta-3);font-size:13px;font-weight:700">Nenhum backup localizado para este CNPJ nos últimos 15 dias.</div>';
+          }
+        } catch {
+          container.innerHTML = '<div style="text-align:center;padding:20px;color:var(--alerta);font-size:13px;font-weight:800">Falha ao consultar a nuvem de backups.</div>';
+        }
+      };
+
+      // Dispara a busca automática logo de início
+      btnBuscar.click();
+    }
+  }
+
   /* ================== EVENTOS ================== */
   function ligarEventos() {
     $$('.trilho__btn').forEach(b => b.onclick = () => irPara(b.dataset.vista));
@@ -3469,118 +3586,6 @@ ${emailRemetente ? `E-mail de contato: ${emailRemetente}` : ''}`;
       };
     }
 
-    async function abrirModalRestaurarPorCnpj() {
-      const cnpjAtual = (cfg().cnpj || '').replace(/\D/g, '');
-      UI.abrirModal({
-        titulo: 'Restaurar Banco de Dados por CNPJ (Disaster Recovery)',
-        largo: true,
-        corpo: `
-          <div style="padding:10px 0">
-            <p style="font-size:13.5px;color:var(--tinta-2);font-weight:700;margin-bottom:14px;line-height:1.5">
-              Informe o CNPJ da empresa para localizar todas as cópias de segurança salvas nos últimos 15 dias na nuvem.
-            </p>
-            <div style="display:flex;gap:10px;align-items:center;margin-bottom:16px">
-              <input type="text" id="restaura-cnpj-input" value="${cnpjAtual}" placeholder="Digite o CNPJ do Quiosque" style="flex:1;height:44px;padding:0 14px;border:2px solid var(--borda-forte);border-radius:10px;font-size:16px;font-weight:800;color:var(--tinta)" />
-              <button class="btn-primario" id="btn-buscar-backups-cnpj" type="button" style="height:44px;padding:0 18px;font-weight:800">
-                Buscar Backups
-              </button>
-            </div>
-            <div id="lista-backups-disponiveis" style="max-height:280px;overflow-y:auto;border:1.5px solid var(--borda);border-radius:12px;padding:8px;background:var(--afundado)">
-              <div style="text-align:center;padding:20px;color:var(--tinta-3);font-size:13px;font-weight:700">
-                Clique em "Buscar Backups" para consultar os pontos de recuperação.
-              </div>
-            </div>
-          </div>
-        `,
-        rodape: `<button class="btn-secundario" id="modal-restaura-fechar">Cancelar</button>`
-      });
-
-      const btnFechar = $('#modal-restaura-fechar');
-      if (btnFechar) btnFechar.onclick = UI.fecharModal;
-
-      const btnBuscar = $('#btn-buscar-backups-cnpj');
-      if (btnBuscar) {
-        btnBuscar.onclick = async () => {
-          const inputCnpj = ($('#restaura-cnpj-input')?.value || '').trim();
-          const container = $('#lista-backups-disponiveis');
-          container.innerHTML = '<div style="text-align:center;padding:20px;font-weight:800">Consultando nuvem segura...</div>';
-
-          try {
-            const resp = await fetch(`/api/backup/listar?cnpj=${inputCnpj}`);
-            const dados = await resp.json();
-            if (dados.ok && dados.backups && dados.backups.length > 0) {
-              container.innerHTML = dados.backups.map(b => {
-                const dataFormatada = new Date(b.dataArquivo).toLocaleString('pt-BR');
-                const motivoDesc = {
-                  fechamento_caixa: 'Fechamento de Caixa',
-                  rotina_3h: 'Rotina Inteligente (3h)',
-                  manual: 'Cópia Manual',
-                  teste_inicial: 'Instalação'
-                }[b.meta?.motivo] || b.meta?.motivo || 'Rotina';
-
-                return `
-                  <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 14px;background:#FFF;border:1.5px solid var(--borda);border-radius:10px;margin-bottom:8px">
-                    <div>
-                      <div style="font-size:14px;font-weight:900;color:var(--tinta)">
-                        ${dataFormatada} · <span style="color:var(--primaria-forte)">${b.meta?.loja || 'Quiosque'}</span>
-                      </div>
-                      <div style="font-size:12px;color:var(--tinta-2);font-weight:700;margin-top:2px">
-                        Tipo: <b>${motivoDesc}</b> · <b>${b.meta?.qtdVendas || 0}</b> vendas salvas · ${b.tamanhoKb} KB
-                      </div>
-                    </div>
-                    <button class="btn-primario btn-pequeno btn-executar-restauro" data-arquivo="${b.arquivo}" type="button" style="font-weight:800">
-                      Restaurar Este
-                    </button>
-                  </div>
-                `;
-              }).join('');
-
-              $$('.btn-executar-restauro').forEach(btn => {
-                btn.onclick = async () => {
-                  const arq = btn.dataset.arquivo;
-                  const confirma = await UI.confirmar(
-                    'Confirmar Restauração Completa',
-                    `Deseja realmente restaurar o banco a partir desta cópia? O banco atual será substituído integralmente.`,
-                    'Sim, Restaurar Agora'
-                  );
-                  if (confirma) {
-                    btn.disabled = true;
-                    btn.textContent = 'Restaurando...';
-                    try {
-                      const resRest = await fetch(apiUrl('/api/backup/restaurar'), {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ arquivo: arq })
-                      });
-                      const rJson = await resRest.json();
-                      if (rJson.ok) {
-                        UI.fecharModal();
-                        await DB.carregar();
-                        UI.toast('Banco de dados restaurado com 100% de sucesso!', 'ok');
-                        irPara('venda');
-                      } else {
-                        UI.toast(rJson.erro || 'Falha ao restaurar banco.', 'erro');
-                      }
-                    } catch (e) {
-                      UI.toast('Erro ao comunicar com o servidor de restauração.', 'erro');
-                    }
-                  }
-                };
-              });
-
-            } else {
-              container.innerHTML = '<div style="text-align:center;padding:20px;color:var(--tinta-3);font-size:13px;font-weight:700">Nenhum backup localizado para este CNPJ nos últimos 15 dias.</div>';
-            }
-          } catch {
-            container.innerHTML = '<div style="text-align:center;padding:20px;color:var(--alerta);font-size:13px;font-weight:800">Falha ao consultar a nuvem de backups.</div>';
-          }
-        };
-
-        // Dispara a busca automática logo de início
-        btnBuscar.click();
-      }
-    }
-
     if ($('#btn-restaurar-backup-cnpj')) {
       $('#btn-restaurar-backup-cnpj').onclick = abrirModalRestaurarPorCnpj;
     }
@@ -3699,7 +3704,13 @@ ${emailRemetente ? `E-mail de contato: ${emailRemetente}` : ''}`;
         const novaSenha = ($('#init-senha')?.value || '').trim();
         const admin = (DB.funcionarios() || []).find(f => f.papel === 'admin');
         if (admin && novaSenha) {
-          admin.senha = novaSenha;
+          await DB.salvarFuncionario({
+            id: admin.id,
+            nome: admin.nome,
+            usuario: admin.usuario,
+            papel: 'admin',
+            senha: novaSenha
+          });
         }
 
         await DB.salvar();
@@ -3717,7 +3728,7 @@ ${emailRemetente ? `E-mail de contato: ${emailRemetente}` : ''}`;
 
     const btnInitRestaurar = $('#btn-init-restaurar-cnpj');
     if (btnInitRestaurar) {
-      btnInitRestaurar.onclick = modalRestaurarBackupCnpj;
+      btnInitRestaurar.onclick = abrirModalRestaurarPorCnpj;
     }
   }
 

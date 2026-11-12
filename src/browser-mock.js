@@ -1,6 +1,6 @@
 // Mock para visualização do PDV diretamente no navegador e sincronização Mobile/Cloudflare
 if (!window.pdv) {
-  const STORAGE_KEY = 'rota_do_forte_pdv_dados';
+  const STORAGE_KEY = 'manostech_system_pdv_dados';
   window.pdv = {
     ler: async () => {
       // 1. Tenta sincronizar com o servidor da loja (PC principal)
