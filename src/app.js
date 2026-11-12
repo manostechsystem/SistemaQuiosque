@@ -58,8 +58,9 @@ const App = (() => {
         topoBadge.textContent = 'GESTÃO';
         topoBadge.classList.add('topo__nome--gestao');
       }
-      if (topoLoja) topoLoja.textContent = 'Rota do Forte — Gestão Empresarial';
-      document.title = 'Rota do Forte — Gestão Empresarial';
+      const nomeLojaGestao = cfg().loja || 'ManosTech System';
+      if (topoLoja) topoLoja.textContent = `${nomeLojaGestao} — Gestão Empresarial`;
+      document.title = `${nomeLojaGestao} — Gestão Empresarial`;
     } else {
       if (trilhoPdv) trilhoPdv.hidden = false;
       if (trilhoRet) trilhoRet.hidden = true;
@@ -67,8 +68,9 @@ const App = (() => {
         topoBadge.textContent = 'PDV';
         topoBadge.classList.remove('topo__nome--gestao');
       }
-      if (topoLoja) topoLoja.textContent = 'Rota do Forte';
-      document.title = 'Rota do Forte — PDV';
+      const nomeLojaPdv = cfg().loja || 'ManosTech System';
+      if (topoLoja) topoLoja.textContent = nomeLojaPdv;
+      document.title = `${nomeLojaPdv} — PDV`;
     }
 
     $$('.trilho__btn').forEach(b => {
@@ -2060,7 +2062,7 @@ const App = (() => {
     const c = cfg();
     if ($('#cfg-email-contador')) $('#cfg-email-contador').value = c.emailContabilidade || '';
     if ($('#cfg-email-remetente')) $('#cfg-email-remetente').value = c.emailRemetenteFiscal || '';
-    if ($('#cfg-nome-remetente')) $('#cfg-nome-remetente').value = c.nomeRemetenteFiscal || c.loja || 'Rota do Forte';
+    if ($('#cfg-nome-remetente')) $('#cfg-nome-remetente').value = c.nomeRemetenteFiscal || c.loja || 'ManosTech System';
 
     const hoje = new Date();
     const p = n => String(n).padStart(2, '0');
@@ -2142,7 +2144,7 @@ const App = (() => {
     const c = cfg();
     const emailContador = c.emailContabilidade || '';
     const emailRemetente = c.emailRemetenteFiscal || '';
-    const nomeRemetente = c.nomeRemetenteFiscal || c.loja || 'Rota do Forte';
+    const nomeRemetente = c.nomeRemetenteFiscal || c.loja || 'ManosTech System';
 
     const assuntoPadrao = `[Lote Fiscal XML] ${nomeRemetente} - Movimento ${lote.periodo || ''}`;
     const corpoEmailPadrao =
@@ -2797,7 +2799,7 @@ ${emailRemetente ? `E-mail de contato: ${emailRemetente}` : ''}`;
 
   async function salvarConfig() {
     const c = cfg();
-    c.loja = $('#cfg-loja').value.trim() || 'Rota do Forte';
+    c.loja = $('#cfg-loja').value.trim() || 'ManosTech System';
     c.endereco = $('#cfg-endereco').value.trim();
     c.telefone = $('#cfg-telefone').value.trim();
     c.cnpj = $('#cfg-cnpj').value.trim();
@@ -3652,7 +3654,7 @@ ${emailRemetente ? `E-mail de contato: ${emailRemetente}` : ''}`;
 
   async function iniciar() {
     await DB.carregar();
-    $('#topo-loja').textContent = cfg().loja || 'Rota do Forte';
+    $('#topo-loja').textContent = cfg().loja || 'ManosTech System';
     aplicarLogoSistema(cfg().logo);
     atualizarStatusCaixaUI();
     DB.assinar(() => {

@@ -86,7 +86,7 @@ const Printer = (() => {
     const corpo = `
       <div class="marca">
         ${logoHTML}
-        <div class="marca__nome">${escapar(config.loja || 'Rota do Forte')}</div>
+        <div class="marca__nome">${escapar(config.loja || 'ManosTech System')}</div>
         <div class="marca__sub">Quiosque · Praia</div>
       </div>
       <div class="onda"></div>
@@ -144,7 +144,7 @@ const Printer = (() => {
     const corpo = `
       <div class="marca">
         ${logoHTML}
-        <div class="marca__nome">${escapar(config.loja || 'Rota do Forte')}</div>
+        <div class="marca__nome">${escapar(config.loja || 'ManosTech System')}</div>
         <div class="marca__sub">Fechamento de caixa</div>
       </div>
       <div class="onda"></div>

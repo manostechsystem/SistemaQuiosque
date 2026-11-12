@@ -20,7 +20,7 @@ const PADRAO = {
   funcionarios: [],
   caixas: [],
   config: {
-    loja: 'Rota do Forte',
+    loja: '',
     cnpj: '',
     endereco: '',
     telefone: '',
@@ -153,7 +153,7 @@ ipcMain.handle('cupom:escolher-pasta', async () => {
 
 ipcMain.handle('dados:exportar', async () => {
   const r = await dialog.showSaveDialog({
-    defaultPath: `backup-rota-do-forte-${new Date().toISOString().slice(0, 10)}.json`,
+    defaultPath: `backup-manostech-${new Date().toISOString().slice(0, 10)}.json`,
     filters: [{ name: 'JSON', extensions: ['json'] }]
   });
   if (r.canceled) return false;

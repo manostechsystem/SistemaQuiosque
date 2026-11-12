@@ -138,7 +138,7 @@ const server = http.createServer((req, res) => {
     const existeDb = fs.existsSync(DATA_FILE);
     res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
     res.end(JSON.stringify({
-      servidor: 'Rota do Forte Local Server',
+      servidor: 'ManosTech System Local Server',
       online: true,
       hora: new Date().toISOString(),
       bancoAtivo: existeDb
@@ -162,7 +162,7 @@ const server = http.createServer((req, res) => {
         }
 
         const db = fs.existsSync(DATA_FILE) ? JSON.parse(fs.readFileSync(DATA_FILE, 'utf8')) : {};
-        const nomeLoja = db.config?.loja || 'Rota do Forte';
+        const nomeLoja = db.config?.loja || 'ManosTech System';
         const urlLocal = `http://${ipLocal}:${PORT}/mobile.html`;
         const urlTunnel = db.config?.urlTunnel || '';
         const tokenPareamento = Dispositivos.gerarTokenPareamento();
@@ -257,7 +257,7 @@ const server = http.createServer((req, res) => {
           });
 
           const db = fs.existsSync(DATA_FILE) ? JSON.parse(fs.readFileSync(DATA_FILE, 'utf8')) : {};
-          const nomeLoja = db.config?.loja || 'Rota do Forte';
+          const nomeLoja = db.config?.loja || 'ManosTech System';
 
           res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
           res.end(JSON.stringify({
@@ -491,5 +491,5 @@ const server = http.createServer((req, res) => {
 
 // Ouve em 0.0.0.0 para aceitar conexões locais e túneis do Cloudflare
 server.listen(PORT, '0.0.0.0', () => {
-  console.log(`Servidor Rota do Forte operando na porta ${PORT} (0.0.0.0)`);
+  console.log(`Servidor ManosTech System operando na porta ${PORT} (0.0.0.0)`);
 });

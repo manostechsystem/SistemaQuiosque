@@ -249,7 +249,7 @@ const Fiscal = (() => {
   function montarXmlVendaContabil(venda, config) {
     const chave = gerarChaveNfce(venda, config);
     const cnpjEmit = (config.cnpj || '00.000.000/0001-00').replace(/\D/g, '');
-    const razaoEmit = config.loja || 'Rota do Forte';
+    const razaoEmit = config.loja || 'ManosTech System';
     const dataEmissao = formatarDataNfe(venda.data);
     const formaPag = FORMAS_PAGAMENTO_FISCAL[venda.pagamento] || { codigo: '99', descricao: 'Outros' };
 
@@ -372,7 +372,7 @@ ${itensXml}
         </detPag>
       </pag>
       <infAdic>
-        <infCpl>DOCUMENTO ELETRONICO DE VENDAS - ROTA DO FORTE PDV. FORMA DE RECEBIMENTO: ${formaPag.descricao}.</infCpl>
+        <infCpl>DOCUMENTO ELETRONICO DE VENDAS - MANOSTECH SYSTEM. FORMA DE RECEBIMENTO: ${formaPag.descricao}.</infCpl>
       </infAdic>
     </infNFe>
   </NFe>
@@ -389,7 +389,7 @@ ${itensXml}
     return `<?xml version="1.0" encoding="UTF-8"?>
 <loteContabilVendas xmlns="http://www.rotadoforte.com.br/contabilidade" versao="1.0">
   <cabecalho>
-    <loja>${escapar(config.loja || 'Rota do Forte')}</loja>
+    <loja>${escapar(config.loja || 'ManosTech System')}</loja>
     <cnpj>${cnpjEmit}</cnpj>
     <periodo>${escapar(periodoStr || 'Mensal')}</periodo>
     <geradoEm>${new Date().toISOString()}</geradoEm>

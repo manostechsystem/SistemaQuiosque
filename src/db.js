@@ -15,13 +15,10 @@ const DB = (() => {
 
   const PADRAO = {
     categorias: [
-      { id: 'cat-pasteis', nome: 'Pastéis', ordem: 1 },
-      { id: 'cat-bebidas', nome: 'Bebidas (Sem Álcool)', ordem: 2 },
-      { id: 'cat-cervejas', nome: 'Cervejas', ordem: 3 },
-      { id: 'cat-churros', nome: 'Churros', ordem: 4 },
-      { id: 'cat-porcoes', nome: 'Porções & Salgados', ordem: 5 },
-      { id: 'cat-acai', nome: 'Açaí & Sobremesas', ordem: 6 },
-      { id: 'cat-alugueis', nome: 'Aluguéis & Serviços', ordem: 7 }
+      { id: 'cat-bebidas', nome: 'Bebidas', ordem: 1 },
+      { id: 'cat-comidas', nome: 'Alimentos & Refeições', ordem: 2 },
+      { id: 'cat-sobremesas', nome: 'Sobremesas & Doces', ordem: 3 },
+      { id: 'cat-servicos', nome: 'Serviços & Diversos', ordem: 4 }
     ],
     produtos: [],
     vendas: [],
@@ -32,7 +29,7 @@ const DB = (() => {
     alertasEstoque: [],
     lotesContabeis: [],
     config: {
-      loja: 'Rota do Forte',
+      loja: '',
       cnpj: '',
       endereco: '',
       telefone: '',
@@ -194,20 +191,7 @@ const DB = (() => {
       await salvar();
     }
 
-    if (!estado.config.semeado && estado.produtos.length === 0) {
-      estado.produtos = SEMENTE.map(([nome, preco, cat, estoque, tipo, cozinha, rapido, opcoes], i) => ({
-        id: 'p' + (i + 1),
-        nome,
-        preco,
-        categoriaId: cat,
-        tipo,
-        codigo: '',
-        controlaEstoque: estoque !== null,
-        estoque: estoque ?? 0,
-        vaiParaCozinha: !!cozinha,
-        acessoRapido: !!rapido,
-        opcoes: opcoes || null
-      }));
+    if (!estado.config.semeado) {
       estado.config.semeado = true;
       estado.config.versaoCatalogo = 3;
       await salvar();

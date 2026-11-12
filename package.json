@@ -21,7 +21,6 @@
       "backup.js",
       "dispositivos.js",
       "src/**/*",
-      "dados/**/*",
       "package.json"
     ],
     "win": {

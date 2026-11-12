@@ -1,6 +1,6 @@
 /**
  * Gerenciador de Aparelhos Conectados (Estilo WhatsApp Web)
- * ManosTech System — Rota do Forte
+ * ManosTech System — Gerenciador de Aparelhos Conectados
  *
  * Funcionalidades:
  * - Gera tokens únicos para QR Code de conexão

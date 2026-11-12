@@ -1,6 +1,6 @@
 /**
  * Módulo de Backup Inteligente & Disaster Recovery por CNPJ
- * Rota do Forte / Quiosques
+ * ManosTech System — Gestão Empresarial e PDV
  *
  * Características:
  * - Compressão GZIP (.json.gz) - redução de ~75% no tamanho do arquivo (~10 KB)
