@@ -201,6 +201,31 @@ const server = http.createServer((req, res) => {
   }
 
   // Endpoints do Gerenciador de Aparelhos Conectados (Estilo WhatsApp)
+  if (pathname === '/api/dispositivos/status') {
+    const db = fs.existsSync(DATA_FILE) ? JSON.parse(fs.readFileSync(DATA_FILE, 'utf8')) : {};
+    res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
+    res.end(JSON.stringify({ ok: true, status: 'online', loja: db.config?.loja || 'ManosTech System' }));
+    return;
+  }
+
+  if (pathname === '/api/download-apk') {
+    const apkPath = path.join(__dirname, 'dist_mobile', 'ManosTech-PDV-Android-APK', 'ManosTech-PDV.apk');
+    if (fs.existsSync(apkPath)) {
+      const stat = fs.statSync(apkPath);
+      res.writeHead(200, {
+        'Content-Type': 'application/vnd.android.package-archive',
+        'Content-Length': stat.size,
+        'Content-Disposition': 'attachment; filename="ManosTech-PDV.apk"'
+      });
+      fs.createReadStream(apkPath).pipe(res);
+      return;
+    } else {
+      res.writeHead(404, { 'Content-Type': 'text/plain; charset=utf-8' });
+      res.end('APK ainda não disponível para download.');
+      return;
+    }
+  }
+
   if (pathname === '/api/dispositivos/listar') {
     const lista = Dispositivos.listarDispositivos();
     res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });

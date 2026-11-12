@@ -5,6 +5,7 @@ on:
     branches: [ main ]
     paths:
       - 'src/**'
+      - 'mobile_app/**'
       - 'capacitor.config.json'
       - '.github/workflows/build-apk.yml'
   workflow_dispatch:
@@ -40,14 +41,27 @@ jobs:
 
       - name: Configure Android App Icons (ManosTech Robot Mascot)
         run: |
-          # Copia o ícone do mascote para todas as densidades de tela do Android
+          # 1. Remove XMLs de adaptive icon v26 para garantir que o icone PNG do robo seja exibido 100% fiel
+          rm -rf android/app/src/main/res/mipmap-anydpi-v26
+
+          # 2. Copia o icone do mascote para todas as densidades (ic_launcher, round e foreground)
           for dir in mdpi hdpi xhdpi xxhdpi xxxhdpi; do
             target="android/app/src/main/res/mipmap-$dir"
             if [ -d "$target" ]; then
-              cp src/assets/manostech-icon.png "$target/ic_launcher.png"
-              cp src/assets/manostech-icon.png "$target/ic_launcher_round.png"
+              cp mobile_app/assets/manostech-icon.png "$target/ic_launcher.png"
+              cp mobile_app/assets/manostech-icon.png "$target/ic_launcher_round.png"
+              cp mobile_app/assets/manostech-icon.png "$target/ic_launcher_foreground.png"
             fi
           done
+
+      - name: Configure Permissions and Cleartext Traffic
+        run: |
+          # Garante permissao de Camera para QR Code e navegacao em rede local (Cleartext HTTP)
+          manifest="android/app/src/main/AndroidManifest.xml"
+          if [ -f "$manifest" ]; then
+            sed -i '/<application/i \    <uses-permission android:name="android.permission.CAMERA" />\n    <uses-permission android:name="android.permission.INTERNET" />\n    <uses-feature android:name="android.hardware.camera" android:required="false" />' "$manifest"
+            sed -i 's/<application/<application android:usesCleartextTraffic="true"/g' "$manifest"
+          fi
 
       - name: Build Android APK (Gradle)
         run: |

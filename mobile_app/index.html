@@ -1,0 +1,655 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>ManosTech — PDV Móvel</title>
+  <meta name="theme-color" content="#0C0E14">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <link rel="icon" type="image/png" href="assets/manostech-icon.png">
+  <style>
+    :root {
+      --bg: #0C0E14;
+      --card: #161A24;
+      --borda: #252D3D;
+      --azul-neon: #00B4D8;
+      --azul-brilho: #0077B6;
+      --primaria: #D97706;
+      --primaria-forte: #B45309;
+      --tinta: #FFFFFF;
+      --tinta-2: #CBD5E1;
+      --tinta-3: #94A3B8;
+      --sucesso: #10B981;
+      --alerta: #EF4444;
+      --raio: 16px;
+      --fonte: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+    body {
+      font-family: var(--fonte);
+      background: var(--bg);
+      color: var(--tinta);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      overflow-x: hidden;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 420px;
+      margin: 0 auto;
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    /* Logo Mascote Robô ManosTech */
+    .logo-wrap {
+      position: relative;
+      margin-bottom: 20px;
+    }
+    .logo-img {
+      width: 130px;
+      height: 130px;
+      border-radius: 28px;
+      object-fit: cover;
+      border: 2px solid var(--azul-neon);
+      box-shadow: 0 0 25px rgba(0, 180, 216, 0.45);
+      background: #000;
+    }
+
+    h1 {
+      font-size: 24px;
+      font-weight: 900;
+      letter-spacing: -0.5px;
+      color: #fff;
+      margin-bottom: 6px;
+    }
+
+    .subtitulo {
+      font-size: 14px;
+      color: var(--tinta-3);
+      font-weight: 600;
+      margin-bottom: 24px;
+    }
+
+    .badge-status {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(239, 68, 68, 0.15);
+      border: 1px solid rgba(239, 68, 68, 0.35);
+      color: #FCA5A5;
+      font-size: 12px;
+      font-weight: 800;
+      padding: 6px 14px;
+      border-radius: 20px;
+      margin-bottom: 22px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .badge-status.conectando {
+      background: rgba(0, 180, 216, 0.15);
+      border-color: rgba(0, 180, 216, 0.35);
+      color: #7DD3FC;
+    }
+    .badge-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--alerta);
+    }
+    .badge-status.conectando .badge-dot {
+      background: var(--azul-neon);
+      animation: pulso 1.5s infinite;
+    }
+
+    @keyframes pulso {
+      0% { transform: scale(0.9); opacity: 0.7; }
+      50% { transform: scale(1.3); opacity: 1; }
+      100% { transform: scale(0.9); opacity: 0.7; }
+    }
+
+    /* Cartão de Instruções */
+    .card {
+      background: var(--card);
+      border: 1px solid var(--borda);
+      border-radius: var(--raio);
+      padding: 22px 18px;
+      width: 100%;
+      text-align: left;
+      margin-bottom: 24px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+    }
+
+    .card-tit {
+      font-size: 15px;
+      font-weight: 800;
+      color: #fff;
+      margin-bottom: 14px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .passos-lista {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .passo-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      font-size: 13.5px;
+      color: var(--tinta-2);
+      line-height: 1.45;
+    }
+
+    .passo-num {
+      background: rgba(0, 180, 216, 0.2);
+      color: var(--azul-neon);
+      border: 1px solid var(--azul-neon);
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      font-weight: 900;
+      flex-shrink: 0;
+    }
+
+    /* Botões */
+    .btn {
+      width: 100%;
+      padding: 16px 20px;
+      border-radius: 12px;
+      font-size: 15px;
+      font-weight: 800;
+      border: none;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      transition: all 0.2s ease;
+      text-decoration: none;
+    }
+    .btn:active { transform: scale(0.98); }
+
+    .btn-primario {
+      background: linear-gradient(135deg, #00B4D8 0%, #0077B6 100%);
+      color: #fff;
+      box-shadow: 0 4px 18px rgba(0, 180, 216, 0.4);
+      margin-bottom: 12px;
+    }
+
+    .btn-secundario {
+      background: transparent;
+      color: var(--tinta-2);
+      border: 1px solid var(--borda);
+    }
+    .btn-secundario:hover { background: rgba(255,255,255,0.05); }
+
+    .btn-perigo {
+      background: rgba(239, 68, 68, 0.15);
+      border: 1px solid rgba(239, 68, 68, 0.4);
+      color: #F87171;
+      margin-top: 10px;
+    }
+
+    /* Scanner Modal Overlay */
+    .scanner-overlay {
+      position: fixed;
+      inset: 0;
+      background: #000;
+      z-index: 1000;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      align-items: center;
+      padding: 24px 20px;
+    }
+
+    .scanner-topo {
+      width: 100%;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      z-index: 10;
+    }
+
+    .scanner-topo-tit {
+      font-size: 16px;
+      font-weight: 800;
+      color: #fff;
+    }
+
+    .btn-fechar-scanner {
+      background: rgba(255,255,255,0.2);
+      border: none;
+      color: #fff;
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+    }
+
+    .scanner-janela {
+      position: relative;
+      width: 260px;
+      height: 260px;
+      border: 2px solid var(--azul-neon);
+      border-radius: 20px;
+      overflow: hidden;
+      box-shadow: 0 0 30px rgba(0, 180, 216, 0.5);
+    }
+
+    .scanner-mira {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 3px;
+      background: var(--azul-neon);
+      box-shadow: 0 0 12px var(--azul-neon);
+      animation: scanLaser 2s infinite ease-in-out;
+    }
+
+    @keyframes scanLaser {
+      0% { top: 0%; }
+      50% { top: 98%; }
+      100% { top: 0%; }
+    }
+
+    #video-camera {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .scanner-rodape {
+      z-index: 10;
+      font-size: 13.5px;
+      color: var(--tinta-2);
+      text-align: center;
+      max-width: 320px;
+      line-height: 1.4;
+    }
+
+    /* Modal Manual */
+    .modal-manual {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.85);
+      z-index: 900;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .modal-manual-card {
+      background: var(--card);
+      border: 1px solid var(--borda);
+      border-radius: var(--raio);
+      padding: 24px;
+      width: 100%;
+      max-width: 380px;
+      text-align: left;
+    }
+
+    .input-padrao {
+      width: 100%;
+      padding: 14px 16px;
+      background: #0B0E14;
+      border: 1px solid var(--borda);
+      border-radius: 10px;
+      color: #fff;
+      font-size: 14px;
+      margin: 14px 0 18px 0;
+      outline: none;
+    }
+    .input-padrao:focus {
+      border-color: var(--azul-neon);
+    }
+
+    /* Tela de Erro de Conexão */
+    .tela-erro {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      width: 100%;
+    }
+
+    .erro-icone {
+      width: 60px;
+      height: 60px;
+      border-radius: 50%;
+      background: rgba(239, 68, 68, 0.15);
+      border: 2px solid var(--alerta);
+      color: var(--alerta);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 16px;
+    }
+
+    .loading-spinner {
+      width: 32px;
+      height: 32px;
+      border: 3px solid rgba(0, 180, 216, 0.2);
+      border-top-color: var(--azul-neon);
+      border-radius: 50%;
+      animation: girar 0.9s linear infinite;
+      margin-bottom: 16px;
+    }
+    @keyframes girar {
+      to { transform: rotate(360deg); }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container" id="tela-principal">
+    <div class="logo-wrap">
+      <img src="assets/manostech-icon.png" alt="ManosTech" class="logo-img">
+    </div>
+
+    <h1>ManosTech PDV Móvel</h1>
+    <div class="subtitulo">Sistema Universal para Garçons e Gestão</div>
+
+    <!-- ESTADO 1: Conectando / Verificando Servidor Anterior -->
+    <div id="secao-conectando" style="display:none;width:100%">
+      <div class="badge-status conectando">
+        <span class="badge-dot"></span>
+        <span>Conectando ao Computador...</span>
+      </div>
+      <div style="display:flex;flex-direction:column;align-items:center;margin:20px 0">
+        <div class="loading-spinner"></div>
+        <p style="font-size:13.5px;color:var(--tinta-2)" id="txt-status-conexao">Estabelecendo conexão segura...</p>
+      </div>
+    </div>
+
+    <!-- ESTADO 2: Computador Não Encontrado (Erro) -->
+    <div id="secao-erro" class="tela-erro" style="display:none">
+      <div class="erro-icone">
+        <svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+      </div>
+      <h2 style="font-size:18px;font-weight:900;margin-bottom:8px">Computador Não Encontrado</h2>
+      <p style="font-size:13.5px;color:var(--tinta-2);line-height:1.5;margin-bottom:14px" id="msg-erro-detalhe">
+        Não foi possível conectar ao sistema no endereço configurado.
+      </p>
+      <div class="card" style="margin-bottom:18px">
+        <div style="font-size:12.5px;color:var(--tinta-3);margin-bottom:6px">Endereço vinculado:</div>
+        <div style="font-size:13.5px;font-weight:800;color:#fff;word-break:break-all" id="label-servidor-atual">-</div>
+      </div>
+      <p style="font-size:12.5px;color:var(--tinta-3);margin-bottom:20px;line-height:1.4">
+        Certifique-se de que o computador com o sistema está ligado e que celular e computador estão conectados na mesma rede Wi-Fi.
+      </p>
+      <button class="btn btn-primario" id="btn-tentar-novamente">Tentar Conectar Novamente</button>
+      <button class="btn btn-perigo" id="btn-trocar-servidor">Conectar a Outro Computador (Ler QR Code)</button>
+    </div>
+
+    <!-- ESTADO 3: Primeiro Acesso / Desconectado (Ler QR Code) -->
+    <div id="secao-desconectado" style="display:none;width:100%">
+      <div class="badge-status">
+        <span class="badge-dot"></span>
+        <span>Aparelho Não Conectado</span>
+      </div>
+
+      <div class="card">
+        <div class="card-tit">
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="var(--azul-neon)" stroke-width="2.3"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+          Como conectar ao seu sistema:
+        </div>
+        <ul class="passos-lista">
+          <li class="passo-item">
+            <span class="passo-num">1</span>
+            <span>No computador do seu quiosque/empresa, abra o sistema <b>ManosTech</b>.</span>
+          </li>
+          <li class="passo-item">
+            <span class="passo-num">2</span>
+            <span>Clique no botão superior <b>"Conectar Celular / QR Code"</b>.</span>
+          </li>
+          <li class="passo-item">
+            <span class="passo-num">3</span>
+            <span>Toque no botão abaixo e <b>aponte a câmera deste celular</b> para o QR Code na tela.</span>
+          </li>
+        </ul>
+      </div>
+
+      <button class="btn btn-primario" id="btn-abrir-camera">
+        <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.3"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+        Escanear QR Code do Computador
+      </button>
+
+      <button class="btn btn-secundario" id="btn-abrir-manual">
+        Inserir Endereço Manualmente
+      </button>
+    </div>
+
+  </div>
+
+  <!-- OVERLAY DA CÂMERA (LEITOR DE QR CODE VIA JSQR) -->
+  <div class="scanner-overlay" id="scanner-modal" style="display:none">
+    <div class="scanner-topo">
+      <div class="scanner-topo-tit">Aponte para o QR Code</div>
+      <button class="btn-fechar-scanner" id="btn-fechar-scanner" title="Cancelar">✕</button>
+    </div>
+
+    <div class="scanner-janela">
+      <video id="video-camera" playsinline autoplay muted></video>
+      <div class="scanner-mira"></div>
+    </div>
+
+    <div class="scanner-rodape">
+      Posicione o QR Code exibido na tela do computador dentro do quadrado acima. A leitura é automática.
+    </div>
+  </div>
+
+  <!-- MODAL DE INSERÇÃO MANUAL -->
+  <div class="modal-manual" id="modal-manual" style="display:none">
+    <div class="modal-manual-card">
+      <h3 style="font-size:16px;font-weight:900;margin-bottom:6px">Conexão Manual</h3>
+      <p style="font-size:13px;color:var(--tinta-3)">Informe o endereço IP ou link exibido no sistema do computador:</p>
+      <input type="text" id="input-url-manual" class="input-padrao" placeholder="http://192.168.1.100:3000" spellcheck="false" autocomplete="off" />
+      <button class="btn btn-primario" id="btn-conectar-manual">Conectar Agora</button>
+      <button class="btn btn-secundario" id="btn-cancelar-manual" style="margin-top:10px">Cancelar</button>
+    </div>
+  </div>
+
+  <!-- JSQR Puro para Leitura Ultrarrápida pela Câmera -->
+  <script src="assets/jsQR.js"></script>
+
+  <script>
+    (function() {
+      const STORAGE_KEY = 'manostech_servidor_url';
+      let videoStream = null;
+      let scanTimer = null;
+      const canvasElement = document.createElement('canvas');
+      const canvasCtx = canvasElement.getContext('2d', { willReadFrequently: true });
+
+      const elConectando = document.getElementById('secao-conectando');
+      const elErro = document.getElementById('secao-erro');
+      const elDesconectado = document.getElementById('secao-desconectado');
+      const elScanner = document.getElementById('scanner-modal');
+      const elModalManual = document.getElementById('modal-manual');
+      const videoEl = document.getElementById('video-camera');
+      const inputManual = document.getElementById('input-url-manual');
+
+      function exibirSecao(secao) {
+        elConectando.style.display = (secao === 'conectando') ? 'block' : 'none';
+        elErro.style.display = (secao === 'erro') ? 'flex' : 'none';
+        elDesconectado.style.display = (secao === 'desconectado') ? 'block' : 'none';
+      }
+
+      // Inicialização: Verifica se já tem servidor salvo
+      async function inicializar() {
+        const urlSalva = localStorage.getItem(STORAGE_KEY);
+        if (urlSalva && urlSalva.startsWith('http')) {
+          tentarConexaoComServidor(urlSalva);
+        } else {
+          exibirSecao('desconectado');
+        }
+      }
+
+      async function tentarConexaoComServidor(urlBase) {
+        exibirSecao('conectando');
+        document.getElementById('txt-status-conexao').textContent = 'Conectando a ' + urlBase + '...';
+
+        try {
+          const controller = new AbortController();
+          const timeoutId = setTimeout(() => controller.abort(), 4000);
+
+          // Testa se o servidor responde
+          const resp = await fetch(urlBase + '/api/dispositivos/status', {
+            signal: controller.signal
+          }).catch(async () => {
+            // Fallback: tenta /mobile.html direto
+            return await fetch(urlBase + '/mobile.html', { method: 'HEAD', signal: controller.signal });
+          });
+
+          clearTimeout(timeoutId);
+
+          if (resp && (resp.ok || resp.status < 500)) {
+            // Sucesso! Redireciona diretamente para a interface do cliente
+            window.location.replace(urlBase + '/mobile.html');
+            return;
+          }
+          throw new Error('Servidor retornou status ' + (resp ? resp.status : 'desconhecido'));
+        } catch (err) {
+          console.warn('[MANOSTECH] Falha ao conectar ao servidor:', err);
+          document.getElementById('label-servidor-atual').textContent = urlBase;
+          document.getElementById('msg-erro-detalhe').textContent = 
+            'Não foi possível alcançar o computador no endereço ' + urlBase + '. Verifique se o sistema está em execução e na mesma rede Wi-Fi.';
+          exibirSecao('erro');
+        }
+      }
+
+      // Processa a URL lida pelo QR Code
+      function processarUrlLida(conteudo) {
+        if (!conteudo) return;
+        try {
+          let url = conteudo.trim();
+          if (!url.startsWith('http://') && !url.startsWith('https://')) {
+            url = 'http://' + url;
+          }
+
+          const parsed = new URL(url);
+          const urlBase = parsed.origin;
+
+          // Salva o endereço base do computador para acessos futuros
+          localStorage.setItem(STORAGE_KEY, urlBase);
+
+          pararCamera();
+          elScanner.style.display = 'none';
+
+          // Carrega a página móvel com todos os parâmetros (ex: ?conectar=TOKEN)
+          window.location.replace(url);
+        } catch (e) {
+          alert('Conteúdo lido inválido: ' + conteudo);
+        }
+      }
+
+      // Scanner de Câmera com jsQR
+      async function iniciarCamera() {
+        elScanner.style.display = 'flex';
+        try {
+          videoStream = await navigator.mediaDevices.getUserMedia({
+            video: { facingMode: 'environment' }
+          });
+          videoEl.srcObject = videoStream;
+          videoEl.setAttribute('playsinline', true);
+          await videoEl.play();
+          requestAnimationFrame(scanLoop);
+        } catch (err) {
+          alert('Não foi possível acessar a câmera do celular: ' + err.message + '\nUtilize a opção de inserção manual.');
+          pararCamera();
+          elScanner.style.display = 'none';
+        }
+      }
+
+      function pararCamera() {
+        if (videoStream) {
+          videoStream.getTracks().forEach(track => track.stop());
+          videoStream = null;
+        }
+      }
+
+      function scanLoop() {
+        if (!videoStream) return;
+        if (videoEl.readyState === videoEl.HAVE_ENOUGH_DATA) {
+          canvasElement.height = videoEl.videoHeight;
+          canvasElement.width = videoEl.videoWidth;
+          canvasCtx.drawImage(videoEl, 0, 0, canvasElement.width, canvasElement.height);
+
+          const imageData = canvasCtx.getImageData(0, 0, canvasElement.width, canvasElement.height);
+          if (typeof jsQR !== 'undefined') {
+            const code = jsQR(imageData.data, imageData.width, imageData.height, {
+              inversionAttempts: 'dontInvert'
+            });
+
+            if (code && code.data) {
+              processarUrlLida(code.data);
+              return;
+            }
+          }
+        }
+        requestAnimationFrame(scanLoop);
+      }
+
+      // Eventos
+      document.getElementById('btn-abrir-camera').onclick = iniciarCamera;
+      document.getElementById('btn-fechar-scanner').onclick = () => {
+        pararCamera();
+        elScanner.style.display = 'none';
+      };
+
+      document.getElementById('btn-abrir-manual').onclick = () => {
+        elModalManual.style.display = 'flex';
+        inputManual.value = localStorage.getItem(STORAGE_KEY) || 'http://';
+        inputManual.focus();
+      };
+      document.getElementById('btn-cancelar-manual').onclick = () => {
+        elModalManual.style.display = 'none';
+      };
+      document.getElementById('btn-conectar-manual').onclick = () => {
+        const val = inputManual.value.trim();
+        if (val) {
+          elModalManual.style.display = 'none';
+          processarUrlLida(val);
+        }
+      };
+
+      document.getElementById('btn-tentar-novamente').onclick = () => {
+        const urlSalva = localStorage.getItem(STORAGE_KEY);
+        if (urlSalva) tentarConexaoComServidor(urlSalva);
+      };
+
+      document.getElementById('btn-trocar-servidor').onclick = () => {
+        localStorage.removeItem(STORAGE_KEY);
+        exibirSecao('desconectado');
+      };
+
+      inicializar();
+    })();
+  </script>
+</body>
+</html>

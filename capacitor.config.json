@@ -1,8 +1,11 @@
 {
   "appId": "com.manostech.quiosque",
   "appName": "ManosTech",
-  "webDir": "src",
+  "webDir": "mobile_app",
   "server": {
-    "cleartext": true
+    "cleartext": true,
+    "allowNavigation": [
+      "*"
+    ]
   }
 }

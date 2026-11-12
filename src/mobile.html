@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-  <title>Rota do Forte — Gestão ADM Móvel</title>
+  <title>ManosTech — Gestão & PDV Móvel</title>
   <meta name="theme-color" content="#2C1B10">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -732,9 +732,9 @@
       </button>
 
       <div class="mob-topo__marca">
-        <img src="assets/logo-topo.png" alt="Logo" class="mob-topo__logo" id="mob-topo-logo">
+        <img src="assets/manostech-icon.png" alt="Logo" class="mob-topo__logo" id="mob-topo-logo">
         <div>
-          <div class="mob-topo__tit" id="mob-topo-tit">Rota do Forte</div>
+          <div class="mob-topo__tit" id="mob-topo-tit">ManosTech System</div>
           <div class="mob-topo__sub">Gestão Empresarial ADM</div>
         </div>
       </div>
@@ -764,9 +764,9 @@
     <nav class="drawer-lateral" id="drawer-lateral">
       <div class="drawer-cabecalho">
         <div style="display:flex;align-items:center;gap:10px">
-          <img src="assets/logo-topo.png" alt="Logo" id="drawer-logo" style="width:36px;height:36px;border-radius:8px;object-fit:cover">
+          <img src="assets/manostech-icon.png" alt="Logo" id="drawer-logo" style="width:36px;height:36px;border-radius:8px;object-fit:cover">
           <div>
-            <div style="font-size:16px;font-weight:900" id="drawer-nome-loja">Rota do Forte</div>
+            <div style="font-size:16px;font-weight:900" id="drawer-nome-loja">ManosTech System</div>
             <div style="font-size:12px;color:#E5D5C5">Painel do Administrador</div>
           </div>
         </div>
@@ -821,8 +821,8 @@
         <div class="login-card">
           <!-- Logo e Identidade do Quiosque de Acordo com o Dono -->
           <div class="login-logo-container">
-            <img id="login-logo-img" src="assets/logo.png" alt="Logo do Quiosque" class="login-logo-img">
-            <h1 id="login-nome-quiosque" class="login-nome-quiosque">Quiosque Rota do Forte</h1>
+            <img id="login-logo-img" src="assets/manostech-icon.png" alt="Logo" class="login-logo-img">
+            <h1 id="login-nome-quiosque" class="login-nome-quiosque">ManosTech System</h1>
             <div class="login-sub-quiosque" id="login-sub-quiosque">Gestão Empresarial ADM</div>
           </div>
 
@@ -951,7 +951,7 @@
       <div style="margin-bottom:14px;display:flex;justify-content:space-between;align-items:center">
         <div>
           <h2 style="font-size:19px;font-weight:900;color:var(--tinta)" id="home-saudacao">Visão Geral de Hoje</h2>
-          <span style="font-size:13px;color:var(--tinta-2);font-weight:700" id="home-data-hoje">Rota do Forte · Quiosque & Praia</span>
+          <span style="font-size:13px;color:var(--tinta-2);font-weight:700" id="home-data-hoje">ManosTech · Gestão Conectada</span>
         </div>
         <span class="badge-estoque badge-estoque--ok" style="font-size:12.5px" id="home-badge-status-caixa">
           Caixa Ativo
@@ -1439,6 +1439,14 @@
 
       $('#btn-drawer-sair').onclick = () => {
         fecharDrawer();
+        if (confirm('Deseja desconectar este celular deste computador para conectar a outro?')) {
+          localStorage.removeItem('manostech_servidor_url');
+          localStorage.removeItem('mob_adm_logado');
+          localStorage.removeItem('mob_session_token');
+          sessionStorage.removeItem('mob_adm_logado');
+          window.location.replace('/');
+          return;
+        }
         sessionStorage.removeItem('mob_adm_logado');
         localStorage.removeItem('mob_adm_logado');
         verificarLogin();
@@ -1555,9 +1563,9 @@
       /* ==================== IDENTIDADE VISUAL DO ESTABELECIMENTO ==================== */
       function aplicarMarcaQuiosque() {
         const cfg = (typeof DB !== 'undefined' && DB.estado && DB.estado.config) ? DB.estado.config : {};
-        const nomeLoja = cfg.loja || 'Rota do Forte';
-        const logoLoja = cfg.logo || 'assets/logo.png';
-        const logoTopo = cfg.logo || 'assets/logo-topo.png';
+        const nomeLoja = cfg.loja || 'ManosTech System';
+        const logoLoja = cfg.logo || 'assets/manostech-icon.png';
+        const logoTopo = cfg.logo || 'assets/manostech-icon.png';
 
         // Atualiza a Tela de Login
         const imgLogin = $('#login-logo-img');
@@ -1942,7 +1950,7 @@
         if (hora >= 12 && hora < 18) saudacaoTxt = 'Boa tarde!';
         else if (hora >= 18 || hora < 5) saudacaoTxt = 'Boa noite!';
 
-        const nomeLoja = DB?.estado?.config?.loja || 'Rota do Forte';
+        const nomeLoja = DB?.estado?.config?.loja || 'ManosTech System';
         $('#home-saudacao').textContent = `${saudacaoTxt} ${nomeLoja}`;
         const diaSemana = ['Domingo', 'Segunda-feira', 'Terça-feira', 'Quarta-feira', 'Quinta-feira', 'Sexta-feira', 'Sábado'][agora.getDay()];
         $('#home-data-hoje').textContent = `${nomeLoja} · ${diaSemana}, ${agora.toLocaleDateString('pt-BR')}`;
