@@ -10,7 +10,7 @@
   },
   "build": {
     "appId": "com.manostech.quiosque",
-    "productName": "ManosTech PDV Quiosque",
+    "productName": "ManosTech System",
     "directories": {
       "output": "dist"
     },
@@ -46,7 +46,7 @@
       "allowToChangeInstallationDirectory": true,
       "createDesktopShortcut": true,
       "createStartMenuShortcut": true,
-      "shortcutName": "ManosTech PDV Quiosque",
+      "shortcutName": "ManosTech System",
       "installerIcon": "src/assets/icon.ico",
       "uninstallerIcon": "src/assets/icon.ico"
     }

@@ -1,6 +1,6 @@
 {
-  "name": "ManosTech — Gestão & PDV Móvel",
-  "short_name": "ManosTech",
+  "name": "ManosTech System",
+  "short_name": "ManosTech System",
   "description": "Painel Móvel de Gestão Empresarial, Estoque e Faturamento — ManosTech System",
   "start_url": "/mobile.html",
   "display": "standalone",

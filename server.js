@@ -209,13 +209,19 @@ const server = http.createServer((req, res) => {
   }
 
   if (pathname === '/api/download-apk') {
-    const apkPath = path.join(__dirname, 'dist_mobile', 'ManosTech-PDV-Android-APK', 'ManosTech-PDV.apk');
-    if (fs.existsSync(apkPath)) {
+    const possiveisCaminhos = [
+      path.join(__dirname, 'dist_mobile', 'ManosTech-System-Android-APK', 'ManosTech-System.apk'),
+      path.join(__dirname, 'dist_mobile', 'ManosTech-System.apk'),
+      path.join(__dirname, 'dist_mobile', 'ManosTech-PDV-Android-APK', 'ManosTech-PDV.apk'),
+      path.join(__dirname, 'dist_mobile', 'ManosTech-PDV.apk')
+    ];
+    let apkPath = possiveisCaminhos.find(p => fs.existsSync(p));
+    if (apkPath) {
       const stat = fs.statSync(apkPath);
       res.writeHead(200, {
         'Content-Type': 'application/vnd.android.package-archive',
         'Content-Length': stat.size,
-        'Content-Disposition': 'attachment; filename="ManosTech-PDV.apk"'
+        'Content-Disposition': 'attachment; filename="ManosTech-System.apk"'
       });
       fs.createReadStream(apkPath).pipe(res);
       return;

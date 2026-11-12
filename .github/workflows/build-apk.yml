@@ -72,11 +72,11 @@ jobs:
       - name: Prepare APK Output
         run: |
           mkdir -p output_apk
-          cp android/app/build/outputs/apk/debug/app-debug.apk output_apk/ManosTech-PDV.apk
+          cp android/app/build/outputs/apk/debug/app-debug.apk output_apk/ManosTech-System.apk
 
       - name: Upload Android APK Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: ManosTech-PDV-Android-APK
-          path: output_apk/ManosTech-PDV.apk
+          name: ManosTech-System-Android-APK
+          path: output_apk/ManosTech-System.apk
           retention-days: 30
