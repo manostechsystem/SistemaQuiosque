@@ -27,16 +27,15 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 20
-          cache: 'npm'
 
-      - name: Install Dependencies & Capacitor
+      - name: Install Dependencies
         run: |
           npm install
-          npm install --save-dev @capacitor/cli @capacitor/core @capacitor/android
+          npm install --save-dev @capacitor/core@^6.0.0 @capacitor/cli@^6.0.0 @capacitor/android@^6.0.0
 
       - name: Initialize Android Project
         run: |
-          npx cap add android
+          npx cap add android || true
           npx cap sync android
 
       - name: Configure Android App Icons (ManosTech Robot Mascot)

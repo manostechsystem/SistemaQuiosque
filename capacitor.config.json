@@ -2,7 +2,6 @@
   "appId": "com.manostech.quiosque",
   "appName": "ManosTech",
   "webDir": "src",
-  "bundledWebRuntime": false,
   "server": {
     "cleartext": true
   }
