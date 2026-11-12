@@ -76,6 +76,13 @@ function criarJanela() {
 }
 
 app.whenReady().then(() => {
+  // Inicia o servidor HTTP local para pareamento do celular e retaguarda
+  try {
+    require('./server.js');
+    console.log('[MAIN] Servidor HTTP local inicializado com sucesso.');
+  } catch (err) {
+    console.warn('[MAIN] Aviso ao iniciar server.js:', err.message);
+  }
   criarJanela();
   app.on('activate', () => { if (BrowserWindow.getAllWindows().length === 0) criarJanela(); });
 });

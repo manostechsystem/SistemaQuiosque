@@ -2701,9 +2701,15 @@ ${emailRemetente ? `E-mail de contato: ${emailRemetente}` : ''}`;
 
   let logoOriginalTemporaria = null;
 
+  // Helper para chamadas de API funcionando tanto em HTTP quanto no Electron (protocolo file://)
+  function apiUrl(caminho) {
+    const base = (window.location.protocol === 'file:') ? 'http://localhost:3000' : '';
+    return base + caminho;
+  }
+
   // Aplica a logomarca no sistema (topo e login)
   function aplicarLogoSistema(logoUrl) {
-    const src = logoUrl || 'assets/logo-topo.png';
+    const src = logoUrl || 'assets/manostech-logo.png';
     const logoTopo = $('#app-logo-topo');
     if (logoTopo) logoTopo.src = src;
     const logoLogin = $('#app-logo-login');
@@ -2756,7 +2762,7 @@ ${emailRemetente ? `E-mail de contato: ${emailRemetente}` : ''}`;
 
   async function atualizarPreviaLogoPB(threshold = 160) {
     const c = cfg();
-    const dataSrc = logoOriginalTemporaria || c.logo || 'assets/logo-topo.png';
+    const dataSrc = logoOriginalTemporaria || c.logo || 'assets/manostech-logo.png';
     const previewCor = $('#cfg-logo-preview-cor');
     const previewPB = $('#cfg-logo-preview-pb');
     if (previewCor) previewCor.src = dataSrc;
@@ -2785,8 +2791,8 @@ ${emailRemetente ? `E-mail de contato: ${emailRemetente}` : ''}`;
     // Configurações da Logo
     const previewCor = $('#cfg-logo-preview-cor');
     const previewPB = $('#cfg-logo-preview-pb');
-    if (previewCor) previewCor.src = c.logo || 'assets/logo-topo.png';
-    if (previewPB) previewPB.src = c.logoMonocromatica || 'assets/logo-topo.png';
+    if (previewCor) previewCor.src = c.logo || 'assets/manostech-logo.png';
+    if (previewPB) previewPB.src = c.logoMonocromatica || 'assets/manostech-logo.png';
     if ($('#cfg-imprimir-logo')) $('#cfg-imprimir-logo').checked = c.imprimirLogoCupom !== false;
     if ($('#cfg-logo-threshold')) $('#cfg-logo-threshold').value = 160;
     if ($('#cfg-logo-threshold-val')) $('#cfg-logo-threshold-val').textContent = '160';
@@ -3029,7 +3035,7 @@ ${emailRemetente ? `E-mail de contato: ${emailRemetente}` : ''}`;
 
     async function recarregarModalDispositivos() {
       try {
-        const resp = await fetch('/api/qrcode-mobile');
+        const resp = await fetch(apiUrl('/api/qrcode-mobile'));
         const dados = await resp.json();
         if (!dados.ok) throw new Error(dados.erro || 'Falha ao gerar');
 
@@ -3164,7 +3170,7 @@ ${emailRemetente ? `E-mail de contato: ${emailRemetente}` : ''}`;
               btn.disabled = true;
               btn.textContent = 'Desconectando...';
               try {
-                const r = await fetch('/api/dispositivos/desconectar', {
+                const r = await fetch(apiUrl('/api/dispositivos/desconectar'), {
                   method: 'POST',
                   headers: { 'Content-Type': 'application/json' },
                   body: JSON.stringify({ id })
@@ -3188,7 +3194,7 @@ ${emailRemetente ? `E-mail de contato: ${emailRemetente}` : ''}`;
           btn.onclick = async () => {
             const id = btn.dataset.id;
             try {
-              await fetch('/api/dispositivos/remover', {
+              await fetch(apiUrl('/api/dispositivos/remover'), {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ id })
@@ -3359,8 +3365,8 @@ ${emailRemetente ? `E-mail de contato: ${emailRemetente}` : ''}`;
         const c = cfg();
         c.logo = '';
         c.logoMonocromatica = '';
-        if ($('#cfg-logo-preview-cor')) $('#cfg-logo-preview-cor').src = 'assets/logo-topo.png';
-        if ($('#cfg-logo-preview-pb')) $('#cfg-logo-preview-pb').src = 'assets/logo-topo.png';
+        if ($('#cfg-logo-preview-cor')) $('#cfg-logo-preview-cor').src = 'assets/manostech-logo.png';
+        if ($('#cfg-logo-preview-pb')) $('#cfg-logo-preview-pb').src = 'assets/manostech-logo.png';
         aplicarLogoSistema('');
         DB.salvar();
         UI.toast('Logomarca padrão restaurada no sistema!');
@@ -3446,7 +3452,7 @@ ${emailRemetente ? `E-mail de contato: ${emailRemetente}` : ''}`;
         btn.disabled = true;
         btn.innerHTML = `${UI.icone('check')} Gerando Cópia...`;
         try {
-          const resp = await fetch('/api/backup/gerar', { method: 'POST' });
+          const resp = await fetch(apiUrl('/api/backup/gerar'), { method: 'POST' });
           const dados = await resp.json();
           if (dados.ok) {
             UI.toast('Backup compactado e sincronizado com sucesso na nuvem!', 'ok');
@@ -3541,7 +3547,7 @@ ${emailRemetente ? `E-mail de contato: ${emailRemetente}` : ''}`;
                     btn.disabled = true;
                     btn.textContent = 'Restaurando...';
                     try {
-                      const resRest = await fetch('/api/backup/restaurar', {
+                      const resRest = await fetch(apiUrl('/api/backup/restaurar'), {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ arquivo: arq })
@@ -3655,6 +3661,66 @@ ${emailRemetente ? `E-mail de contato: ${emailRemetente}` : ''}`;
     setInterval(pintar, 15000);
   }
 
+  function verificarPrimeiroAcesso() {
+    const c = cfg();
+    const precisaCadastro = !c.configurado && (!c.loja || c.loja === 'ManosTech System' || c.loja === '');
+    const telaInit = $('#tela-cadastro-inicial');
+    const telaLogin = $('#tela-login');
+
+    if (precisaCadastro && telaInit) {
+      telaInit.hidden = false;
+      if (telaLogin) telaLogin.hidden = true;
+      setTimeout(() => $('#init-loja')?.focus(), 200);
+    } else {
+      if (telaInit) telaInit.hidden = true;
+      if (telaLogin) telaLogin.hidden = false;
+      renderLogin();
+    }
+  }
+
+  function ligarEventosCadastroInicial() {
+    const formInit = $('#form-cadastro-inicial');
+    if (formInit) {
+      formInit.onsubmit = async (e) => {
+        e.preventDefault();
+        const nomeLoja = $('#init-loja').value.trim();
+        if (!nomeLoja) {
+          UI.toast('Informe o nome do seu estabelecimento.', 'alerta');
+          return;
+        }
+        const c = cfg();
+        c.loja = nomeLoja;
+        c.segmento = $('#init-segmento')?.value || 'quiosque';
+        c.cnpj = ($('#init-cnpj')?.value || '').trim();
+        c.telefone = ($('#init-telefone')?.value || '').trim();
+        c.endereco = ($('#init-endereco')?.value || '').trim();
+        c.configurado = true;
+
+        const novaSenha = ($('#init-senha')?.value || '').trim();
+        const admin = (DB.funcionarios() || []).find(f => f.papel === 'admin');
+        if (admin && novaSenha) {
+          admin.senha = novaSenha;
+        }
+
+        await DB.salvar();
+        $('#topo-loja').textContent = c.loja;
+        const loginTit = $('#login-tit');
+        if (loginTit) loginTit.textContent = c.loja;
+        document.title = `${c.loja} — PDV`;
+
+        $('#tela-cadastro-inicial').hidden = true;
+        $('#tela-login').hidden = false;
+        renderLogin();
+        UI.toast(`Bem-vindo! "${c.loja}" configurado com sucesso!`, 'ok');
+      };
+    }
+
+    const btnInitRestaurar = $('#btn-init-restaurar-cnpj');
+    if (btnInitRestaurar) {
+      btnInitRestaurar.onclick = modalRestaurarBackupCnpj;
+    }
+  }
+
   async function iniciar() {
     await DB.carregar();
     $('#topo-loja').textContent = cfg().loja || 'ManosTech System';
@@ -3667,8 +3733,9 @@ ${emailRemetente ? `E-mail de contato: ${emailRemetente}` : ''}`;
       if (st.vista === 'venda') { renderCategorias(); renderGrade(); }
     });
     ligarEventos();
+    ligarEventosCadastroInicial();
     relogio();
-    renderLogin();
+    verificarPrimeiroAcesso();
     renderCategorias();
     renderGrade();
   }

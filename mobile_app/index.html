@@ -57,13 +57,11 @@
       margin-bottom: 20px;
     }
     .logo-img {
-      width: 130px;
-      height: 130px;
-      border-radius: 28px;
-      object-fit: cover;
-      border: 2px solid var(--azul-neon);
-      box-shadow: 0 0 25px rgba(0, 180, 216, 0.45);
-      background: #000;
+      max-width: 220px;
+      max-height: 140px;
+      object-fit: contain;
+      background: transparent;
+      filter: drop-shadow(0 0 15px rgba(0, 180, 216, 0.45));
     }
 
     h1 {
@@ -370,7 +368,7 @@
 
   <div class="container" id="tela-principal">
     <div class="logo-wrap">
-      <img src="assets/manostech-icon.png" alt="ManosTech" class="logo-img">
+      <img src="assets/manostech-logo.png" alt="ManosTech" class="logo-img">
     </div>
 
     <h1>ManosTech System</h1>

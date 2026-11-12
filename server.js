@@ -208,6 +208,28 @@ const server = http.createServer((req, res) => {
     return;
   }
 
+  if (pathname === '/api/download-exe') {
+    const possiveisExe = [
+      path.join(__dirname, 'dist', 'ManosTech System Setup 2.4.0.exe'),
+      path.join(__dirname, 'dist', 'ManosTech System 2.4.0.exe')
+    ];
+    let exePath = possiveisExe.find(p => fs.existsSync(p));
+    if (exePath) {
+      const stat = fs.statSync(exePath);
+      res.writeHead(200, {
+        'Content-Type': 'application/vnd.microsoft.portable-executable',
+        'Content-Length': stat.size,
+        'Content-Disposition': 'attachment; filename="ManosTech System Setup 2.4.0.exe"'
+      });
+      fs.createReadStream(exePath).pipe(res);
+      return;
+    } else {
+      res.writeHead(404, { 'Content-Type': 'text/plain; charset=utf-8' });
+      res.end('Executável ainda não disponível para download.');
+      return;
+    }
+  }
+
   if (pathname === '/api/download-apk') {
     const possiveisCaminhos = [
       path.join(__dirname, 'dist_mobile', 'ManosTech-System-Android-APK', 'ManosTech-System.apk'),
@@ -490,6 +512,14 @@ const server = http.createServer((req, res) => {
 });
 
 // Ouve em 0.0.0.0 para aceitar conexões locais e túneis do Cloudflare
+server.on('error', err => {
+  if (err.code === 'EADDRINUSE') {
+    console.log(`[SERVER] Porta ${PORT} já em uso (servidor já ativo).`);
+  } else {
+    console.error('[SERVER] Erro no servidor:', err);
+  }
+});
+
 server.listen(PORT, '0.0.0.0', () => {
   console.log(`Servidor ManosTech System operando na porta ${PORT} (0.0.0.0)`);
 });

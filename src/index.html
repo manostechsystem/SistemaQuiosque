@@ -7,11 +7,84 @@
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
+  <!-- Tela de Cadastro Inicial do Estabelecimento (Primeiro Acesso) -->
+  <div class="login" id="tela-cadastro-inicial" hidden>
+    <div class="login__caixa" style="max-width:500px;padding:28px 24px">
+      <img src="assets/manostech-logo.png" alt="ManosTech System" style="max-height:85px;max-width:220px;object-fit:contain;margin-bottom:10px" id="init-logo-preview" />
+      <h1 style="font-size:20px;font-weight:900;color:var(--tinta);margin-bottom:4px">Configuração Inicial do Sistema</h1>
+      <p style="font-size:13px;color:var(--tinta-2);font-weight:700;margin-bottom:18px;line-height:1.4">
+        Bem-vindo ao <b>ManosTech System</b>! Cadastre os dados do seu estabelecimento para começar:
+      </p>
+
+      <form id="form-cadastro-inicial" style="display:flex;flex-direction:column;gap:11px;text-align:left">
+        <div>
+          <label style="font-size:12px;font-weight:800;color:var(--tinta-2);display:block;margin-bottom:4px">
+            Nome do Estabelecimento / Empresa <span style="color:var(--alerta)">*</span>
+          </label>
+          <input type="text" id="init-loja" required placeholder="Ex.: Quiosque Sol, Restaurante Central, Bar do Zé..." style="width:100%;height:40px;padding:0 12px;border:1.5px solid var(--borda-forte);border-radius:8px;font-size:13.5px;background:#FFF;font-weight:700;color:var(--tinta)" />
+        </div>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+          <div>
+            <label style="font-size:12px;font-weight:800;color:var(--tinta-2);display:block;margin-bottom:4px">
+              Segmento / Atividade
+            </label>
+            <select id="init-segmento" style="width:100%;height:40px;padding:0 8px;border:1.5px solid var(--borda-forte);border-radius:8px;font-size:13px;background:#FFF;font-weight:700;color:var(--tinta)">
+              <option value="quiosque">Quiosque / Praia</option>
+              <option value="restaurante">Restaurante / Bar</option>
+              <option value="lanchonete">Lanchonete / Fast Food</option>
+              <option value="acai">Açaí / Sorveteria</option>
+              <option value="comercio">Comércio em Geral</option>
+            </select>
+          </div>
+          <div>
+            <label style="font-size:12px;font-weight:800;color:var(--tinta-2);display:block;margin-bottom:4px">
+              CNPJ (Opcional)
+            </label>
+            <input type="text" id="init-cnpj" placeholder="00.000.000/0000-00" style="width:100%;height:40px;padding:0 12px;border:1.5px solid var(--borda-forte);border-radius:8px;font-size:13px;background:#FFF;font-weight:700;color:var(--tinta)" />
+          </div>
+        </div>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+          <div>
+            <label style="font-size:12px;font-weight:800;color:var(--tinta-2);display:block;margin-bottom:4px">
+              Telefone / WhatsApp
+            </label>
+            <input type="text" id="init-telefone" placeholder="(00) 00000-0000" style="width:100%;height:40px;padding:0 12px;border:1.5px solid var(--borda-forte);border-radius:8px;font-size:13px;background:#FFF;font-weight:700;color:var(--tinta)" />
+          </div>
+          <div>
+            <label style="font-size:12px;font-weight:800;color:var(--tinta-2);display:block;margin-bottom:4px">
+              Senha de Admin
+            </label>
+            <input type="password" id="init-senha" placeholder="Padrão: 1234" value="1234" style="width:100%;height:40px;padding:0 12px;border:1.5px solid var(--borda-forte);border-radius:8px;font-size:13px;background:#FFF;font-weight:700;color:var(--tinta)" />
+          </div>
+        </div>
+
+        <div>
+          <label style="font-size:12px;font-weight:800;color:var(--tinta-2);display:block;margin-bottom:4px">
+            Endereço Completo (Opcional)
+          </label>
+          <input type="text" id="init-endereco" placeholder="Rua, número, bairro, cidade..." style="width:100%;height:40px;padding:0 12px;border:1.5px solid var(--borda-forte);border-radius:8px;font-size:13px;background:#FFF;font-weight:700;color:var(--tinta)" />
+        </div>
+
+        <button class="btn-primario" type="submit" style="width:100%;height:44px;font-size:14.5px;font-weight:900;margin-top:6px">
+          Salvar e Iniciar Sistema
+        </button>
+      </form>
+
+      <div style="margin-top:16px;padding-top:12px;border-top:1px dashed var(--borda);text-align:center">
+        <button class="btn-link" id="btn-init-restaurar-cnpj" type="button" style="font-size:12px;color:var(--tinta-2);text-decoration:underline;cursor:pointer;background:none;border:none;font-weight:800">
+          Já possui backup na nuvem? Restaurar por CNPJ
+        </button>
+      </div>
+    </div>
+  </div>
+
   <!-- Tela de login -->
   <div class="login" id="tela-login">
     <div class="login__caixa">
-      <img src="assets/manostech-icon.png" alt="ManosTech System" class="login__logo" id="app-logo-login" />
-      <h1 class="login__tit">ManosTech System</h1>
+      <img src="assets/manostech-logo.png" alt="ManosTech System" class="login__logo" id="app-logo-login" style="max-height:80px;max-width:220px;object-fit:contain" />
+      <h1 class="login__tit" id="login-tit">ManosTech System</h1>
       <p class="login__sub" id="login-sub">Quem está operando?</p>
       <div class="login__usuarios" id="login-usuarios"></div>
       <form class="login__form" id="login-form" hidden>
@@ -39,7 +112,7 @@
   <!-- Barra superior -->
   <header class="topo">
     <div class="topo__marca">
-      <img src="assets/manostech-icon.png" alt="Logo ManosTech" class="topo__logo" id="app-logo-topo" />
+      <img src="assets/manostech-logo.png" alt="Logo ManosTech" class="topo__logo" id="app-logo-topo" style="max-height:36px;max-width:130px;object-fit:contain" />
       <span class="topo__nome" id="topo-badge">PDV</span>
     </div>
     <div class="topo__centro">
