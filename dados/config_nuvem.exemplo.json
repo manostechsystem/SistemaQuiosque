@@ -1,0 +1,6 @@
+{
+  "ativo": true,
+  "accountId": "SEU_ACCOUNT_ID_CLOUDFLARE",
+  "namespaceId": "SEU_KV_NAMESPACE_ID",
+  "apiToken": "SEU_CLOUDFLARE_API_TOKEN"
+}

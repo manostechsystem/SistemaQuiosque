@@ -12,6 +12,7 @@ build/
 # Dados locais e senhas
 dados/chave_mestra.txt
 dados/pin_recuperacao.json
+dados/config_nuvem.json
 dados/backups_nuvem/
 *.log
 

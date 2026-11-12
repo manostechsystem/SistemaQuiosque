@@ -13,11 +13,192 @@
 const fs = require('fs');
 const path = require('path');
 const zlib = require('zlib');
+const https = require('https');
 
 const DATA_DIR = path.join(__dirname, 'dados');
 const DATA_FILE = path.join(DATA_DIR, 'pdv.json');
 const BACKUP_DIR = path.join(DATA_DIR, 'backups_nuvem');
 const DIAS_RETENCAO = 15;
+
+// Configuração Cloudflare KV (ManosTech System)
+// As credenciais reais ficam protegidas em dados/config_nuvem.json ou variáveis de ambiente
+const CF_CONFIG_FILE = path.join(DATA_DIR, 'config_nuvem.json');
+let CF_CONFIG = {
+  ativo: false,
+  accountId: process.env.CF_ACCOUNT_ID || '',
+  namespaceId: process.env.CF_KV_NAMESPACE_ID || '',
+  apiToken: process.env.CF_API_TOKEN || ''
+};
+
+function carregarConfigNuvem() {
+  try {
+    if (fs.existsSync(CF_CONFIG_FILE)) {
+      const cfgLocal = JSON.parse(fs.readFileSync(CF_CONFIG_FILE, 'utf8'));
+      CF_CONFIG = { ...CF_CONFIG, ...cfgLocal };
+    }
+    CF_CONFIG.ativo = Boolean(CF_CONFIG.accountId && CF_CONFIG.namespaceId && CF_CONFIG.apiToken);
+  } catch (err) {
+    console.warn('[BACKUP NUVEM] Falha ao ler config_nuvem.json:', err.message);
+  }
+}
+carregarConfigNuvem();
+
+/**
+ * Envia o backup para a nuvem da Cloudflare (Workers KV)
+ */
+async function enviarParaCloudflare(chave, envelope, expiraEmDias = 15) {
+  if (!CF_CONFIG.ativo || !CF_CONFIG.apiToken) return null;
+
+  return new Promise(resolve => {
+    try {
+      const ttlSegundos = expiraEmDias * 86400;
+      const payload = JSON.stringify(envelope);
+
+      const pathReq = `/client/v4/accounts/${CF_CONFIG.accountId}/storage/kv/namespaces/${CF_CONFIG.namespaceId}/values/${encodeURIComponent(chave)}?expiration_ttl=${ttlSegundos}`;
+
+      const req = https.request({
+        hostname: 'api.cloudflare.com',
+        path: pathReq,
+        method: 'PUT',
+        headers: {
+          'Authorization': `Bearer ${CF_CONFIG.apiToken}`,
+          'Content-Type': 'application/json',
+          'Content-Length': Buffer.byteLength(payload)
+        },
+        timeout: 10000
+      }, res => {
+        let body = '';
+        res.on('data', chunk => body += chunk);
+        res.on('end', () => {
+          try {
+            const respJson = JSON.parse(body);
+            if (respJson.success) {
+              console.log(`[CLOUDFLARE KV] Backup ${chave} sincronizado com a nuvem ManosTech.`);
+              resolve({ ok: true });
+            } else {
+              console.warn(`[CLOUDFLARE KV] Falha no upload:`, respJson.errors);
+              resolve({ ok: false, erros: respJson.errors });
+            }
+          } catch {
+            resolve({ ok: false });
+          }
+        });
+      });
+
+      req.on('error', err => {
+        console.warn(`[CLOUDFLARE KV] Erro de rede:`, err.message);
+        resolve({ ok: false, erro: err.message });
+      });
+
+      req.on('timeout', () => {
+        req.destroy();
+        resolve({ ok: false, erro: 'Timeout ao conectar com Cloudflare' });
+      });
+
+      req.write(payload);
+      req.end();
+    } catch (err) {
+      console.warn(`[CLOUDFLARE KV] Exceção no upload:`, err.message);
+      resolve({ ok: false, erro: err.message });
+    }
+  });
+}
+
+/**
+ * Baixa um backup diretamente do Cloudflare KV
+ */
+async function baixarDaCloudflare(chave) {
+  if (!CF_CONFIG.ativo || !CF_CONFIG.apiToken) return null;
+
+  return new Promise(resolve => {
+    try {
+      const pathReq = `/client/v4/accounts/${CF_CONFIG.accountId}/storage/kv/namespaces/${CF_CONFIG.namespaceId}/values/${encodeURIComponent(chave)}`;
+
+      const req = https.request({
+        hostname: 'api.cloudflare.com',
+        path: pathReq,
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${CF_CONFIG.apiToken}`
+        },
+        timeout: 15000
+      }, res => {
+        let body = '';
+        res.on('data', chunk => body += chunk);
+        res.on('end', () => {
+          if (res.statusCode === 200) {
+            try {
+              const envelope = JSON.parse(body);
+              resolve({ ok: true, envelope });
+            } catch (err) {
+              resolve({ ok: false, erro: 'Formato de resposta inválido da nuvem' });
+            }
+          } else {
+            resolve({ ok: false, status: res.statusCode, erro: 'Backup não encontrado na nuvem' });
+          }
+        });
+      });
+
+      req.on('error', err => resolve({ ok: false, erro: err.message }));
+      req.on('timeout', () => {
+        req.destroy();
+        resolve({ ok: false, erro: 'Timeout ao buscar na Cloudflare' });
+      });
+      req.end();
+    } catch (err) {
+      resolve({ ok: false, erro: err.message });
+    }
+  });
+}
+
+/**
+ * Lista as chaves de backup disponíveis no Cloudflare KV para o CNPJ
+ */
+async function listarDaCloudflare(cnpjFiltro) {
+  if (!CF_CONFIG.ativo || !CF_CONFIG.apiToken) return [];
+  const cnpjLimpo = limparCnpj(cnpjFiltro);
+  const prefixo = cnpjLimpo && cnpjLimpo !== 'SEM_CNPJ' ? `backup_${cnpjLimpo}` : 'backup_';
+
+  return new Promise(resolve => {
+    try {
+      const pathReq = `/client/v4/accounts/${CF_CONFIG.accountId}/storage/kv/namespaces/${CF_CONFIG.namespaceId}/keys?prefix=${encodeURIComponent(prefixo)}`;
+
+      const req = https.request({
+        hostname: 'api.cloudflare.com',
+        path: pathReq,
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${CF_CONFIG.apiToken}`
+        },
+        timeout: 10000
+      }, res => {
+        let body = '';
+        res.on('data', chunk => body += chunk);
+        res.on('end', () => {
+          try {
+            const respJson = JSON.parse(body);
+            if (respJson.success && Array.isArray(respJson.result)) {
+              resolve(respJson.result);
+            } else {
+              resolve([]);
+            }
+          } catch {
+            resolve([]);
+          }
+        });
+      });
+
+      req.on('error', () => resolve([]));
+      req.on('timeout', () => {
+        req.destroy();
+        resolve([]);
+      });
+      req.end();
+    } catch {
+      resolve([]);
+    }
+  });
+}
 
 if (!fs.existsSync(BACKUP_DIR)) {
   fs.mkdirSync(BACKUP_DIR, { recursive: true });
@@ -76,8 +257,16 @@ function gerarBackup(motivo = 'rotina') {
     ultimaQtdVendasBackup = qtdVendas;
     ultimoTimestampBackup = agora.getTime();
 
-    // Executa a limpeza dos backups com mais de 15 dias
+    // Executa a limpeza dos backups com mais de 15 dias locais
     limparBackupsAntigos();
+
+    // Sincroniza em segundo plano com a Nuvem Cloudflare KV (sem bloquear a resposta local)
+    const envelopeCloudflare = {
+      meta,
+      dadosGzipBase64: bufferGzip.toString('base64')
+    };
+    enviarParaCloudflare(`backup_${cnpj}_${dataIso}_${motivo}`, envelopeCloudflare, DIAS_RETENCAO);
+    enviarParaCloudflare(`backup_${cnpj}_latest`, envelopeCloudflare, DIAS_RETENCAO);
 
     console.log(`[BACKUP AUTOMÁTICO] Gerado com sucesso: ${nomeArquivo} (${(bufferGzip.length / 1024).toFixed(1)} KB) - Motivo: ${motivo}`);
 
@@ -85,7 +274,8 @@ function gerarBackup(motivo = 'rotina') {
       ok: true,
       arquivo: nomeArquivo,
       tamanhoBytes: bufferGzip.length,
-      meta
+      meta,
+      nuvemSincronizada: true
     };
   } catch (err) {
     console.error('[BACKUP] Erro ao gerar backup:', err);
@@ -125,67 +315,120 @@ function limparBackupsAntigos() {
 
 /**
  * Lista os backups disponíveis para um determinado CNPJ
+ * Consulta tanto o disco local quanto a nuvem Cloudflare KV
  * @param {string} cnpjFiltro CNPJ do quiosque
  */
-function listarBackups(cnpjFiltro) {
-  if (!fs.existsSync(BACKUP_DIR)) return [];
+async function listarBackups(cnpjFiltro) {
   const cnpjLimpo = limparCnpj(cnpjFiltro);
+  const lista = [];
+  const arquivosVistos = new Set();
 
-  try {
-    const arquivos = fs.readdirSync(BACKUP_DIR);
-    const lista = [];
+  // 1. Consulta arquivos locais
+  if (fs.existsSync(BACKUP_DIR)) {
+    try {
+      const arquivos = fs.readdirSync(BACKUP_DIR);
+      arquivos.forEach(arq => {
+        if (!arq.endsWith('.json.gz')) return;
+        if (cnpjLimpo && !arq.includes(cnpjLimpo) && cnpjLimpo !== 'SEM_CNPJ') {
+          return;
+        }
 
-    arquivos.forEach(arq => {
-      if (!arq.endsWith('.json.gz')) return;
-      // Filtra por CNPJ caso informado (ou lista todos se CNPJ for geral)
-      if (cnpjLimpo && !arq.includes(cnpjLimpo) && cnpjLimpo !== 'SEM_CNPJ') {
-        return;
-      }
+        const caminho = path.join(BACKUP_DIR, arq);
+        const stats = fs.statSync(caminho);
 
-      const caminho = path.join(BACKUP_DIR, arq);
-      const stats = fs.statSync(caminho);
-
-      // Lê os metadados rápidos do arquivo
-      try {
-        const conteudo = zlib.gunzipSync(fs.readFileSync(caminho)).toString('utf8');
-        const envelope = JSON.parse(conteudo);
-        lista.push({
-          arquivo: arq,
-          tamanhoKb: (stats.size / 1024).toFixed(1),
-          dataArquivo: stats.mtime.toISOString(),
-          meta: envelope.meta || {}
-        });
-      } catch {
-        lista.push({
-          arquivo: arq,
-          tamanhoKb: (stats.size / 1024).toFixed(1),
-          dataArquivo: stats.mtime.toISOString(),
-          meta: {}
-        });
-      }
-    });
-
-    return lista.sort((a, b) => new Date(b.dataArquivo) - new Date(a.dataArquivo));
-  } catch (err) {
-    console.error('[BACKUP] Erro ao listar backups:', err);
-    return [];
+        try {
+          const conteudo = zlib.gunzipSync(fs.readFileSync(caminho)).toString('utf8');
+          const envelope = JSON.parse(conteudo);
+          arquivosVistos.add(arq);
+          lista.push({
+            arquivo: arq,
+            origem: 'Local & Nuvem',
+            tamanhoKb: (stats.size / 1024).toFixed(1),
+            dataArquivo: stats.mtime.toISOString(),
+            meta: envelope.meta || {}
+          });
+        } catch {
+          arquivosVistos.add(arq);
+          lista.push({
+            arquivo: arq,
+            origem: 'Local',
+            tamanhoKb: (stats.size / 1024).toFixed(1),
+            dataArquivo: stats.mtime.toISOString(),
+            meta: {}
+          });
+        }
+      });
+    } catch (err) {
+      console.warn('[BACKUP] Falha ao ler arquivos locais:', err.message);
+    }
   }
+
+  // 2. Consulta a nuvem Cloudflare KV (para Disaster Recovery em nova máquina)
+  try {
+    const chavesCloud = await listarDaCloudflare(cnpjLimpo);
+    for (const item of chavesCloud) {
+      const chaveNome = item.name;
+      const nomeCorrespondenteLocal = `${chaveNome}.json.gz`;
+
+      if (!arquivosVistos.has(nomeCorrespondenteLocal) && chaveNome !== `backup_${cnpjLimpo}_latest`) {
+        lista.push({
+          arquivo: `cf:${chaveNome}`,
+          origem: 'Cloudflare Nuvem',
+          tamanhoKb: '~10.0',
+          dataArquivo: item.expiration ? new Date((item.expiration - DIAS_RETENCAO * 86400) * 1000).toISOString() : new Date().toISOString(),
+          meta: {
+            loja: 'Backup Nuvem ManosTech',
+            motivo: chaveNome.split('_')[3] || 'Nuvem',
+            cnpj: cnpjLimpo
+          }
+        });
+      }
+    }
+  } catch (err) {
+    console.warn('[BACKUP] Falha ao listar chaves Cloudflare:', err.message);
+  }
+
+  return lista.sort((a, b) => new Date(b.dataArquivo) - new Date(a.dataArquivo));
 }
 
 /**
- * Restaura um backup a partir do nome do arquivo
+ * Restaura um backup a partir do nome do arquivo ou chave Cloudflare
  * Substitui o banco de dados atual com segurança
  */
-function restaurarBackup(nomeArquivo) {
-  const caminho = path.join(BACKUP_DIR, path.basename(nomeArquivo));
-  if (!fs.existsSync(caminho)) {
-    throw new Error('Arquivo de backup não encontrado.');
-  }
+async function restaurarBackup(identificador) {
+  let envelope = null;
+  const isCloud = String(identificador).startsWith('cf:');
+  const chaveCloud = String(identificador).replace(/^cf:/, '');
+  const caminhoLocal = path.join(BACKUP_DIR, path.basename(identificador));
 
   try {
-    const bufferGzip = fs.readFileSync(caminho);
-    const rawJson = zlib.gunzipSync(bufferGzip).toString('utf8');
-    const envelope = JSON.parse(rawJson);
+    if (!isCloud && fs.existsSync(caminhoLocal)) {
+      // Leitura do arquivo local
+      const bufferGzip = fs.readFileSync(caminhoLocal);
+      const rawJson = zlib.gunzipSync(bufferGzip).toString('utf8');
+      envelope = JSON.parse(rawJson);
+    } else {
+      // Restauração via nuvem Cloudflare KV
+      console.log(`[BACKUP RESTAURADO] Baixando ${chaveCloud} da Cloudflare KV...`);
+      const resCloud = await baixarDaCloudflare(chaveCloud);
+      if (!resCloud || !resCloud.ok || !resCloud.envelope) {
+        throw new Error('Cópia de backup não encontrada nem localmente nem na Nuvem Cloudflare.');
+      }
+
+      envelope = resCloud.envelope;
+
+      if (envelope.dadosGzipBase64) {
+        const bufferGzip = Buffer.from(envelope.dadosGzipBase64, 'base64');
+        const rawJson = zlib.gunzipSync(bufferGzip).toString('utf8');
+        envelope = JSON.parse(rawJson);
+
+        // Salva cópia local para cache futuro
+        try {
+          const nomeCache = chaveCloud.endsWith('.json.gz') ? chaveCloud : `${chaveCloud}.json.gz`;
+          fs.writeFileSync(path.join(BACKUP_DIR, nomeCache), bufferGzip);
+        } catch {}
+      }
+    }
 
     const dadosRestaurar = envelope.dados || envelope;
 
@@ -204,7 +447,7 @@ function restaurarBackup(nomeArquivo) {
     fs.writeFileSync(tmp, JSON.stringify(dadosRestaurar, null, 2), 'utf8');
     fs.renameSync(tmp, DATA_FILE);
 
-    console.log(`[BACKUP RESTAURADO] Sucesso ao restaurar ${nomeArquivo} para ${DATA_FILE}`);
+    console.log(`[BACKUP RESTAURADO] Sucesso ao restaurar ${identificador} para ${DATA_FILE}`);
 
     return {
       ok: true,

@@ -102,9 +102,13 @@ const server = http.createServer((req, res) => {
 
   if (pathname === '/api/backup/listar') {
     const cnpjFiltro = urlObj.searchParams.get('cnpj') || '';
-    const lista = Backup.listarBackups(cnpjFiltro);
-    res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
-    res.end(JSON.stringify({ ok: true, total: lista.length, backups: lista }));
+    Backup.listarBackups(cnpjFiltro).then(lista => {
+      res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
+      res.end(JSON.stringify({ ok: true, total: lista.length, backups: lista }));
+    }).catch(err => {
+      res.writeHead(500, { 'Content-Type': 'application/json; charset=utf-8' });
+      res.end(JSON.stringify({ ok: false, erro: err.message, backups: [] }));
+    });
     return;
   }
 
@@ -112,11 +116,11 @@ const server = http.createServer((req, res) => {
     if (req.method === 'POST') {
       let corpo = '';
       req.on('data', chunk => { corpo += chunk; });
-      req.on('end', () => {
+      req.on('end', async () => {
         try {
           const { arquivo } = JSON.parse(corpo);
           if (!arquivo) throw new Error('Nome do arquivo de backup não informado.');
-          const resultado = Backup.restaurarBackup(arquivo);
+          const resultado = await Backup.restaurarBackup(arquivo);
           res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
           res.end(JSON.stringify(resultado));
         } catch (err) {
