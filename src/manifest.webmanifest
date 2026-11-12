@@ -1,21 +1,21 @@
 {
-  "name": "Rota do Forte — Gestão ADM",
-  "short_name": "Rota ADM",
-  "description": "Painel Móvel de Gestão Empresarial, Estoque e Faturamento do Quiosque Rota do Forte",
+  "name": "ManosTech — Gestão & PDV Móvel",
+  "short_name": "ManosTech",
+  "description": "Painel Móvel de Gestão Empresarial, Estoque e Faturamento — ManosTech System",
   "start_url": "/mobile.html",
   "display": "standalone",
   "background_color": "#F8F2E7",
-  "theme_color": "#3D2314",
+  "theme_color": "#23140A",
   "orientation": "portrait",
   "icons": [
     {
-      "src": "/assets/logo-topo.png",
+      "src": "/assets/manostech-icon.png",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "any maskable"
     },
     {
-      "src": "/assets/logo.png",
+      "src": "/assets/manostech-icon.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any maskable"

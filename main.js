@@ -64,6 +64,8 @@ function criarJanela() {
     minHeight: 700,
     autoHideMenuBar: true,
     backgroundColor: '#F8F2E7',
+    icon: path.join(__dirname, 'src', 'assets', 'icon.ico'),
+    title: 'ManosTech PDV — Sistema Quiosque',
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
       contextIsolation: true,

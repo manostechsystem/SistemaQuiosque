@@ -1,27 +1,31 @@
 {
-  "name": "rota-do-forte-pdv",
-  "version": "1.0.0",
-  "description": "PDV do quiosque Rota do Forte",
+  "name": "manostech-sistema-quiosque",
+  "version": "2.4.0",
+  "description": "ManosTech System — PDV e Gestão Inteligente para Quiosques",
   "main": "main.js",
-  "author": "Rota do Forte",
+  "author": "ManosTech System",
   "scripts": {
     "start": "electron .",
     "dist": "electron-builder --win"
   },
   "build": {
-    "appId": "com.rotadoforte.pdv",
-    "productName": "Rota do Forte PDV",
+    "appId": "com.manostech.quiosque",
+    "productName": "ManosTech PDV Quiosque",
     "directories": {
       "output": "dist"
     },
     "files": [
       "main.js",
       "preload.js",
+      "server.js",
+      "backup.js",
+      "dispositivos.js",
       "src/**/*",
+      "dados/**/*",
       "package.json"
     ],
     "win": {
-      "icon": "build/icon.ico",
+      "icon": "src/assets/icon.ico",
       "target": [
         {
           "target": "nsis",
@@ -42,9 +46,9 @@
       "allowToChangeInstallationDirectory": true,
       "createDesktopShortcut": true,
       "createStartMenuShortcut": true,
-      "shortcutName": "Rota do Forte PDV",
-      "installerIcon": "build/icon.ico",
-      "uninstallerIcon": "build/icon.ico"
+      "shortcutName": "ManosTech PDV Quiosque",
+      "installerIcon": "src/assets/icon.ico",
+      "uninstallerIcon": "src/assets/icon.ico"
     }
   },
   "devDependencies": {
