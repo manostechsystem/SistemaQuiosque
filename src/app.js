@@ -3045,9 +3045,12 @@ ${emailRemetente ? `E-mail de contato: ${emailRemetente}` : ''}`;
             <!-- COLUNA 1: QR CODE DE CONEXÃO -->
             <div style="text-align:center;background:var(--afundado);border-radius:14px;padding:16px;border:1.5px solid var(--borda)">
               <div style="margin-bottom:10px">
-                <span style="display:inline-block;padding:4px 12px;background:var(--primaria-leve);color:var(--primaria-forte);border-radius:12px;font-size:12.5px;font-weight:900">
-                  ${UI.escapar(dados.loja)} · QR Code Seguro
+                <span style="display:inline-block;padding:5px 14px;background:var(--primaria-leve);color:var(--primaria-forte);border-radius:12px;font-size:13px;font-weight:900">
+                  Canal: manostech.quiosque
                 </span>
+                <div style="font-size:11px;color:var(--tinta-3);margin-top:4px">
+                  ${UI.escapar(dados.loja || 'ManosTech System')} · Pareamento Direto
+                </div>
               </div>
 
               <!-- Imagem do QR Code -->
@@ -3058,7 +3061,7 @@ ${emailRemetente ? `E-mail de contato: ${emailRemetente}` : ''}`;
               <!-- Instruções -->
               <div style="font-size:12px;line-height:1.45;color:var(--tinta-2);text-align:left;background:#FFF;padding:10px 12px;border-radius:10px;border:1px solid var(--borda);margin-bottom:10px">
                 <div style="font-weight:800;color:var(--primaria-forte);margin-bottom:3px">Como conectar o celular:</div>
-                <div>1. Abra a <b>câmera</b> do celular (iPhone ou Android).</div>
+                <div>1. Abra o app <b>ManosTech System</b> no celular (ou a câmera).</div>
                 <div>2. Aponte para este QR Code.</div>
                 <div>3. O celular conecta automaticamente sem precisar digitar senha!</div>
               </div>
