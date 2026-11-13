@@ -249,16 +249,19 @@ const server = http.createServer((req, res) => {
 
   if (pathname === '/api/download-exe') {
     const possiveisExe = [
+      path.join(__dirname, 'dist', 'ManosTech System Setup 2.4.1.exe'),
+      path.join(__dirname, 'dist', 'ManosTech System 2.4.1.exe'),
       path.join(__dirname, 'dist', 'ManosTech System Setup 2.4.0.exe'),
       path.join(__dirname, 'dist', 'ManosTech System 2.4.0.exe')
     ];
     let exePath = possiveisExe.find(p => fs.existsSync(p));
     if (exePath) {
+      const nomeFinal = path.basename(exePath);
       const stat = fs.statSync(exePath);
       res.writeHead(200, {
         'Content-Type': 'application/vnd.microsoft.portable-executable',
         'Content-Length': stat.size,
-        'Content-Disposition': 'attachment; filename="ManosTech System Setup 2.4.0.exe"'
+        'Content-Disposition': `attachment; filename="${nomeFinal}"`
       });
       fs.createReadStream(exePath).pipe(res);
       return;
