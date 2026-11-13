@@ -2714,11 +2714,33 @@ ${emailRemetente ? `E-mail de contato: ${emailRemetente}` : ''}`;
       src = 'assets/manostech-logo.png';
     }
     const logoTopo = $('#app-logo-topo');
-    if (logoTopo) logoTopo.src = src;
+    if (logoTopo) {
+      logoTopo.src = src;
+      logoTopo.style.height = '58px';
+      logoTopo.style.maxHeight = '60px';
+      logoTopo.style.maxWidth = '220px';
+      logoTopo.style.objectFit = 'contain';
+    }
     const logoLogin = $('#app-logo-login');
-    if (logoLogin) logoLogin.src = src;
+    if (logoLogin) {
+      logoLogin.src = src;
+      logoLogin.style.height = '165px';
+      logoLogin.style.maxHeight = '180px';
+      logoLogin.style.maxWidth = '320px';
+      logoLogin.style.objectFit = 'contain';
+      logoLogin.style.display = 'block';
+      logoLogin.style.margin = '0 auto 16px';
+    }
     const initLogo = $('#init-logo-preview');
-    if (initLogo) initLogo.src = 'assets/manostech-logo.png';
+    if (initLogo) {
+      initLogo.src = 'assets/manostech-logo.png';
+      initLogo.style.height = '150px';
+      initLogo.style.maxHeight = '160px';
+      initLogo.style.maxWidth = '300px';
+      initLogo.style.objectFit = 'contain';
+      initLogo.style.display = 'block';
+      initLogo.style.margin = '0 auto 16px';
+    }
   }
 
   // Tratamento da logo para impressão térmica em preto e branco (binarização com canvas)
@@ -3734,7 +3756,9 @@ ${emailRemetente ? `E-mail de contato: ${emailRemetente}` : ''}`;
 
   async function iniciar() {
     await DB.carregar();
-    $('#topo-loja').textContent = cfg().loja || 'ManosTech System';
+    const nomeLoja = cfg().loja || 'ManosTech System';
+    $('#topo-loja').textContent = nomeLoja;
+    if ($('#login-tit')) $('#login-tit').textContent = nomeLoja;
     aplicarLogoSistema(cfg().logo);
     atualizarStatusCaixaUI();
     DB.assinar(() => {

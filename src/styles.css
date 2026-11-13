@@ -54,7 +54,7 @@
   --sombra-cartao: 0 1px 2px rgba(70, 42, 18, .05), 0 6px 16px -10px rgba(70, 42, 18, .22);
   --sombra-elevado: 0 24px 60px -20px rgba(50, 28, 10, .38), 0 4px 12px -4px rgba(50, 28, 10, .16);
 
-  --topo: 60px;
+  --topo: 72px;
   --trilho: 88px;
 }
 
@@ -105,8 +105,8 @@ h1, h2, h3, .num { font-family: 'Baloo 2', 'DM Sans', sans-serif; letter-spacing
   background: linear-gradient(90deg, transparent, rgba(255, 176, 32, .55), rgba(25, 163, 201, .45), transparent);
   opacity: .8;
 }
-.topo__marca { display: flex; align-items: center; gap: 12px; min-width: calc(var(--trilho) - 14px); }
-.topo__logo { height: 40px; width: auto; filter: drop-shadow(0 3px 6px rgba(0, 0, 0, .45)); }
+.topo__marca { display: flex; align-items: center; gap: 14px; min-width: calc(var(--trilho) - 14px); }
+.topo__logo { height: 58px; max-height: 60px; max-width: 220px; width: auto; object-fit: contain; filter: drop-shadow(0 3px 6px rgba(0, 0, 0, .45)); }
 .topo__nome {
   font-family: 'Baloo 2', sans-serif;
   font-weight: 700;
@@ -1572,17 +1572,26 @@ select optgroup {
 }
 .login[hidden] { display: none; }
 .login__caixa {
-  width: min(420px, 100%);
+  width: min(500px, 94vw);
   background: var(--cartao);
   border: 1px solid var(--borda-forte);
-  border-radius: 20px;
-  padding: 34px 30px 28px;
+  border-radius: 24px;
+  padding: 38px 34px 30px;
   box-shadow: 0 30px 70px -24px rgba(25, 12, 4, .75);
   text-align: center;
   animation: loginIn .28s cubic-bezier(.2, .9, .3, 1);
 }
 @keyframes loginIn { from { transform: translateY(14px); opacity: 0; } }
-.login__logo { height: 52px; width: auto; margin-bottom: 10px; filter: drop-shadow(0 3px 6px rgba(0, 0, 0, .3)); }
+.login__logo {
+  height: 160px !important;
+  max-height: 180px !important;
+  max-width: 320px !important;
+  width: auto !important;
+  object-fit: contain !important;
+  margin: 0 auto 16px !important;
+  display: block !important;
+  filter: drop-shadow(0 6px 14px rgba(0, 0, 0, .2));
+}
 .login__tit { font-size: 24px; font-weight: 800; letter-spacing: -.02em; color: var(--tinta); }
 .login__sub { font-size: 13px; color: var(--tinta-2); margin: 6px 0 20px; }
 .login__usuarios { display: flex; flex-direction: column; gap: 8px; }
