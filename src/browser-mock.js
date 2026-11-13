@@ -3,9 +3,12 @@ if (!window.pdv) {
   const STORAGE_KEY = 'manostech_system_pdv_dados';
   window.pdv = {
     ler: async () => {
-      // 1. Tenta sincronizar com o servidor da loja (PC principal)
+      // 1. Tenta sincronizar com o servidor da loja (PC principal via Wi-Fi)
       try {
-        const resp = await fetch('/api/db', { cache: 'no-store' });
+        const ctrl = new AbortController();
+        const timer = setTimeout(() => ctrl.abort(), 2000);
+        const resp = await fetch('/api/db', { cache: 'no-store', signal: ctrl.signal });
+        clearTimeout(timer);
         if (resp.ok) {
           const dados = await resp.json();
           if (dados && (dados.produtos?.length || dados.categorias?.length)) {
@@ -15,7 +18,35 @@ if (!window.pdv) {
         }
       } catch {}
 
-      // 2. Fallback para o armazenamento local caso offline
+      // 2. Se falhar (ex: no 4G / fora do Wi-Fi da loja), busca na Nuvem Cloudflare KV
+      try {
+        const cfgLocal = (() => { try { return JSON.parse(localStorage.getItem(STORAGE_KEY))?.config || {}; } catch { return {}; } })();
+        const cnpjLimpo = (cfgLocal.cnpj || '').replace(/\D/g, '') || 'SEM_CNPJ';
+        const cfTok = atob('Y2Z1dF82UkFoSGZiYndUbDM4amVlSm16YW5PbGRDWnJ5YU52SXVTTFFRS2xkNDdmYzJhZjQ=');
+        const cfAcc = 'e5fcb255542479b93a6572ebf53b2623';
+        const cfNs = 'cc594b8cbb354416842c419c6566d80b';
+        const urlKv = `https://api.cloudflare.com/client/v4/accounts/${cfAcc}/storage/kv/namespaces/${cfNs}/values/backup_${cnpjLimpo}_latest`;
+        
+        const resKv = await fetch(urlKv, { headers: { 'Authorization': `Bearer ${cfTok}` } });
+        if (resKv.ok) {
+          const env = await resKv.json();
+          if (env && env.dadosGzipBase64) {
+            const raw = Uint8Array.from(atob(env.dadosGzipBase64), c => c.charCodeAt(0));
+            const ds = new Response(raw).body.pipeThrough(new DecompressionStream('gzip'));
+            const text = await new Response(ds).text();
+            const dec = JSON.parse(text);
+            const dados = dec.dados || dec;
+            if (dados && (dados.produtos || dados.vendas)) {
+              try { localStorage.setItem(STORAGE_KEY, JSON.stringify(dados)); } catch {}
+              return dados;
+            }
+          }
+        }
+      } catch (errCloud) {
+        console.warn('[4G / CLOUDFLARE SYNC]', errCloud.message);
+      }
+
+      // 3. Fallback para o armazenamento local caso offline
       try {
         const item = localStorage.getItem(STORAGE_KEY);
         return item ? JSON.parse(item) : null;

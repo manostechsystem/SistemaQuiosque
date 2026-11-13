@@ -252,7 +252,7 @@ const App = (() => {
     const rapidos = prods.filter(p => p.acessoRapido);
     if (!rapidos.length) {
       container.innerHTML = `
-        <div style="grid-column:1/-1;padding:12px 16px;background:rgba(255,255,255,.6);border:1px dashed var(--borda-forte);border-radius:10px;text-align:center;font-size:12px;color:var(--tinta-3)">
+        <div style="grid-column:1/-1;padding:14px 18px;background:var(--elevado);border:1.5px dashed var(--borda-forte);border-radius:10px;text-align:center;font-size:12.5px;color:var(--tinta-2);line-height:1.4">
           Nenhum item fixado no Acesso Rápido. ${ehAdmin ? 'Como Administrador, toque na estrela dos cards abaixo ou acesse Gestão > Estoque para definir os itens de toque ágil.' : 'O Administrador pode fixar os produtos mais vendidos.'}
         </div>`;
       return;
@@ -3289,32 +3289,31 @@ ${emailRemetente ? `E-mail de contato: ${emailRemetente}` : ''}`;
           <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;align-items:start">
             
             <!-- COLUNA 1: QR CODE DE CONEXÃO -->
-            <div style="text-align:center;background:var(--afundado);border-radius:14px;padding:16px;border:1.5px solid var(--borda)">
+            <div style="text-align:center;background:var(--elevado);border-radius:14px;padding:16px;border:1.5px solid var(--borda-forte)">
               <div style="margin-bottom:10px">
-                <span style="display:inline-block;padding:5px 14px;background:var(--primaria-leve);color:var(--primaria-forte);border-radius:12px;font-size:13px;font-weight:900">
+                <span style="display:inline-block;padding:5px 14px;background:rgba(0,210,255,0.15);color:var(--primaria);border-radius:12px;font-size:13px;font-weight:900;border:1px solid rgba(0,210,255,0.3)">
                   Canal: manostech.quiosque
                 </span>
-                <div style="font-size:11px;color:var(--tinta-3);margin-top:4px">
-                  ${UI.escapar(dados.loja || 'ManosTech System')} · Pareamento Direto
+                <div style="font-size:11.5px;color:var(--tinta-2);margin-top:5px;font-weight:700">
+                  ${UI.escapar(dados.loja || 'ManosTech System')} · Pareamento Inteligente
                 </div>
               </div>
 
               <!-- Imagem do QR Code -->
-              <div style="background:#FFF;padding:10px;display:inline-block;border-radius:14px;box-shadow:0 4px 14px rgba(0,0,0,0.08);border:1.5px solid var(--borda);margin-bottom:12px">
-                <img src="${dados.qrCode}" alt="QR Code" style="width:200px;height:200px;display:block" />
+              <div style="background:#FFF;padding:10px;display:inline-block;border-radius:14px;box-shadow:0 4px 14px rgba(0,0,0,0.3);border:1.5px solid var(--borda-forte);margin-bottom:12px">
+                <img src="${dados.qrCode}" alt="QR Code" style="width:190px;height:190px;display:block" />
               </div>
 
               <!-- Instruções -->
-              <div style="font-size:12px;line-height:1.45;color:var(--tinta-2);text-align:left;background:#FFF;padding:10px 12px;border-radius:10px;border:1px solid var(--borda);margin-bottom:10px">
-                <div style="font-weight:800;color:var(--primaria-forte);margin-bottom:3px">Como conectar o celular:</div>
-                <div>1. Abra o app <b>ManosTech System</b> no celular (ou a câmera).</div>
-                <div>2. Aponte para este QR Code.</div>
-                <div>3. O celular conecta automaticamente sem precisar digitar senha!</div>
+              <div style="font-size:12px;line-height:1.45;color:var(--tinta-2);text-align:left;background:var(--papel);padding:10px 12px;border-radius:10px;border:1px solid var(--borda-forte);margin-bottom:10px">
+                <div style="font-weight:800;color:var(--primaria);margin-bottom:3px">📡 Como Funciona a Conexão:</div>
+                <div style="margin-bottom:3px">📶 <b>No Wi-Fi da loja:</b> Abra o app (ou câmera) e aponte para o QR Code para conectar direto (funciona até sem internet!).</div>
+                <div>🌐 <b>No 4G / Fora da loja:</b> O app sincroniza automaticamente via Nuvem ManosTech (Cloudflare) usando o CNPJ da sua loja.</div>
               </div>
 
               <!-- Link direto -->
               <div style="display:flex;align-items:center;gap:6px">
-                <input type="text" value="${dados.urlFinal}" id="input-url-qrcode" readonly style="flex:1;height:34px;padding:0 8px;border:1px solid var(--borda-forte);border-radius:8px;font-size:11.5px;background:#FFF;font-weight:700;color:var(--tinta)" />
+                <input type="text" value="${dados.urlFinal}" id="input-url-qrcode" readonly style="flex:1;height:34px;padding:0 8px;border:1px solid var(--borda-forte);border-radius:8px;font-size:11.5px;background:var(--papel);font-weight:700;color:var(--tinta)" />
                 <button class="btn-secundario" id="btn-copiar-url-qrcode" type="button" style="height:34px;padding:0 10px;font-size:11.5px;font-weight:800;white-space:nowrap">
                   Copiar Link
                 </button>

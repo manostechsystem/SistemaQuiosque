@@ -405,15 +405,15 @@ h1, h2, h3, .num { font-family: 'Baloo 2', 'DM Sans', sans-serif; letter-spacing
   padding: 0 16px;
   height: 50px;
   background: var(--elevado);
-  border: 1px solid var(--borda);
+  border: 1.5px solid var(--borda-forte);
   border-radius: 999px;
   box-shadow: var(--sombra-cartao);
-  color: var(--tinta-3);
+  color: var(--tinta-2);
   transition: border-color .16s, box-shadow .16s;
 }
 .venda__busca:focus-within {
-  border-color: rgba(232, 130, 10, .55);
-  box-shadow: 0 0 0 4px rgba(232, 130, 10, .12), var(--sombra-cartao);
+  border-color: var(--primaria);
+  box-shadow: 0 0 0 3px rgba(0, 210, 255, 0.25), var(--sombra-cartao);
   color: var(--primaria);
 }
 .venda__busca input {
@@ -425,7 +425,7 @@ h1, h2, h3, .num { font-family: 'Baloo 2', 'DM Sans', sans-serif; letter-spacing
   color: var(--tinta);
   user-select: text;
 }
-.venda__busca input::placeholder { color: var(--tinta-3); }
+.venda__busca input::placeholder { color: var(--tinta-2); opacity: 0.75; }
 
 /* Banner de aviso quando caixa está fechado */
 .banner-aviso-caixa {
@@ -433,14 +433,16 @@ h1, h2, h3, .num { font-family: 'Baloo 2', 'DM Sans', sans-serif; letter-spacing
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  padding: 10px 16px;
-  background: linear-gradient(90deg, #FFF4E5, #FFEAD4);
-  border: 1px solid #F58220;
+  padding: 12px 18px;
+  background: var(--elevado);
+  border: 1px solid var(--borda-forte);
+  border-left: 5px solid #F58220;
   border-radius: var(--r-cartao);
-  color: #7A2800;
+  color: var(--tinta);
   font-size: 13px;
-  box-shadow: 0 4px 12px -4px rgba(245, 130, 32, .25);
+  box-shadow: var(--sombra-cartao);
 }
+.banner-aviso-caixa b { color: #FFA726; }
 
 /* Seção Acesso Rápido / Mais Vendidos */
 .venda-rapida {
@@ -801,35 +803,46 @@ h1, h2, h3, .num { font-family: 'Baloo 2', 'DM Sans', sans-serif; letter-spacing
   display: flex;
   gap: 8px;
   overflow-x: auto;
-  padding-bottom: 2px;
+  padding-bottom: 4px;
   scrollbar-width: none;
 }
 .cats::-webkit-scrollbar { display: none; }
 .cat {
   flex: none;
-  padding: 8px 15px;
+  padding: 8px 16px;
   border-radius: 999px;
-  background: rgba(255, 255, 255, .55);
-  border: 1px solid var(--borda);
-  color: var(--tinta-2);
+  background: var(--elevado);
+  border: 1.5px solid var(--borda-forte);
+  color: var(--tinta);
   font-size: 13px;
-  font-weight: 600;
-  transition: all .16s;
+  font-weight: 700;
+  transition: all .16s ease;
   white-space: nowrap;
+  cursor: pointer;
 }
-.cat:hover { background: var(--elevado); color: var(--tinta); border-color: var(--borda-forte); }
+.cat:hover {
+  background: var(--papel);
+  color: var(--primaria);
+  border-color: var(--primaria);
+}
 .cat.ativo {
-  background: var(--tinta);
-  border-color: var(--tinta);
-  color: #FFF3DF;
-  box-shadow: 0 6px 14px -8px rgba(42, 26, 15, .8);
+  background: var(--primaria) !important;
+  border-color: var(--primaria) !important;
+  color: #000000 !important;
+  font-weight: 800;
+  box-shadow: 0 4px 14px rgba(0, 210, 255, 0.4);
 }
 .cat__n {
   display: inline-block;
   margin-left: 6px;
   font-size: 11px;
-  opacity: .55;
+  opacity: .8;
   font-variant-numeric: tabular-nums;
+}
+.cat.ativo .cat__n {
+  color: #000000 !important;
+  opacity: 0.9;
+  font-weight: 800;
 }
 
 /* grade de produtos */
@@ -1674,8 +1687,9 @@ select optgroup {
   display: flex; align-items: center; gap: 9px;
   padding: 11px 18px;
   border-radius: 999px;
-  background: rgba(42, 26, 15, .95);
-  color: #FFF3DF;
+  background: var(--elevado);
+  color: var(--tinta);
+  border: 1px solid var(--borda-forte);
   font-size: 13px;
   font-weight: 500;
   box-shadow: 0 16px 34px -14px rgba(30, 15, 5, .8);
@@ -2023,7 +2037,7 @@ select optgroup {
 }
 
 .cat-item.ativo {
-  background: linear-gradient(135deg, rgba(232, 130, 10, .18), rgba(232, 130, 10, .08));
+  background: var(--primaria-leve);
   color: var(--primaria);
   font-weight: 700;
   box-shadow: inset 3px 0 0 var(--primaria);
