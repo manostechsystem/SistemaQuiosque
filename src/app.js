@@ -3896,6 +3896,14 @@ ${emailRemetente ? `E-mail de contato: ${emailRemetente}` : ''}`;
         const temNova = compararVersoes(vRemota, versaoLocal) > 0;
 
         if (temNova) {
+          const btnTopoUpd = $('#btn-topo-update');
+          if (btnTopoUpd) {
+            btnTopoUpd.style.display = 'inline-flex';
+            const txt = $('#btn-topo-update-txt');
+            if (txt) txt.textContent = `Atualizar v${vRemota}`;
+            btnTopoUpd.onclick = () => checarAtualizacoesSistema(true);
+          }
+
           UI.abrirModal({
             titulo: '🚀 Nova Atualização Disponível — ManosTech System',
             corpo: `
@@ -4083,6 +4091,9 @@ ${emailRemetente ? `E-mail de contato: ${emailRemetente}` : ''}`;
     verificarPrimeiroAcesso();
     renderCategorias();
     renderGrade();
+    setTimeout(() => {
+      checarAtualizacoesSistema(false);
+    }, 2500);
   }
 
   return { iniciar, irPara };
