@@ -958,6 +958,10 @@
             <div id="login-erro" class="aviso-erro-login" style="display:none">
               Usuário ou senha incorretos. Apenas Administrador.
             </div>
+
+            <button type="button" class="btn-acao" id="btn-demo-preview" style="margin-top:14px;background:var(--primaria-leve);border:1.5px dashed var(--borda-forte);color:var(--mar);font-weight:800;font-size:13px;padding:12px;border-radius:12px">
+              ✨ Ver Modo Demonstração (Preview ao Vivo)
+            </button>
             <div id="login-bloqueio" class="aviso-erro-login" style="display:none;background:#FFF3CD;border-color:#FFEBAA;color:#856404">
               Muitas tentativas. Aguarde <span id="segundos-bloqueio">30</span>s.
             </div>
@@ -2592,9 +2596,72 @@
         btnDrawerUpd.onclick = () => verificarAtualizacoesApk(true);
       }
 
+      function ativarModoDemo() {
+        localStorage.setItem('mob_adm_logado', 'true');
+        const hojeIso = new Date().toISOString().slice(0, 10);
+
+        DB.estado.config = DB.estado.config || {};
+        DB.estado.config.loja = 'ManosTech Quiosque Demo';
+        DB.estado.config.tema = localStorage.getItem('manostech_tema') || 'manostech';
+
+        DB.estado.caixas = [{
+          id: 'cx-demo-1',
+          abertoEm: `${hojeIso}T09:00:00.000Z`,
+          operador: 'Carlos (Gerente)',
+          saldoInicial: 250,
+          status: 'aberto'
+        }];
+
+        DB.estado.categorias = [
+          { id: 'cat-bebidas', nome: 'Bebidas', ordem: 1 },
+          { id: 'cat-comidas', nome: 'Porções & Refeições', ordem: 2 },
+          { id: 'cat-sobremesas', nome: 'Açaí & Sobremesas', ordem: 3 },
+          { id: 'cat-servicos', nome: 'Aluguéis & Lazer', ordem: 4 }
+        ];
+
+        DB.estado.produtos = [
+          { id: 'p1', categoriaId: 'cat-sobremesas', nome: 'Açaí Especial na Tigela 500ml', preco: 28.00, controlaEstoque: true, estoque: 45, estoqueMinimo: 10 },
+          { id: 'p2', categoriaId: 'cat-bebidas', nome: 'Caipirinha Tradicional Limão', preco: 22.00, controlaEstoque: true, estoque: 58, estoqueMinimo: 15 },
+          { id: 'p3', categoriaId: 'cat-bebidas', nome: 'Água Mineral sem Gás 500ml', preco: 6.00, controlaEstoque: true, estoque: 110, estoqueMinimo: 30 },
+          { id: 'p4', categoriaId: 'cat-comidas', nome: 'Porção Camarão Alho e Óleo', preco: 89.00, controlaEstoque: true, estoque: 22, estoqueMinimo: 8 },
+          { id: 'p5', categoriaId: 'cat-comidas', nome: 'Pastel Gourmet Carne Seca e Queijo', preco: 16.00, controlaEstoque: true, estoque: 34, estoqueMinimo: 10 },
+          { id: 'p6', categoriaId: 'cat-bebidas', nome: 'Cerveja Heineken Long Neck 330ml', preco: 15.00, controlaEstoque: true, estoque: 7, estoqueMinimo: 24 },
+          { id: 'p7', categoriaId: 'cat-bebidas', nome: 'Água de Coco Natural Gelada', preco: 10.00, controlaEstoque: true, estoque: 3, estoqueMinimo: 20 },
+          { id: 'p8', categoriaId: 'cat-servicos', nome: 'Aluguel Guarda-Sol + 2 Cadeiras', preco: 40.00, controlaEstoque: false, estoque: 0 }
+        ];
+
+        // 12 Vendas realistas do dia com comandas
+        const formas = ['pix', 'credito', 'debito', 'dinheiro'];
+        const horas = ['09:30', '10:15', '11:00', '11:45', '12:20', '12:50', '13:10', '13:40', '14:05', '14:30', '14:55', '15:15'];
+        DB.estado.vendas = horas.map((h, idx) => ({
+          id: `v-demo-${idx + 1}`,
+          numeroComanda: idx + 101,
+          data: `${hojeIso}T${h}:00.000Z`,
+          operador: idx % 2 === 0 ? 'Carlos' : 'Ana',
+          pagamento: formas[idx % formas.length],
+          total: [78.00, 115.00, 44.00, 134.00, 89.00, 62.00, 178.00, 52.00, 96.00, 85.00, 142.00, 110.00][idx],
+          itens: [
+            { id: 'p4', nome: 'Camarão Alho e Óleo', qtd: 1, precoUnitario: 89.00, subtotal: 89.00 },
+            { id: 'p2', nome: 'Caipirinha Limão', qtd: 2, precoUnitario: 22.00, subtotal: 44.00 }
+          ]
+        }));
+
+        estadoDB = DB.estado;
+        verificarLogin();
+        sincronizarTudo();
+      }
+
+      const btnDemo = $('#btn-demo-preview');
+      if (btnDemo) btnDemo.onclick = ativarModoDemo;
+
       // Inicialização
       async function iniciar() {
         aplicarTemaMob(localStorage.getItem('manostech_tema') || 'manostech', false);
+        const params = new URLSearchParams(window.location.search);
+        if (params.has('demo')) {
+          ativarModoDemo();
+          return;
+        }
         await registrarServiceWorker();
         await verificarPareamentoQrCode();
         await sincronizarTudo();
