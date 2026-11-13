@@ -88,12 +88,20 @@
       <p class="login__sub" id="login-sub">Quem está operando?</p>
       <div class="login__usuarios" id="login-usuarios"></div>
       <form class="login__form" id="login-form" hidden>
-        <div class="login__campo">
+        <div class="login__campo" style="position:relative">
           <svg class="ic" viewBox="0 0 24 24"><rect x="4" y="11" width="16" height="9" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>
-          <input type="password" id="login-senha" placeholder="Senha" autocomplete="current-password" />
+          <input type="password" id="login-senha" placeholder="Senha" autocomplete="current-password" style="padding-right:38px" />
+          <button type="button" id="btn-login-olho" title="Mostrar/ocultar senha" style="position:absolute;right:8px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:var(--tinta-3);display:flex;align-items:center;padding:4px">
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+          </button>
         </div>
         <button class="btn-primario login__entrar" type="submit">Entrar</button>
-        <button class="btn-fantasma login__voltar" id="login-voltar" type="button">Escolher outro</button>
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-top:12px">
+          <button class="btn-fantasma login__voltar" id="login-voltar" type="button" style="margin:0;font-size:12.5px">Escolher outro</button>
+          <button class="btn-link" id="btn-login-esqueci-senha" type="button" style="font-size:12.5px;color:var(--primaria);background:none;border:none;cursor:pointer;font-weight:800;padding:4px">
+            Esqueci a senha
+          </button>
+        </div>
       </form>
       <p class="login__erro" id="login-erro" hidden>Senha incorreta.</p>
 
@@ -103,7 +111,7 @@
           Computador novo? Restaurar backup por CNPJ
         </button>
         <div style="font-size:11px;color:var(--tinta-3);margin-top:4px">
-          ManosTech System · v2.4.0
+          ManosTech System · v2.4.3
         </div>
       </div>
     </div>

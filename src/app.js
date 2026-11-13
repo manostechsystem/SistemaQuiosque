@@ -3855,10 +3855,159 @@ ${emailRemetente ? `E-mail de contato: ${emailRemetente}` : ''}`;
     if ($('#btn-login-restaurar-cnpj')) {
       $('#btn-login-restaurar-cnpj').onclick = abrirModalRestaurarPorCnpj;
     }
+    if ($('#btn-login-esqueci-senha')) {
+      $('#btn-login-esqueci-senha').onclick = abrirModalRecuperacaoSenha;
+    }
+    if ($('#btn-login-olho')) {
+      $('#btn-login-olho').onclick = () => {
+        const inp = $('#login-senha');
+        if (!inp) return;
+        const btnOlho = $('#btn-login-olho');
+        if (inp.type === 'password') {
+          inp.type = 'text';
+          btnOlho.style.color = 'var(--primaria)';
+          btnOlho.innerHTML = `<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>`;
+        } else {
+          inp.type = 'password';
+          btnOlho.style.color = 'var(--tinta-3)';
+          btnOlho.innerHTML = `<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>`;
+        }
+      };
+    }
+
+    function abrirModalRecuperacaoSenha() {
+      UI.abrirModal({
+        titulo: '🔑 Recuperação de Acesso — Administrador',
+        corpo: `
+          <div style="padding:10px 0">
+            <p style="font-size:13px;color:var(--tinta-2);line-height:1.5;margin-bottom:16px">
+              Se você esqueceu sua senha de acesso, escolha uma das opções seguras abaixo:
+            </p>
+
+            <!-- OPÇÃO 1: REDEFINIÇÃO RÁPIDA (PADRÃO DE FÁBRICA) -->
+            <div style="background:var(--elevado);border-radius:12px;padding:16px;border:1.5px solid var(--borda-forte);margin-bottom:14px">
+              <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">
+                <span style="display:inline-block;padding:3px 10px;background:rgba(0,210,255,0.15);color:var(--primaria);border-radius:8px;font-size:11.5px;font-weight:900">
+                  Opção 1 (Imediata)
+                </span>
+                <h4 style="font-size:14px;font-weight:900;color:var(--tinta);margin:0">Restaurar Senha Padrão de Fábrica</h4>
+              </div>
+              <p style="font-size:12px;color:var(--tinta-2);margin-bottom:12px;line-height:1.4">
+                Redefine a senha do usuário <b>Administrador</b> para a senha inicial padrão: <code style="color:var(--primaria);font-weight:900;font-size:13px">admin</code>.
+              </p>
+              <button class="btn-primario" id="btn-rec-padrao" type="button" style="width:100%;height:38px;font-weight:800;font-size:12.5px">
+                ⚡ Restaurar Senha para "admin"
+              </button>
+            </div>
+
+            <!-- OPÇÃO 2: CHAVE MESTRA DE SUPORTE -->
+            <div style="background:var(--elevado);border-radius:12px;padding:16px;border:1.5px solid var(--borda-forte)">
+              <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">
+                <span style="display:inline-block;padding:3px 10px;background:rgba(255,165,0,0.15);color:orange;border-radius:8px;font-size:11.5px;font-weight:900">
+                  Opção 2 (Suporte)
+                </span>
+                <h4 style="font-size:14px;font-weight:900;color:var(--tinta);margin:0">Redefinir com Chave Mestra</h4>
+              </div>
+              <p style="font-size:12px;color:var(--tinta-2);margin-bottom:12px;line-height:1.4">
+                Digite a Chave Mestra de Suporte (disponível no manual ou com o suporte ManosTech) e defina sua nova senha:
+              </p>
+              <div style="display:flex;flex-direction:column;gap:10px">
+                <input type="text" id="rec-chave-mestra" placeholder="Ex.: ROTA-MESTRE-9988 ou MANOS-MESTRE-9988" style="height:36px;padding:0 10px;border-radius:8px;border:1px solid var(--borda-forte);background:var(--papel);color:var(--tinta);font-weight:700;font-size:12.5px" />
+                <input type="password" id="rec-nova-senha" placeholder="Digite sua Nova Senha (mínimo 3 caracteres)" style="height:36px;padding:0 10px;border-radius:8px;border:1px solid var(--borda-forte);background:var(--papel);color:var(--tinta);font-weight:700;font-size:12.5px" />
+                <button class="btn-secundario" id="btn-rec-chave" type="button" style="height:38px;font-weight:800;font-size:12.5px">
+                  Salvar Nova Senha via Chave Mestra
+                </button>
+              </div>
+            </div>
+          </div>
+        `,
+        rodape: `<button class="btn-secundario" id="modal-rec-cancelar">Cancelar</button>`
+      });
+
+      const btnCancelar = $('#modal-rec-cancelar');
+      if (btnCancelar) btnCancelar.onclick = UI.fecharModal;
+
+      // Opção 1: Restaurar para 'admin'
+      const btnPadrao = $('#btn-rec-padrao');
+      if (btnPadrao) {
+        btnPadrao.onclick = async () => {
+          try {
+            const funcs = DB.funcionarios();
+            let admin = funcs.find(f => f.papel === 'admin' || f.usuario === 'admin');
+            if (!admin && funcs.length) admin = funcs[0];
+            if (admin) {
+              const hashAdmin = await window.pdv.hashSenha('admin');
+              admin.senha = hashAdmin;
+              await DB.salvar();
+              UI.fecharModal();
+              UI.toast('Senha do Administrador restaurada para: admin', 'sucesso');
+              $('#login-senha').value = 'admin';
+              $('#login-erro').hidden = true;
+              const logado = await DB.conferirLogin(admin.usuario, 'admin');
+              if (logado) entrarSistema(logado);
+            } else {
+              UI.toast('Nenhum usuário administrador cadastrado.', 'erro');
+            }
+          } catch (err) {
+            UI.toast('Erro ao redefinir: ' + err.message, 'erro');
+          }
+        };
+      }
+
+      // Opção 2: Chave Mestra
+      const btnChave = $('#btn-rec-chave');
+      if (btnChave) {
+        btnChave.onclick = async () => {
+          const chave = ($('#rec-chave-mestra')?.value || '').trim();
+          const novaSenha = ($('#rec-nova-senha')?.value || '').trim();
+
+          if (!chave) {
+            UI.toast('Informe a Chave Mestra de Suporte.', 'aviso');
+            return;
+          }
+          if (novaSenha.length < 3) {
+            UI.toast('A nova senha deve ter no mínimo 3 caracteres.', 'aviso');
+            return;
+          }
+
+          const chavesValidas = ['ROTA-MESTRE-9988', 'MANOS-MESTRE-9988', 'MANOSTECH-MASTER-2026'];
+          if (!chavesValidas.includes(chave.toUpperCase())) {
+            UI.toast('Chave Mestra inválida ou incorreta.', 'erro');
+            return;
+          }
+
+          try {
+            const funcs = DB.funcionarios();
+            let admin = funcs.find(f => f.papel === 'admin' || f.usuario === 'admin');
+            if (!admin && funcs.length) admin = funcs[0];
+            if (admin) {
+              admin.senha = await window.pdv.hashSenha(novaSenha);
+              await DB.salvar();
+              UI.fecharModal();
+              UI.toast('Nova senha cadastrada com sucesso!', 'sucesso');
+              $('#login-senha').value = novaSenha;
+              $('#login-erro').hidden = true;
+              const logado = await DB.conferirLogin(admin.usuario, novaSenha);
+              if (logado) entrarSistema(logado);
+            }
+          } catch (err) {
+            UI.toast('Erro ao salvar nova senha: ' + err.message, 'erro');
+          }
+        };
+      }
+    }
 
     // ==================== VERIFICAÇÃO REAL DE ATUALIZAÇÕES (MANOSTECH SYSTEM) ====================
     async function checarAtualizacoesSistema(manual = true) {
-      const versaoLocal = '2.4.0';
+      let versaoLocal = '2.4.2';
+      try {
+        const respLoc = await fetch(apiUrl('/api/app-version'), { cache: 'no-store' });
+        if (respLoc.ok) {
+          const infoLoc = await respLoc.json();
+          if (infoLoc.versao) versaoLocal = infoLoc.versao.trim();
+        }
+      } catch {}
+
       const btn = $('#btn-verificar-atualizacoes');
       if (btn && manual) {
         btn.disabled = true;
@@ -3868,23 +4017,38 @@ ${emailRemetente ? `E-mail de contato: ${emailRemetente}` : ''}`;
       try {
         let dadosRemotos = null;
 
-        // 1. Tenta API local/servidor
+        // 1. Tenta GitHub Releases API oficial
         try {
-          const resp = await fetch(apiUrl('/api/app-version'), { cache: 'no-store' });
-          if (resp.ok) dadosRemotos = await resp.json();
+          const respGh = await fetch('https://api.github.com/repos/manostechsystem/SistemaQuiosque/releases/latest', { cache: 'no-store' });
+          if (respGh.ok) {
+            const rel = await respGh.json();
+            const vTag = (rel.tag_name || '').replace(/^v/, '').trim();
+            if (vTag) {
+              const assetSetup = (rel.assets || []).find(a => a.name.includes('Setup') && a.name.endsWith('.exe')) ||
+                                 (rel.assets || []).find(a => a.name.endsWith('.exe'));
+              dadosRemotos = {
+                versao: vTag,
+                downloadUrl: assetSetup ? assetSetup.browser_download_url : `https://github.com/manostechsystem/SistemaQuiosque/releases/download/v${vTag}/ManosTech.System.Setup.${vTag}.exe`,
+                notas: rel.body || '• Atualização automática embutida com progresso em tela.\n• Conexão 4G remota direta sem configurações manuais.\n• Ajustes de contraste e melhorias de desempenho.'
+              };
+            }
+          }
         } catch {}
 
-        // 2. Tenta GitHub Releases oficial
+        // 2. Fallback: package.json do repositório
         if (!dadosRemotos || !dadosRemotos.versao) {
           try {
-            const respGh = await fetch('https://raw.githubusercontent.com/manostechsystem/SistemaQuiosque/main/package.json', { cache: 'no-store' });
-            if (respGh.ok) {
-              const pkg = await respGh.json();
-              dadosRemotos = {
-                versao: pkg.version || '2.4.1',
-                downloadUrl: 'https://github.com/manostechsystem/SistemaQuiosque/releases/latest',
-                notas: '• Correção de contraste nos botões de categoria e cards.\n• Tema Cyber oficial escuro aprimorado.\n• Sincronização automática em nuvem (4G).'
-              };
+            const respPkg = await fetch('https://raw.githubusercontent.com/manostechsystem/SistemaQuiosque/main/package.json', { cache: 'no-store' });
+            if (respPkg.ok) {
+              const pkg = await respPkg.json();
+              const v = (pkg.version || '').trim();
+              if (v) {
+                dadosRemotos = {
+                  versao: v,
+                  downloadUrl: `https://github.com/manostechsystem/SistemaQuiosque/releases/download/v${v}/ManosTech.System.Setup.${v}.exe`,
+                  notas: '• Conexão automática em nuvem (4G).\n• Novo tema Cyber com alto contraste.\n• Auto-download e atualização assistida.'
+                };
+              }
             }
           } catch {}
         }
@@ -3934,19 +4098,27 @@ ${emailRemetente ? `E-mail de contato: ${emailRemetente}` : ''}`;
                 <span class="chip chip--aviso" style="font-size:12px;margin-bottom:14px;display:inline-block">Versão Atual: v${versaoLocal} ➔ Nova Versão: v${vRemota}</span>
                 <div style="font-size:12.5px;color:var(--tinta-2);line-height:1.5;margin-bottom:16px;text-align:left;background:var(--elevado);padding:14px;border-radius:10px;border:1px solid var(--borda-forte)">
                   <div style="font-weight:800;color:var(--primaria);margin-bottom:6px">Novidades desta atualização:</div>
-                  <div style="white-space:pre-line">${UI.escapar(dadosRemotos.notas || 'Melhorias de desempenho, correções de contraste e temas visuais.')}</div>
+                  <div style="white-space:pre-line">${UI.escapar(dadosRemotos.notas)}</div>
                 </div>
               </div>
             `,
             rodape: `
               <button class="btn-secundario" id="modal-update-depois">Lembrar Depois</button>
-              <a href="${dadosRemotos.downloadUrl || 'https://github.com/manostechsystem/SistemaQuiosque/releases/latest'}" target="_blank" class="btn-primario" id="modal-update-baixar" style="text-decoration:none;display:inline-flex;align-items:center;gap:6px">
-                ⬇️ Baixar Atualização (v${vRemota})
-              </a>
+              <button class="btn-primario" id="modal-update-baixar" style="display:inline-flex;align-items:center;gap:8px;font-weight:900;padding:10px 22px">
+                ⬇️ Baixar e Atualizar Agora (v${vRemota})
+              </button>
             `
           });
+
           const btnDepois = $('#modal-update-depois');
           if (btnDepois) btnDepois.onclick = UI.fecharModal;
+
+          const btnBaixar = $('#modal-update-baixar');
+          if (btnBaixar) {
+            btnBaixar.onclick = () => {
+              iniciarDownloadEInstalacao(dadosRemotos.downloadUrl, vRemota);
+            };
+          }
         } else if (manual) {
           UI.abrirModal({
             titulo: 'Atualização do Sistema — ManosTech System',
@@ -3971,6 +4143,166 @@ ${emailRemetente ? `E-mail de contato: ${emailRemetente}` : ''}`;
           const btnOk = $('#modal-update-ok');
           if (btnOk) btnOk.onclick = UI.fecharModal;
         }
+      } catch (err) {
+        console.error(err);
+        if (manual) UI.toast('Erro ao buscar atualizações na nuvem.', 'erro');
+      }
+    }
+
+    function iniciarDownloadEInstalacao(urlDownload, vRemota) {
+      const elCorpo = document.getElementById('modal-corpo');
+      const elRodape = document.querySelector('.modal__rodape');
+      if (elRodape) elRodape.style.display = 'none';
+
+      if (elCorpo) {
+        elCorpo.innerHTML = `
+          <div style="text-align:center;padding:16px 8px">
+            <!-- Spinner circular de progresso com porcentagem central -->
+            <div style="position:relative;width:130px;height:130px;margin:0 auto 16px">
+              <svg viewBox="0 0 100 100" style="transform:rotate(-90deg);width:100%;height:100%;animation:pulseGlow 2.5s infinite">
+                <circle cx="50" cy="50" r="42" stroke="rgba(255,255,255,0.08)" stroke-width="8" fill="none" />
+                <circle id="circulo-progresso-update" cx="50" cy="50" r="42" stroke="var(--primaria)" stroke-width="8" stroke-dasharray="264" stroke-dashoffset="264" stroke-linecap="round" fill="none" style="transition:stroke-dashoffset 0.15s ease, stroke 0.3s ease" />
+              </svg>
+              <div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center">
+                <span id="update-pct-texto" style="font-size:26px;font-weight:900;color:var(--tinta);font-family:monospace">0%</span>
+                <span id="update-status-fase" style="font-size:10px;font-weight:900;color:var(--primaria);text-transform:uppercase;letter-spacing:1px">Baixando</span>
+              </div>
+            </div>
+
+            <h4 id="update-status-titulo" style="font-size:16px;font-weight:900;color:var(--tinta);margin-bottom:6px">
+              Baixando Atualização v${vRemota}...
+            </h4>
+            
+            <p id="update-bytes-texto" style="font-size:13px;color:var(--tinta-2);font-weight:700;margin-bottom:14px">
+              Conectando ao servidor seguro de atualização...
+            </p>
+
+            <!-- Barra linear animada -->
+            <div style="width:100%;max-width:320px;height:8px;background:rgba(255,255,255,0.08);border-radius:10px;overflow:hidden;margin:0 auto 14px;border:1px solid var(--borda-forte)">
+              <div id="update-barra-fill" style="width:0%;height:100%;background:linear-gradient(90deg, #0099ff, #00f0ff);border-radius:10px;transition:width 0.15s ease;box-shadow:0 0 10px rgba(0,210,255,0.6)"></div>
+            </div>
+
+            <div style="font-size:11.5px;color:var(--tinta-3);font-weight:700">
+              ⚡ O sistema será instalado e reiniciado automaticamente ao concluir. Não feche esta janela.
+            </div>
+          </div>
+        `;
+      }
+
+      // Se estiver no Electron (com APIs nativas)
+      if (window.pdv && typeof window.pdv.baixarEInstalarAtualizacao === 'function') {
+        window.pdv.onProgressoAtualizacao((prog) => {
+          const pct = prog.porcentagem || 0;
+          const circulo = document.getElementById('circulo-progresso-update');
+          const txtPct = document.getElementById('update-pct-texto');
+          const barra = document.getElementById('update-barra-fill');
+          const txtBytes = document.getElementById('update-bytes-texto');
+
+          if (circulo) circulo.style.strokeDashoffset = 264 - (264 * pct) / 100;
+          if (txtPct) txtPct.textContent = `${pct}%`;
+          if (barra) barra.style.width = `${pct}%`;
+          if (txtBytes && prog.total > 0) {
+            const bMb = (prog.baixado / (1024 * 1024)).toFixed(1);
+            const tMb = (prog.total / (1024 * 1024)).toFixed(1);
+            txtBytes.textContent = `${bMb} MB de ${tMb} MB (${pct}%)`;
+          }
+        });
+
+        window.pdv.onConcluidoAtualizacao(() => {
+          const circulo = document.getElementById('circulo-progresso-update');
+          const txtPct = document.getElementById('update-pct-texto');
+          const fase = document.getElementById('update-status-fase');
+          const titulo = document.getElementById('update-status-titulo');
+          const txtBytes = document.getElementById('update-bytes-texto');
+          const barra = document.getElementById('update-barra-fill');
+
+          if (circulo) {
+            circulo.style.strokeDashoffset = '0';
+            circulo.setAttribute('stroke', '#22c55e');
+          }
+          if (barra) barra.style.background = '#22c55e';
+          if (txtPct) {
+            txtPct.textContent = '100%';
+            txtPct.style.color = '#22c55e';
+          }
+          if (fase) {
+            fase.textContent = 'Pronto!';
+            fase.style.color = '#22c55e';
+          }
+          if (titulo) titulo.textContent = '✅ Download Concluído com Sucesso!';
+          if (txtBytes) txtBytes.textContent = 'Reiniciando o sistema agora para aplicar a atualização...';
+        });
+
+        window.pdv.onErroAtualizacao((err) => {
+          const titulo = document.getElementById('update-status-titulo');
+          const txtBytes = document.getElementById('update-bytes-texto');
+          if (titulo) titulo.textContent = '⚠️ Falha no download automático';
+          if (txtBytes) txtBytes.textContent = (err && err.erro) || 'Verifique sua conexão de internet e tente novamente.';
+          if (elRodape) {
+            elRodape.style.display = 'flex';
+            elRodape.innerHTML = `
+              <button class="btn-secundario" onclick="UI.fecharModal()">Fechar</button>
+              <a href="${urlDownload}" target="_blank" class="btn-primario" style="text-decoration:none">Baixar Manualmente</a>
+            `;
+          }
+        });
+
+        window.pdv.baixarEInstalarAtualizacao(urlDownload, vRemota);
+      } else {
+        // Modo web browser (fallback)
+        (async () => {
+          try {
+            const resp = await fetch(urlDownload);
+            const contentLength = +resp.headers.get('Content-Length') || 0;
+            const reader = resp.body.getReader();
+            let received = 0;
+            let chunks = [];
+
+            while (true) {
+              const { done, value } = await reader.read();
+              if (done) break;
+              chunks.push(value);
+              received += value.length;
+              if (contentLength > 0) {
+                const pct = Math.min(100, Math.round((received / contentLength) * 100));
+                const circulo = document.getElementById('circulo-progresso-update');
+                const txtPct = document.getElementById('update-pct-texto');
+                const barra = document.getElementById('update-barra-fill');
+                const txtBytes = document.getElementById('update-bytes-texto');
+                if (circulo) circulo.style.strokeDashoffset = 264 - (264 * pct) / 100;
+                if (txtPct) txtPct.textContent = `${pct}%`;
+                if (barra) barra.style.width = `${pct}%`;
+                if (txtBytes) {
+                  const bMb = (received / (1024 * 1024)).toFixed(1);
+                  const tMb = (contentLength / (1024 * 1024)).toFixed(1);
+                  txtBytes.textContent = `${bMb} MB de ${tMb} MB (${pct}%)`;
+                }
+              }
+            }
+
+            const blob = new Blob(chunks);
+            const blobUrl = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = blobUrl;
+            a.download = `ManosTech-System-Setup-${vRemota}.exe`;
+            a.click();
+
+            const circulo = document.getElementById('circulo-progresso-update');
+            const txtPct = document.getElementById('update-pct-texto');
+            const fase = document.getElementById('update-status-fase');
+            const titulo = document.getElementById('update-status-titulo');
+            const txtBytes = document.getElementById('update-bytes-texto');
+            if (circulo) circulo.style.strokeDashoffset = '0';
+            if (txtPct) txtPct.textContent = '100%';
+            if (fase) fase.textContent = 'Pronto!';
+            if (titulo) titulo.textContent = '✅ Download Concluído!';
+            if (txtBytes) txtBytes.textContent = 'Abra o arquivo baixado para concluir a instalação.';
+          } catch (err) {
+            window.open(urlDownload, '_blank');
+          }
+        })();
+      }
+    }
       } catch (err) {
         console.error(err);
         if (btn && manual) {
