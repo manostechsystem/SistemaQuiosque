@@ -18,7 +18,8 @@ const DB = (() => {
       { id: 'cat-bebidas', nome: 'Bebidas', ordem: 1 },
       { id: 'cat-comidas', nome: 'Alimentos & Refeições', ordem: 2 },
       { id: 'cat-sobremesas', nome: 'Sobremesas & Doces', ordem: 3 },
-      { id: 'cat-servicos', nome: 'Serviços & Diversos', ordem: 4 }
+      { id: 'cat-servicos', nome: 'Serviços & Diversos', ordem: 4 },
+      { id: 'cat-outros', nome: 'Outros', ordem: 5 }
     ],
     produtos: [],
     vendas: [],
@@ -84,6 +85,9 @@ const DB = (() => {
   }
 
   function categorias() {
+    if (!estado.categorias.some(c => c.id === 'cat-outros' || /outro/i.test(c.nome))) {
+      estado.categorias.push({ id: 'cat-outros', nome: 'Outros', ordem: 99 });
+    }
     return [...estado.categorias].sort((a, b) => a.ordem - b.ordem);
   }
 

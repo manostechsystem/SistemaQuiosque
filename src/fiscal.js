@@ -177,6 +177,53 @@ const Fiscal = (() => {
     return melhor;
   }
 
+  // Sugere a melhor categoria para um produto importado da NF-e com base no nome e NCM fiscal
+  function sugerirCategoriaNfe(xProd, ncm, categoriasDisponiveis = []) {
+    const desc = String(xProd || '').toLowerCase();
+    const codNcm = String(ncm || '').trim();
+
+    // 1. Padrões de Bebidas (NCM capítulo 22 ou palavras-chave)
+    const isBebida = codNcm.startsWith('22') ||
+      /\b(cerveja|chopp|chop|refrigerante|refri|coca|fanta|sprite|guaran[aá]|pepsi|suco|nectar|água|agua|ice|energ[eé]tico|red bull|monster|vodka|gin|vinho|whisky|whiskey|rum|campari|cacha[cç]a|tequila|licor|espumante|gelo|t[oó]nica|corona|brahma|heineken|amstel|skol|antarctica|budweiser|stella)\b/i.test(desc);
+
+    // 2. Padrões de Alimentos / Cozinha / Refeições (NCM 02, 04, 16, 19, 20, 21)
+    const isAlimento = /^(02|04|16|19|20|21)/.test(codNcm) ||
+      /\b(pastel|lanche|burguer|burger|batata|frango|carne|picanha|calabresa|queijo|mussarela|presunto|bacon|p[aã]o|salgado|coxinha|kibe|esfiha|molho|ketchup|maionese|mostarda|arroz|feij[aã]o|massa|macarr[aã]o|pizza|por[cç][aã]o|peixe|camar[aã]o|til[aá]pia|azeite|[oó]leo|farofa|salada|tomate|cebola|alface)\b/i.test(desc);
+
+    // 3. Padrões de Sobremesas / Doces (NCM 17, 18)
+    const isSobremesa = /^(17|18)/.test(codNcm) ||
+      /\b(chocolate|bombom|sorvete|picol[eé]|a[cç]a[ií]|bala|chiclete|pirulito|doce|sobremesa|torta|bolo|pudim|leite condensado|nutella|creme de avel[aã]|bis|kitkat)\b/i.test(desc);
+
+    // 4. Insumos / Descartáveis / Limpeza
+    const isInsumo = /\b(copo|guardanapo|prato|bobina|sacola|embalagem|detergente|desinfetante|sab[aã]o|papel toalha|filme pvc|papel alum[ií]nio|canudo)\b/i.test(desc);
+
+    // Tenta encontrar a categoria correspondente cadastrada no sistema
+    let targetCat = null;
+
+    if (isBebida) {
+      targetCat = categoriasDisponiveis.find(c => /bebida/i.test(c.nome));
+    } else if (isAlimento) {
+      targetCat = categoriasDisponiveis.find(c => /aliment|lanche|refei|cozinha|comida|por[cç]/i.test(c.nome));
+    } else if (isSobremesa) {
+      targetCat = categoriasDisponiveis.find(c => /sobremesa|doce/i.test(c.nome));
+    } else if (isInsumo) {
+      targetCat = categoriasDisponiveis.find(c => /insumo|descart[aá]ve|limpeza/i.test(c.nome));
+    }
+
+    // Se achou uma categoria específica, retorna ela
+    if (targetCat) return targetCat.id;
+
+    // Se não encontrou nenhuma correspondência, prioriza a categoria "Outros"
+    const catOutros = categoriasDisponiveis.find(c => /^\s*outro/i.test(c.nome)) ||
+                      categoriasDisponiveis.find(c => c.id === 'cat-outros') ||
+                      categoriasDisponiveis.find(c => /outro/i.test(c.nome)) ||
+                      categoriasDisponiveis.find(c => /divers/i.test(c.nome));
+    if (catOutros) return catOutros.id;
+
+    // Fallback padrão: 'cat-outros' ou a primeira categoria disponível
+    return categoriasDisponiveis.length ? (categoriasDisponiveis.find(c => c.id === 'cat-outros')?.id || 'cat-outros') : 'cat-outros';
+  }
+
   /* ========================================================
      EXPORTAÇÃO DE XMLs PARA CONTABILIDADE
      REGRA OBRIGATÓRIA: DINHEIRO NUNCA É INCLUSO.
@@ -408,6 +455,7 @@ ${xmlsVendas}
     parsearXmlNfe,
     deduzirFator,
     encontrarProdutoCorrespondente,
+    sugerirCategoriaNfe,
     filtrarVendasContabilidade,
     montarXmlVendaContabil,
     gerarLoteContabilidadeXml,

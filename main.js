@@ -11,7 +11,8 @@ const PADRAO = {
     { id: 'cat-bebidas', nome: 'Bebidas', ordem: 1 },
     { id: 'cat-comidas', nome: 'Alimentos & Refeições', ordem: 2 },
     { id: 'cat-sobremesas', nome: 'Sobremesas & Doces', ordem: 3 },
-    { id: 'cat-servicos', nome: 'Serviços & Diversos', ordem: 4 }
+    { id: 'cat-servicos', nome: 'Serviços & Diversos', ordem: 4 },
+    { id: 'cat-outros', nome: 'Outros', ordem: 5 }
   ],
   produtos: [],
   vendas: [],

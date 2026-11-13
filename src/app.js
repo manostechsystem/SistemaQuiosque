@@ -1797,10 +1797,91 @@ const App = (() => {
   /* ================== IMPORTAÇÃO DE XML (NF-e) ================== */
   async function importarXmlFluxo() {
     try {
-      const arquivos = await window.pdv.selecionarXmlNfe();
-      if (!arquivos || !arquivos.length) return;
+      const opcao = await new Promise(resolve => {
+        const corpoModal = UI.abrirModal({
+          titulo: 'Entrada de Mercadorias (NF-e)',
+          corpo: `
+            <div style="display:flex;flex-direction:column;gap:12px">
+              <p style="font-size:13px;color:var(--tinta-2);margin:0">
+                Selecione como deseja carregar a Nota Fiscal eletrônica de compra para dar entrada no estoque e atualizar preços de custo:
+              </p>
+              
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:8px 0">
+                <button class="btn-secundario" id="btn-nfe-escolher-arq" style="display:flex;flex-direction:column;align-items:center;padding:16px 12px;gap:8px;text-align:center;border:1.5px dashed var(--borda-forte);cursor:pointer">
+                  <svg viewBox="0 0 24 24" style="width:32px;height:32px;stroke:var(--primaria)" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+                  <b style="color:var(--tinta)">Selecionar Arquivo .XML</b>
+                  <span style="font-size:11px;color:var(--tinta-3)">Escolha um ou mais arquivos .xml do computador ou celular</span>
+                </button>
 
-      for (const arq of arquivos) {
+                <button class="btn-secundario" id="btn-nfe-colar-xml" style="display:flex;flex-direction:column;align-items:center;padding:16px 12px;gap:8px;text-align:center;border:1.5px dashed var(--borda-forte);cursor:pointer">
+                  <svg viewBox="0 0 24 24" style="width:32px;height:32px;stroke:var(--primaria)" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                  <b style="color:var(--tinta)">Colar Conteúdo XML</b>
+                  <span style="font-size:11px;color:var(--tinta-3)">Cole o texto do XML recebido por e-mail ou WhatsApp</span>
+                </button>
+              </div>
+            </div>
+          `,
+          rodape: `<button class="btn-secundario" id="btn-nfe-fechar-menu">Cancelar</button>`
+        });
+
+        corpoModal.querySelector('#btn-nfe-escolher-arq').onclick = () => {
+          UI.fecharModal();
+          resolve('arquivo');
+        };
+        corpoModal.querySelector('#btn-nfe-colar-xml').onclick = () => {
+          UI.fecharModal();
+          resolve('colar');
+        };
+        document.querySelector('#btn-nfe-fechar-menu').onclick = () => {
+          UI.fecharModal();
+          resolve(null);
+        };
+      });
+
+      if (!opcao) return;
+
+      let listaArquivos = [];
+
+      if (opcao === 'arquivo') {
+        const arqs = await window.pdv.selecionarXmlNfe();
+        if (!arqs || !arqs.length) return;
+        listaArquivos = arqs;
+      } else if (opcao === 'colar') {
+        const textoXml = await new Promise(resolve => {
+          const corpoModal = UI.abrirModal({
+            titulo: 'Colar XML da NF-e',
+            largo: true,
+            corpo: `
+              <div style="display:flex;flex-direction:column;gap:10px">
+                <label style="font-size:12.5px;font-weight:700;color:var(--tinta)">Cole abaixo o conteúdo completo do XML da Nota Fiscal:</label>
+                <textarea id="txt-nfe-colada" rows="10" placeholder="Cole aqui o texto começando com <?xml ou <nfeProc ou <NFe..." style="width:100%;font-family:monospace;font-size:11px;padding:10px;border-radius:8px;border:1px solid var(--borda);background:var(--elevado);color:var(--tinta);resize:vertical"></textarea>
+                <div style="font-size:11.5px;color:var(--tinta-3)">
+                  💡 Dica: Se você só possui a <b>Chave de Acesso (44 dígitos)</b>, faça o download do arquivo XML no portal da SEFAZ ou solicite o arquivo XML diretamente ao mercado/atacadista emissor.
+                </div>
+              </div>
+            `,
+            rodape: `
+              <button class="btn-secundario" id="btn-nfe-cancelar-colagem">Cancelar</button>
+              <button class="btn-primario" id="btn-nfe-processar-colagem">Processar XML</button>
+            `
+          });
+
+          document.querySelector('#btn-nfe-cancelar-colagem').onclick = () => {
+            UI.fecharModal();
+            resolve(null);
+          };
+          document.querySelector('#btn-nfe-processar-colagem').onclick = () => {
+            const val = corpoModal.querySelector('#txt-nfe-colada')?.value?.trim();
+            UI.fecharModal();
+            resolve(val || null);
+          };
+        });
+
+        if (!textoXml) return;
+        listaArquivos = [{ nome: 'XML-Colado.xml', conteudo: textoXml }];
+      }
+
+      for (const arq of listaArquivos) {
         const resultado = Fiscal.parsearXmlNfe(arq.conteudo);
         if (!resultado.ok) {
           UI.toast(`Erro no arquivo ${arq.nome}: ${resultado.erro}`, 'erro');
@@ -1830,14 +1911,17 @@ const App = (() => {
   function abrirModalConferenciaNfe(nota) {
     return new Promise(resolve => {
       const prodsDisponiveis = produtos();
+      const todasCategorias = DB.categorias();
 
-      // Mapeia os itens da nota sugerindo vínculos e fatores
+      // Mapeia os itens da nota sugerindo vínculos, categorias e fatores
       const itensMapeados = nota.itens.map((item, idx) => {
         const vinculado = Fiscal.encontrarProdutoCorrespondente(item, prodsDisponiveis);
+        const catSugerida = Fiscal.sugerirCategoriaNfe(item.xProd, item.ncm, todasCategorias);
         return {
           ...item,
           idx,
           produtoIdSelecionado: vinculado ? vinculado.id : '__novo__',
+          categoriaSelecionada: catSugerida,
           novoNome: item.xProd,
           fatorAtual: item.fator || 1,
           qtdFinalAtual: DB.arred(item.qCom * (item.fator || 1)),
@@ -1850,8 +1934,14 @@ const App = (() => {
         largo: true,
         fecharAoClicarFora: false,
         corpo: `
-          <div class="faixa-info" style="margin-bottom:14px;background:#FFF9EE;border-color:#F5C678;color:#8A4B10">
-            <b>ATENÇÃO À CONVERSÃO UNITÁRIA:</b> Se o item veio em <b>fardo, caixa ou pack</b>, ajuste o campo <u>"Unid/Embalagem"</u> para que o estoque receba a quantidade de unidades individuais corretamente (ex: 20 fardos com 12 garrafas = 240 unidades).
+          <div class="faixa-info" style="margin-bottom:12px;background:var(--elevado);border-left:4px solid var(--primaria);padding:10px 14px;border-radius:8px">
+            <div style="font-weight:700;color:var(--primaria);font-size:13px;margin-bottom:3px">
+              ⚡ Classificação Inteligente & Conversão de Unidades
+            </div>
+            <div style="font-size:12px;color:var(--tinta-2);line-height:1.4">
+              Itens novos são classificados <b>automaticamente por categoria</b> (Bebidas, Alimentos, etc.) e os não identificados vão para <b>"Outros"</b>. Você pode alterar a categoria no seletor abaixo antes de salvar!
+              Se o item veio em <b>fardo ou caixa</b>, confira o campo <u>"Unid/Emb."</u> (ex: 1 fardo com 12 latas = 12 un).
+            </div>
           </div>
 
           <div style="display:flex;justify-content:space-between;font-size:12.5px;margin-bottom:12px;color:var(--tinta-2)">
@@ -1867,7 +1957,7 @@ const App = (() => {
                   <th>Qtd NF-e</th>
                   <th style="width:110px">Unid/Emb.</th>
                   <th>Qtd no Estoque</th>
-                  <th style="min-width:190px">Vincular Produto no PDV</th>
+                  <th style="min-width:220px">Vincular / Categoria no PDV</th>
                   <th class="dir">Estoque Resultante</th>
                 </tr>
               </thead>
@@ -1904,6 +1994,16 @@ const App = (() => {
                             `).join('')}
                           </optgroup>
                         </select>
+                        <div class="nfe-box-categoria" data-idx="${i.idx}" style="${i.produtoIdSelecionado === '__novo__' ? 'margin-top:6px;display:flex;align-items:center;gap:6px;' : 'display:none;margin-top:6px;align-items:center;gap:6px;'}">
+                          <span style="font-size:11px;font-weight:700;color:var(--tinta-2);white-space:nowrap">Categoria:</span>
+                          <select class="nfe-categoria campo-select" data-idx="${i.idx}" style="height:28px;font-size:11.5px;padding:2px 8px;border-radius:6px;flex:1">
+                            ${todasCategorias.map(c => `
+                              <option value="${c.id}" ${c.id === i.categoriaSelecionada ? 'selected' : ''}>
+                                ${UI.escapar(c.nome)}
+                              </option>
+                            `).join('')}
+                          </select>
+                        </div>
                       </td>
                       <td class="dir">
                         <span class="chip chip--ok nfe-est-previsto" data-idx="${i.idx}">${estAnterior} → ${estNovo} un</span>
@@ -1949,6 +2049,11 @@ const App = (() => {
         if (elPrev) {
           elPrev.textContent = pId === '__novo__' ? `Novo (${item.qtdFinalAtual} un)` : `${estAnt} → ${estNovo} un`;
         }
+
+        const boxCat = corpoModal.querySelector(`.nfe-box-categoria[data-idx="${idx}"]`);
+        if (boxCat) {
+          boxCat.style.display = pId === '__novo__' ? 'flex' : 'none';
+        }
       }
 
       corpoModal.querySelectorAll('.nfe-fator').forEach(input => {
@@ -1960,6 +2065,13 @@ const App = (() => {
           const idx = Number(select.dataset.idx);
           itensMapeados[idx].produtoIdSelecionado = select.value;
           atualizarLinha(idx);
+        });
+      });
+
+      corpoModal.querySelectorAll('.nfe-categoria').forEach(select => {
+        select.addEventListener('change', () => {
+          const idx = Number(select.dataset.idx);
+          itensMapeados[idx].categoriaSelecionada = select.value;
         });
       });
 
@@ -1975,12 +2087,13 @@ const App = (() => {
           for (const item of itensMapeados) {
             let pid = item.produtoIdSelecionado;
 
-            // Se for novo produto, cadastra no catálogo primeiro
+            // Se for novo produto, cadastra no catálogo com a categoria selecionada/sugerida
             if (pid === '__novo__') {
               const novoProd = {
                 nome: item.xProd,
                 preco: DB.arred(item.custoUnitarioAtual * 1.5) || 5, // margem inicial sugerida
-                categoriaId: DB.categorias()[0]?.id || 'cat-bebidas',
+                precoCusto: item.custoUnitarioAtual,
+                categoriaId: item.categoriaSelecionada || DB.categorias()[0]?.id || 'cat-outros',
                 tipo: 'produto',
                 codigo: item.cEAN || '',
                 controlaEstoque: true,
@@ -1991,6 +2104,16 @@ const App = (() => {
               // Pega o produto recém adicionado
               const cadastrado = DB.produtos().find(p => p.nome === item.xProd) || DB.produtos()[DB.produtos().length - 1];
               pid = cadastrado.id;
+            } else {
+              // Se já existe e tem custo informado, pode atualizar o preço de custo no cadastro
+              const prodExistente = DB.produtos().find(p => p.id === pid);
+              if (prodExistente && item.custoUnitarioAtual > 0) {
+                prodExistente.precoCusto = item.custoUnitarioAtual;
+                if (!prodExistente.codigo && item.cEAN) {
+                  prodExistente.codigo = item.cEAN;
+                }
+                DB.salvarProduto(prodExistente);
+              }
             }
 
             // Realiza a entrada no estoque com a quantidade unitária calculada
