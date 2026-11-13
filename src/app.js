@@ -3690,7 +3690,7 @@ ${emailRemetente ? `E-mail de contato: ${emailRemetente}` : ''}`;
 
   function verificarPrimeiroAcesso() {
     const c = cfg();
-    const precisaCadastro = !c.configurado && (!c.loja || c.loja === 'ManosTech System' || c.loja === '');
+    const precisaCadastro = !c.configurado;
     const telaInit = $('#tela-cadastro-inicial');
     const telaLogin = $('#tela-login');
 

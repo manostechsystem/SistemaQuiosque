@@ -9,10 +9,9 @@ const DATA_FILE = path.join(DATA_DIR, 'pdv.json');
 const PADRAO = {
   categorias: [
     { id: 'cat-bebidas', nome: 'Bebidas', ordem: 1 },
-    { id: 'cat-comida', nome: 'Comida', ordem: 2 },
-    { id: 'cat-acai', nome: 'Açaí', ordem: 3 },
-    { id: 'cat-alugueis', nome: 'Aluguéis', ordem: 4 },
-    { id: 'cat-servicos', nome: 'Serviços', ordem: 5 }
+    { id: 'cat-comidas', nome: 'Alimentos & Refeições', ordem: 2 },
+    { id: 'cat-sobremesas', nome: 'Sobremesas & Doces', ordem: 3 },
+    { id: 'cat-servicos', nome: 'Serviços & Diversos', ordem: 4 }
   ],
   produtos: [],
   vendas: [],
@@ -20,6 +19,7 @@ const PADRAO = {
   funcionarios: [],
   caixas: [],
   config: {
+    configurado: false,
     loja: '',
     cnpj: '',
     endereco: '',
@@ -31,7 +31,9 @@ const PADRAO = {
     impressoraCozinha: '',
     cozinhaAtiva: true,
     larguraCozinha: 80,
-    comandaVias: 1
+    comandaVias: 1,
+    semeado: true,
+    versaoCatalogo: 3
   }
 };
 
@@ -65,7 +67,7 @@ function criarJanela() {
     autoHideMenuBar: true,
     backgroundColor: '#F8F2E7',
     icon: path.join(__dirname, 'src', 'assets', 'icon.ico'),
-    title: 'ManosTech PDV — Sistema Quiosque',
+    title: 'ManosTech System',
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
       contextIsolation: true,

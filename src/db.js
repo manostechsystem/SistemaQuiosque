@@ -29,6 +29,7 @@ const DB = (() => {
     alertasEstoque: [],
     lotesContabeis: [],
     config: {
+      configurado: false,
       loja: '',
       cnpj: '',
       endereco: '',
