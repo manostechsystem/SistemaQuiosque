@@ -3837,16 +3837,90 @@ ${emailRemetente ? `E-mail de contato: ${emailRemetente}` : ''}`;
       $('#btn-login-restaurar-cnpj').onclick = abrirModalRestaurarPorCnpj;
     }
 
-    // ==================== VERIFICAÇÃO DE ATUALIZAÇÕES (MANOSTECH SYSTEM) ====================
-    if ($('#btn-verificar-atualizacoes')) {
-      $('#btn-verificar-atualizacoes').onclick = async () => {
-        const btn = $('#btn-verificar-atualizacoes');
+    // ==================== VERIFICAÇÃO REAL DE ATUALIZAÇÕES (MANOSTECH SYSTEM) ====================
+    async function checarAtualizacoesSistema(manual = true) {
+      const versaoLocal = '2.4.0';
+      const btn = $('#btn-verificar-atualizacoes');
+      if (btn && manual) {
         btn.disabled = true;
-        btn.innerHTML = `${UI.icone('check')} Consultando ManosTech...`;
+        btn.innerHTML = `${UI.icone('check')} Consultando ManosTech Nuvem...`;
+      }
 
-        setTimeout(() => {
+      try {
+        let dadosRemotos = null;
+
+        // 1. Tenta API local/servidor
+        try {
+          const resp = await fetch(apiUrl('/api/app-version'), { cache: 'no-store' });
+          if (resp.ok) dadosRemotos = await resp.json();
+        } catch {}
+
+        // 2. Tenta GitHub Releases oficial
+        if (!dadosRemotos || !dadosRemotos.versao) {
+          try {
+            const respGh = await fetch('https://raw.githubusercontent.com/manostechsystem/SistemaQuiosque/main/package.json', { cache: 'no-store' });
+            if (respGh.ok) {
+              const pkg = await respGh.json();
+              dadosRemotos = {
+                versao: pkg.version || '2.4.1',
+                downloadUrl: 'https://github.com/manostechsystem/SistemaQuiosque/releases/latest',
+                notas: '• Correção de contraste nos botões de categoria e cards.\n• Tema Cyber oficial escuro aprimorado.\n• Sincronização automática em nuvem (4G).'
+              };
+            }
+          } catch {}
+        }
+
+        if (btn && manual) {
           btn.disabled = false;
           btn.innerHTML = `<svg class="ic" viewBox="0 0 24 24"><path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16"/><path d="M16 21h5v-5"/></svg> Verificar Atualizações`;
+        }
+
+        if (!dadosRemotos || !dadosRemotos.versao) {
+          if (manual) UI.toast('Não foi possível conectar ao servidor de atualizações.', 'erro');
+          return;
+        }
+
+        function compararVersoes(v1, v2) {
+          const p1 = (v1 || '0').split('.').map(Number);
+          const p2 = (v2 || '0').split('.').map(Number);
+          for (let i = 0; i < Math.max(p1.length, p2.length); i++) {
+            const n1 = p1[i] || 0;
+            const n2 = p2[i] || 0;
+            if (n1 > n2) return 1;
+            if (n1 < n2) return -1;
+          }
+          return 0;
+        }
+
+        const vRemota = dadosRemotos.versao.trim();
+        const temNova = compararVersoes(vRemota, versaoLocal) > 0;
+
+        if (temNova) {
+          UI.abrirModal({
+            titulo: '🚀 Nova Atualização Disponível — ManosTech System',
+            corpo: `
+              <div style="text-align:center;padding:12px 0">
+                <div style="width:58px;height:58px;border-radius:50%;background:rgba(0,210,255,0.15);color:var(--primaria);display:inline-flex;align-items:center;justify-content:center;margin-bottom:12px;border:1.5px solid var(--primaria)">
+                  <svg viewBox="0 0 24 24" width="32" height="32" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                </div>
+                <h3 style="font-size:18px;font-weight:900;color:var(--tinta);margin-bottom:6px">Nova Versão v${vRemota} Disponível!</h3>
+                <span class="chip chip--aviso" style="font-size:12px;margin-bottom:14px;display:inline-block">Versão Atual: v${versaoLocal} ➔ Nova Versão: v${vRemota}</span>
+                <div style="font-size:12.5px;color:var(--tinta-2);line-height:1.5;margin-bottom:16px;text-align:left;background:var(--elevado);padding:14px;border-radius:10px;border:1px solid var(--borda-forte)">
+                  <div style="font-weight:800;color:var(--primaria);margin-bottom:6px">Novidades desta atualização:</div>
+                  <div style="white-space:pre-line">${UI.escapar(dadosRemotos.notas || 'Melhorias de desempenho, correções de contraste e temas visuais.')}</div>
+                </div>
+              </div>
+            `,
+            rodape: `
+              <button class="btn-secundario" id="modal-update-depois">Lembrar Depois</button>
+              <a href="${dadosRemotos.downloadUrl || 'https://github.com/manostechsystem/SistemaQuiosque/releases/latest'}" target="_blank" class="btn-primario" id="modal-update-baixar" style="text-decoration:none;display:inline-flex;align-items:center;gap:6px">
+                ⬇️ Baixar Atualização (v${vRemota})
+              </a>
+            `
+          });
+          const btnDepois = $('#modal-update-depois');
+          if (btnDepois) btnDepois.onclick = UI.fecharModal;
+        } else if (manual) {
           UI.abrirModal({
             titulo: 'Atualização do Sistema — ManosTech System',
             corpo: `
@@ -3856,12 +3930,12 @@ ${emailRemetente ? `E-mail de contato: ${emailRemetente}` : ''}`;
                 </div>
                 <h3 style="font-size:17px;font-weight:900;color:var(--tinta);margin-bottom:6px">Seu Sistema Está Atualizado!</h3>
                 <p style="font-size:13.5px;color:var(--tinta-2);font-weight:700;line-height:1.5;margin-bottom:14px">
-                  Você está utilizando a versão mais recente e estável do software: <b>v2.4.0 (Canal Oficial ManosTech)</b>.
+                  Você está utilizando a versão mais recente do software: <b>v${versaoLocal} (Canal Oficial ManosTech)</b>.
                 </p>
-                <div style="background:var(--afundado);border-radius:10px;padding:10px;font-size:12px;color:var(--tinta-3);text-align:left">
+                <div style="background:var(--elevado);border-radius:10px;padding:10px;font-size:12px;color:var(--tinta-3);text-align:left;border:1px solid var(--borda)">
                   <div><b>Software House:</b> ManosTech System</div>
-                  <div><b>Canal de Atualização:</b> Nuvem Oficial ManosTech</div>
-                  <div><b>Status do Servidor:</b> Operando em 100% de integridade</div>
+                  <div><b>Canal:</b> Nuvem Oficial ManosTech</div>
+                  <div><b>Status:</b> Operando em 100% de integridade</div>
                 </div>
               </div>
             `,
@@ -3869,8 +3943,19 @@ ${emailRemetente ? `E-mail de contato: ${emailRemetente}` : ''}`;
           });
           const btnOk = $('#modal-update-ok');
           if (btnOk) btnOk.onclick = UI.fecharModal;
-        }, 1200);
-      };
+        }
+      } catch (err) {
+        console.error(err);
+        if (btn && manual) {
+          btn.disabled = false;
+          btn.innerHTML = `<svg class="ic" viewBox="0 0 24 24"><path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16"/><path d="M16 21h5v-5"/></svg> Verificar Atualizações`;
+        }
+        if (manual) UI.toast('Falha ao verificar atualizações.', 'erro');
+      }
+    }
+
+    if ($('#btn-verificar-atualizacoes')) {
+      $('#btn-verificar-atualizacoes').onclick = () => checarAtualizacoesSistema(true);
     }
 
     // Ao carregar a tela de configuração, atualiza o status do último backup
