@@ -2711,7 +2711,7 @@ ${emailRemetente ? `E-mail de contato: ${emailRemetente}` : ''}`;
   function aplicarLogoSistema(logoUrl) {
     let src = logoUrl;
     if (!src || src.includes('logo-topo') || src.includes('logo-pordosol') || src.includes('logo.png')) {
-      src = 'assets/manostech-logo.png';
+      src = 'assets/manostech-logo.png?v=2.4.6';
     }
     const logoTopo = $('#app-logo-topo');
     if (logoTopo) {
