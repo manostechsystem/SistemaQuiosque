@@ -13,7 +13,65 @@
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="icon" type="image/png" href="assets/manostech-icon.png">
   <style>
-    :root {
+    /* 1. TEMA OFICIAL MANOSTECH CYBER (PADRÃO OFICIAL) */
+    :root,
+    :root[data-tema="manostech"] {
+      --primaria: #0088FF;
+      --primaria-forte: #0066CC;
+      --primaria-leve: rgba(0, 210, 255, 0.16);
+      --mar: #00D2FF;
+      --mar-leve: rgba(0, 180, 255, 0.12);
+      --fundo: #0A0E17;
+      --fundo-topo: #05080F;
+      --papel: #111726;
+      --afundado: #0C101C;
+      --borda: rgba(0, 180, 255, 0.16);
+      --borda-forte: rgba(0, 180, 255, 0.32);
+      --tinta: #FFFFFF;
+      --tinta-2: #9CB2D6;
+      --tinta-3: #62799E;
+      --alerta: #FF3366;
+      --alerta-leve: rgba(255, 51, 102, 0.15);
+      --sucesso: #00E676;
+      --sucesso-leve: rgba(0, 230, 118, 0.15);
+      --aviso: #FFB800;
+      --aviso-leve: rgba(255, 184, 0, 0.15);
+      --raio: 14px;
+      --raio-p: 10px;
+      --sombra: 0 4px 16px rgba(0, 0, 0, 0.45);
+      --fonte: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    }
+
+    /* 2. TEMA OURO & ÔNIX IMPERIAL */
+    :root[data-tema="ouro"] {
+      --primaria: #D4AF37;
+      --primaria-forte: #B89222;
+      --primaria-leve: rgba(212, 175, 55, 0.16);
+      --mar: #38BDF8;
+      --mar-leve: rgba(56, 189, 248, 0.12);
+      --fundo: #0D0D11;
+      --fundo-topo: #08080A;
+      --papel: #16161E;
+      --afundado: #0A0A0D;
+      --borda: rgba(212, 175, 55, 0.18);
+      --borda-forte: rgba(212, 175, 55, 0.35);
+      --tinta: #FFFFFF;
+      --tinta-2: #D4CDBC;
+      --tinta-3: #8C8474;
+      --alerta: #EF4444;
+      --alerta-leve: rgba(239, 68, 68, 0.15);
+      --sucesso: #10B981;
+      --sucesso-leve: rgba(16, 185, 129, 0.15);
+      --aviso: #F59E0B;
+      --aviso-leve: rgba(245, 158, 11, 0.15);
+      --raio: 14px;
+      --raio-p: 10px;
+      --sombra: 0 4px 16px rgba(0, 0, 0, 0.45);
+      --fonte: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    }
+
+    /* 3. TEMA QUIOSQUE SOLAR & PRAIA (CLÁSSICO) */
+    :root[data-tema="praia"] {
       --primaria: #B8560B;
       --primaria-forte: #8F3E03;
       --primaria-leve: #FDEEDF;
@@ -25,7 +83,7 @@
       --afundado: #EFE4D4;
       --borda: #D8C3AC;
       --borda-forte: #8C7561;
-      --tinta: #140A04; /* Máximo contraste preto/café escuro */
+      --tinta: #140A04;
       --tinta-2: #422D1E;
       --tinta-3: #634E3E;
       --alerta: #B82A00;
@@ -37,6 +95,34 @@
       --raio: 14px;
       --raio-p: 10px;
       --sombra: 0 4px 16px rgba(35, 20, 10, 0.10);
+      --fonte: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    }
+
+    /* 4. TEMA EXECUTIVO CLEAN (CLARO) */
+    :root[data-tema="clean"] {
+      --primaria: #2563EB;
+      --primaria-forte: #1D4ED8;
+      --primaria-leve: rgba(37, 99, 235, 0.12);
+      --mar: #0284C7;
+      --mar-leve: rgba(2, 132, 199, 0.10);
+      --fundo: #F1F5F9;
+      --fundo-topo: #0F172A;
+      --papel: #FFFFFF;
+      --afundado: #E2E8F0;
+      --borda: rgba(15, 23, 42, 0.12);
+      --borda-forte: rgba(15, 23, 42, 0.24);
+      --tinta: #0F172A;
+      --tinta-2: #475569;
+      --tinta-3: #64748B;
+      --alerta: #DC2626;
+      --alerta-leve: rgba(220, 38, 38, 0.12);
+      --sucesso: #059669;
+      --sucesso-leve: rgba(5, 150, 105, 0.12);
+      --aviso: #D97706;
+      --aviso-leve: rgba(217, 119, 6, 0.12);
+      --raio: 14px;
+      --raio-p: 10px;
+      --sombra: 0 4px 14px rgba(15, 23, 42, 0.08);
       --fonte: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
     }
 
@@ -741,6 +827,9 @@
     </div>
 
     <div class="mob-topo__acoes">
+      <button class="btn-icone-topo" id="btn-tema-mobile" title="Alternar Tema Visual (Cores)">
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><circle cx="13.5" cy="6.5" r=".5" fill="currentColor"/><circle cx="17.5" cy="10.5" r=".5" fill="currentColor"/><circle cx="8.5" cy="7.5" r=".5" fill="currentColor"/><circle cx="6.5" cy="12.5" r=".5" fill="currentColor"/><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.926 0 1.648-.746 1.648-1.688 0-.437-.18-.835-.437-1.125-.29-.289-.438-.652-.438-1.125a1.64 1.64 0 0 1 1.668-1.668h1.996c3.051 0 5.563-2.512 5.563-5.563C22 6.5 17.5 2 12 2z"/></svg>
+      </button>
       <button class="btn-icone-topo" id="btn-recarregar" title="Atualizar dados agora">
         <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.3"><path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16"/><path d="M16 21h5v-5"/></svg>
       </button>
@@ -800,6 +889,16 @@
         <button class="drawer-item" data-nav="config">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
           <span>Sons & Notificações</span>
+        </button>
+
+        <button class="drawer-item" id="btn-drawer-tema">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="13.5" cy="6.5" r=".5" fill="currentColor"/><circle cx="17.5" cy="10.5" r=".5" fill="currentColor"/><circle cx="8.5" cy="7.5" r=".5" fill="currentColor"/><circle cx="6.5" cy="12.5" r=".5" fill="currentColor"/><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.926 0 1.648-.746 1.648-1.688 0-.437-.18-.835-.437-1.125-.29-.289-.438-.652-.438-1.125a1.64 1.64 0 0 1 1.668-1.668h1.996c3.051 0 5.563-2.512 5.563-5.563C22 6.5 17.5 2 12 2z"/></svg>
+          <span>Mudar Tema (<b id="lbl-drawer-tema">ManosTech</b>)</span>
+        </button>
+
+        <button class="drawer-item" id="btn-drawer-update">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          <span>Atualizações (v2.4.0)</span>
         </button>
       </div>
 
@@ -1266,6 +1365,28 @@
 
       <button class="btn-acao" id="btn-salvar-ajuste">Salvar Novo Estoque</button>
       <button class="btn-ajustar-mini" id="btn-fechar-modal-ajuste" style="width:100%;height:44px;margin-top:10px;font-size:14px;justify-content:center">Cancelar</button>
+    </div>
+  </div>
+
+  <!-- MODAL DE AUTO-UPDATE DO APK -->
+  <div id="modal-autoupdate" class="modal-autoupdate-overlay" style="display:none">
+    <div class="modal-autoupdate-caixa">
+      <img src="assets/manostech-icon.png" alt="ManosTech" class="autoupdate-robo-badge">
+      <div style="font-size:11px;font-weight:900;letter-spacing:0.1em;color:var(--mar);text-transform:uppercase;margin-bottom:6px">Nova Versão Disponível</div>
+      <h2 style="font-size:20px;font-weight:900;color:var(--tinta);margin-bottom:6px">Atualização do App</h2>
+      <div id="autoupdate-versao-badge" style="display:inline-block;padding:4px 12px;border-radius:999px;background:var(--primaria-leve);border:1px solid var(--borda-forte);color:var(--mar);font-size:13px;font-weight:800;margin-bottom:14px">v2.4.0 ➔ v2.4.1</div>
+      <p id="autoupdate-notas" style="font-size:13px;color:var(--tinta-2);line-height:1.45;margin-bottom:20px">
+        Uma nova versão do <b>ManosTech Mobile</b> está disponível com melhorias de sincronização, novos temas e novidades.
+      </p>
+      <div style="display:flex;flex-direction:column;gap:10px">
+        <a id="btn-autoupdate-baixar" href="#" class="btn-acao" style="text-decoration:none;display:flex;align-items:center;justify-content:center;gap:8px;font-size:14px;font-weight:800;padding:12px 20px;border-radius:12px;background:var(--primaria);color:#FFF">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          Baixar e Atualizar Agora (.apk)
+        </a>
+        <button id="btn-autoupdate-fechar" type="button" style="background:transparent;border:none;color:var(--tinta-3);font-size:12.5px;font-weight:700;padding:8px;cursor:pointer">
+          Lembrar Mais Tarde
+        </button>
+      </div>
     </div>
   </div>
 
@@ -2360,12 +2481,125 @@
       };
       $('#btn-exportar-backup').onclick = () => DB.exportar();
 
+      /* ==================== SISTEMA DE TEMAS E AUTO-UPDATE MOBILE ==================== */
+      const TEMAS_MOB = [
+        { id: 'manostech', nome: 'ManosTech Cyber' },
+        { id: 'ouro', nome: 'Ouro & Ônix Imperial' },
+        { id: 'praia', nome: 'Quiosque Solar' },
+        { id: 'clean', nome: 'Executivo Clean' }
+      ];
+
+      function aplicarTemaMob(temaId, salvar = true) {
+        const valido = TEMAS_MOB.find(t => t.id === temaId) ? temaId : 'manostech';
+        document.documentElement.setAttribute('data-tema', valido);
+        if (salvar) {
+          try { localStorage.setItem('manostech_tema', valido); } catch {}
+        }
+        const tObj = TEMAS_MOB.find(t => t.id === valido);
+        if ($('#lbl-drawer-tema') && tObj) {
+          $('#lbl-drawer-tema').textContent = tObj.nome.replace('ManosTech ', '');
+        }
+      }
+
+      const VERSAO_LOCAL_APP = '2.4.0';
+
+      async function verificarAtualizacoesApk(manual = false) {
+        try {
+          let dados = null;
+          try {
+            const resp = await fetch('/api/app-version', { cache: 'no-store' });
+            if (resp.ok) dados = await resp.json();
+          } catch {}
+
+          if (!dados) {
+            try {
+              const respGh = await fetch('https://raw.githubusercontent.com/manostechsystem/SistemaQuiosque/main/package.json', { cache: 'no-store' });
+              if (respGh.ok) {
+                const pkg = await respGh.json();
+                dados = {
+                  versao: pkg.version,
+                  downloadUrl: 'https://github.com/manostechsystem/SistemaQuiosque/releases/latest',
+                  notas: 'Nova versão oficial do aplicativo ManosTech disponível.'
+                };
+              }
+            } catch {}
+          }
+
+          if (!dados || !dados.versao) {
+            if (manual) alert('Não foi possível verificar atualizações no momento.');
+            return;
+          }
+
+          const vRemota = dados.versao.trim();
+          const precisaUpdate = compararVersoes(vRemota, VERSAO_LOCAL_APP) > 0;
+
+          if (precisaUpdate) {
+            const modal = document.getElementById('modal-autoupdate');
+            const badge = document.getElementById('autoupdate-versao-badge');
+            const notas = document.getElementById('autoupdate-notas');
+            const btnBaixar = document.getElementById('btn-autoupdate-baixar');
+            const btnFechar = document.getElementById('btn-autoupdate-fechar');
+
+            if (modal && badge && btnBaixar) {
+              badge.textContent = `v${VERSAO_LOCAL_APP} ➔ v${vRemota}`;
+              if (notas && dados.notas) notas.textContent = dados.notas;
+              btnBaixar.href = dados.downloadUrl || '#';
+              btnBaixar.onclick = () => { modal.style.display = 'none'; };
+              if (btnFechar) btnFechar.onclick = () => { modal.style.display = 'none'; };
+              modal.style.display = 'flex';
+            }
+          } else if (manual) {
+            alert(`O aplicativo já está na versão mais recente (v${VERSAO_LOCAL_APP})!`);
+          }
+        } catch (err) {
+          console.warn('[UPDATE] Erro na checagem:', err);
+        }
+      }
+
+      function compararVersoes(v1, v2) {
+        const p1 = (v1 || '0').split('.').map(Number);
+        const p2 = (v2 || '0').split('.').map(Number);
+        for (let i = 0; i < Math.max(p1.length, p2.length); i++) {
+          const num1 = p1[i] || 0;
+          const num2 = p2[i] || 0;
+          if (num1 > num2) return 1;
+          if (num1 < num2) return -1;
+        }
+        return 0;
+      }
+
+      // Eventos de Tema no Topo e Drawer
+      const btnTemaMob = $('#btn-tema-mobile');
+      if (btnTemaMob) {
+        btnTemaMob.onclick = () => {
+          const atual = document.documentElement.getAttribute('data-tema') || 'manostech';
+          const idx = TEMAS_MOB.findIndex(t => t.id === atual);
+          const prox = TEMAS_MOB[(idx + 1) % TEMAS_MOB.length].id;
+          aplicarTemaMob(prox, true);
+        };
+      }
+      const btnDrawerTema = $('#btn-drawer-tema');
+      if (btnDrawerTema) {
+        btnDrawerTema.onclick = () => {
+          const atual = document.documentElement.getAttribute('data-tema') || 'manostech';
+          const idx = TEMAS_MOB.findIndex(t => t.id === atual);
+          const prox = TEMAS_MOB[(idx + 1) % TEMAS_MOB.length].id;
+          aplicarTemaMob(prox, true);
+        };
+      }
+      const btnDrawerUpd = $('#btn-drawer-update');
+      if (btnDrawerUpd) {
+        btnDrawerUpd.onclick = () => verificarAtualizacoesApk(true);
+      }
+
       // Inicialização
       async function iniciar() {
+        aplicarTemaMob(localStorage.getItem('manostech_tema') || 'manostech', false);
         await registrarServiceWorker();
         await verificarPareamentoQrCode();
         await sincronizarTudo();
         verificarLogin();
+        verificarAtualizacoesApk(false);
 
         setInterval(async () => {
           const ativa = await validarSessaoAtiva();

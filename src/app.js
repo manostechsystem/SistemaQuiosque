@@ -86,6 +86,7 @@ const App = (() => {
     if (vista === 'config') {
       const grade = $('.config-grade');
       if (grade) grade.scrollTop = 0;
+      renderizarSeletorTemas();
     }
     if (vista === 'retaguarda') renderRetaguarda();
     if (vista === 'caixa') renderCaixaVista();
@@ -2743,6 +2744,95 @@ ${emailRemetente ? `E-mail de contato: ${emailRemetente}` : ''}`;
     }
   }
 
+  /* ================== SISTEMA DE TEMAS VISUAIS ================== */
+  const TEMAS = [
+    {
+      id: 'manostech',
+      nome: 'ManosTech Cyber',
+      badge: 'Padrão Oficial',
+      swatches: ['#0A0E17', '#00D2FF', '#0070F3', '#FFFFFF'],
+      desc: 'Preto estelar com azul neon cibernético e acabamento metálico da logo oficial.'
+    },
+    {
+      id: 'ouro',
+      nome: 'Ouro & Ônix Imperial',
+      badge: 'Luxo',
+      swatches: ['#0D0D11', '#FCE280', '#D4AF37', '#FFFFFF'],
+      desc: 'Preto profundo com degradê dourado nobre e iluminação quente sofisticada.'
+    },
+    {
+      id: 'praia',
+      nome: 'Quiosque Solar',
+      badge: 'Madeira & Areia',
+      swatches: ['#3A2314', '#E8820A', '#F6EBD8', '#2A1A0F'],
+      desc: 'Tons amadeirados rústicos com areia dourada e energia solar da praia.'
+    },
+    {
+      id: 'clean',
+      nome: 'Executivo Clean',
+      badge: 'Modo Claro',
+      swatches: ['#FFFFFF', '#2563EB', '#F1F5F9', '#0F172A'],
+      desc: 'Interface clara e minimalista com alto contraste e azul royal corporativo.'
+    }
+  ];
+
+  function aplicarTema(temaId, salvar = false) {
+    const valido = TEMAS.find(t => t.id === temaId) ? temaId : 'manostech';
+    document.documentElement.setAttribute('data-tema', valido);
+    try { localStorage.setItem('manostech_tema', valido); } catch {}
+
+    const metaTheme = $('meta[name="theme-color"]');
+    if (metaTheme) {
+      const coresMeta = {
+        manostech: '#0A0E17',
+        ouro: '#0D0D11',
+        praia: '#3A2314',
+        clean: '#0F172A'
+      };
+      metaTheme.setAttribute('content', coresMeta[valido] || '#0A0E17');
+    }
+
+    const tObj = TEMAS.find(t => t.id === valido);
+    const lblTopo = $('#topo-tema-nome');
+    if (lblTopo && tObj) {
+      lblTopo.textContent = tObj.nome.replace('ManosTech ', '');
+    }
+
+    $$('.card-tema-item').forEach(card => {
+      card.classList.toggle('ativo', card.dataset.tema === valido);
+    });
+
+    if (salvar) {
+      const c = cfg();
+      c.tema = valido;
+      DB.salvar();
+      UI.toast(`Tema visual alterado para "${tObj.nome}"!`, 'ok');
+    }
+  }
+
+  function renderizarSeletorTemas() {
+    const grade = $('#grade-seletor-temas');
+    if (!grade) return;
+    const atual = document.documentElement.getAttribute('data-tema') || 'manostech';
+
+    grade.innerHTML = TEMAS.map(t => `
+      <div class="card-tema-item ${t.id === atual ? 'ativo' : ''}" data-tema="${t.id}">
+        <div class="card-tema-header">
+          <span class="card-tema-nome">${t.nome}</span>
+          ${t.badge ? `<span class="card-tema-badge">${t.badge}</span>` : ''}
+        </div>
+        <div class="card-tema-swatches">
+          ${t.swatches.map(c => `<div class="card-tema-swatch" style="background:${c}"></div>`).join('')}
+        </div>
+        <p class="card-tema-desc">${t.desc}</p>
+      </div>
+    `).join('');
+
+    grade.querySelectorAll('.card-tema-item').forEach(el => {
+      el.onclick = () => aplicarTema(el.dataset.tema, true);
+    });
+  }
+
   // Tratamento da logo para impressão térmica em preto e branco (binarização com canvas)
   function converterImagemParaPretoBranco(dataUrl, threshold = 160) {
     return new Promise((resolve) => {
@@ -3451,6 +3541,16 @@ ${emailRemetente ? `E-mail de contato: ${emailRemetente}` : ''}`;
         .then(ok => ok && sairSistema());
     };
 
+    const btnTemaTopo = $('#btn-tema-topo');
+    if (btnTemaTopo) {
+      btnTemaTopo.onclick = () => {
+        const atual = document.documentElement.getAttribute('data-tema') || 'manostech';
+        const idx = TEMAS.findIndex(t => t.id === atual);
+        const proximo = TEMAS[(idx + 1) % TEMAS.length].id;
+        aplicarTema(proximo, true);
+      };
+    }
+
     $('#login-form').addEventListener('submit', e => {
       e.preventDefault();
       if (!st.loginUser) return;
@@ -3756,6 +3856,9 @@ ${emailRemetente ? `E-mail de contato: ${emailRemetente}` : ''}`;
 
   async function iniciar() {
     await DB.carregar();
+    const temaSalvo = cfg().tema || localStorage.getItem('manostech_tema') || 'manostech';
+    aplicarTema(temaSalvo);
+    renderizarSeletorTemas();
     const nomeLoja = cfg().loja || 'ManosTech System';
     $('#topo-loja').textContent = nomeLoja;
     if ($('#login-tit')) $('#login-tit').textContent = nomeLoja;

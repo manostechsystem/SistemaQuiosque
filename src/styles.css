@@ -18,25 +18,123 @@
   font-display: block;
 }
 
-:root {
-  /* superfícies */
+/* ==========================================================================
+   SISTEMA DE TEMAS VISUAIS MANOSTECH SYSTEM
+   Tema Padrão: ManosTech Cyber (Preto / Azul Neon / Branco / Prata Metálico)
+   ========================================================================== */
+
+/* 1. TEMA OFICIAL MANOSTECH CYBER (PADRÃO OFICIAL) */
+:root,
+:root[data-tema="manostech"] {
+  --tema-nome: "manostech";
+  /* Superfícies Ultra-Tech Dark */
+  --fundo: #0A0E17;
+  --cartao: #111726;
+  --elevado: #182033;
+  --afundado: #0C101C;
+  --afundado-2: #141B2D;
+
+  /* Topo e Barra Lateral (Carbono Profundo com divisor Cyber Neon) */
+  --madeira: #06080E;
+  --madeira-2: #0E1320;
+  --madeira-3: #040508;
+
+  /* Tipografia Cristalina */
+  --tinta: #FFFFFF;
+  --tinta-2: #9CB2D6;
+  --tinta-3: #62799E;
+
+  /* Paleta Neon & Acentos da Marca */
+  --primaria: #0088FF;
+  --primaria-clara: #00D2FF;
+  --oceano: #00B4D8;
+  --mar: #0077B6;
+  --verde: #00E676;
+  --vermelho: #FF3366;
+
+  /* Bordas com sutil brilho ciano */
+  --borda: rgba(0, 180, 255, 0.14);
+  --borda-forte: rgba(0, 180, 255, 0.28);
+
+  --r-ctrl: 10px;
+  --r-cartao: 16px;
+  --r-campo: 14px;
+
+  --sombra-cartao: 0 4px 20px rgba(0, 0, 0, 0.5), 0 0 1px rgba(0, 180, 255, 0.25);
+  --sombra-elevado: 0 20px 50px rgba(0, 0, 0, 0.75), 0 0 20px rgba(0, 140, 255, 0.18);
+
+  --btn-prim-texto: #FFFFFF;
+  --btn-prim-bg: linear-gradient(180deg, #00D2FF, #0070F3);
+  --btn-prim-borda: #005AD0;
+  --btn-prim-sombra: 0 8px 22px -6px rgba(0, 144, 255, 0.75), inset 0 1px 0 rgba(255, 255, 255, 0.4);
+  --btn-prim-hover: linear-gradient(180deg, #38E1FF, #0085FF);
+
+  --topo-glow: radial-gradient(120% 180% at 15% -40%, rgba(0, 210, 255, 0.35), transparent 60%);
+  --topo-borda: linear-gradient(90deg, transparent, rgba(0, 210, 255, 0.8), rgba(0, 119, 182, 0.6), transparent);
+  --login-glow: radial-gradient(1100px 500px at 50% -10%, rgba(0, 210, 255, 0.22), transparent 60%);
+
+  --topo: 72px;
+  --trilho: 88px;
+}
+
+/* 2. TEMA OURO & ÔNIX IMPERIAL */
+:root[data-tema="ouro"] {
+  --tema-nome: "ouro";
+  --fundo: #0D0D11;
+  --cartao: #16161E;
+  --elevado: #20202B;
+  --afundado: #0A0A0D;
+  --afundado-2: #1B1B24;
+
+  --madeira: #08080A;
+  --madeira-2: #121217;
+  --madeira-3: #050507;
+
+  --tinta: #FFFFFF;
+  --tinta-2: #D4CDBC;
+  --tinta-3: #8C8474;
+
+  --primaria: #D4AF37;
+  --primaria-clara: #FBD561;
+  --oceano: #38BDF8;
+  --mar: #0284C7;
+  --verde: #10B981;
+  --vermelho: #EF4444;
+
+  --borda: rgba(212, 175, 55, 0.16);
+  --borda-forte: rgba(212, 175, 55, 0.32);
+
+  --sombra-cartao: 0 4px 20px rgba(0, 0, 0, 0.5), 0 0 1px rgba(212, 175, 55, 0.25);
+  --sombra-elevado: 0 20px 50px rgba(0, 0, 0, 0.75), 0 0 20px rgba(212, 175, 55, 0.18);
+
+  --btn-prim-texto: #1C1200;
+  --btn-prim-bg: linear-gradient(180deg, #FCE280, #D4AF37);
+  --btn-prim-borda: #B89222;
+  --btn-prim-sombra: 0 8px 22px -6px rgba(212, 175, 55, 0.7), inset 0 1px 0 rgba(255, 255, 255, 0.5);
+  --btn-prim-hover: linear-gradient(180deg, #FFF0A8, #E2C048);
+
+  --topo-glow: radial-gradient(120% 180% at 15% -40%, rgba(212, 175, 55, 0.35), transparent 60%);
+  --topo-borda: linear-gradient(90deg, transparent, rgba(212, 175, 55, 0.8), rgba(245, 158, 11, 0.6), transparent);
+  --login-glow: radial-gradient(1100px 500px at 50% -10%, rgba(212, 175, 55, 0.22), transparent 60%);
+}
+
+/* 3. TEMA QUIOSQUE SOLAR & MADEIRA (CLÁSSICO) */
+:root[data-tema="praia"] {
+  --tema-nome: "praia";
   --fundo: #F6EBD8;
   --cartao: #FFFCF6;
   --elevado: #FFFFFF;
   --afundado: #F0E2C9;
   --afundado-2: #EBD9BA;
 
-  /* madeira da casca */
   --madeira: #3A2314;
   --madeira-2: #53311B;
   --madeira-3: #2A180D;
 
-  /* tinta */
   --tinta: #2A1A0F;
   --tinta-2: #6E5643;
   --tinta-3: #9B8672;
 
-  /* marca */
   --primaria: #E8820A;
   --primaria-clara: #FFB627;
   --oceano: #0E7FA8;
@@ -47,15 +145,59 @@
   --borda: rgba(93, 58, 28, .14);
   --borda-forte: rgba(93, 58, 28, .26);
 
-  --r-ctrl: 10px;
-  --r-cartao: 16px;
-  --r-campo: 14px;
-
   --sombra-cartao: 0 1px 2px rgba(70, 42, 18, .05), 0 6px 16px -10px rgba(70, 42, 18, .22);
   --sombra-elevado: 0 24px 60px -20px rgba(50, 28, 10, .38), 0 4px 12px -4px rgba(50, 28, 10, .16);
 
-  --topo: 72px;
-  --trilho: 88px;
+  --btn-prim-texto: #3A1E00;
+  --btn-prim-bg: linear-gradient(180deg, #FFC048, #E8820A);
+  --btn-prim-borda: #C96C04;
+  --btn-prim-sombra: 0 8px 18px -10px rgba(232, 130, 10, .95), inset 0 1px 0 rgba(255, 255, 255, .5);
+  --btn-prim-hover: linear-gradient(180deg, #FFCE63, #F28D0E);
+
+  --topo-glow: radial-gradient(120% 180% at 12% -40%, rgba(255, 170, 40, .28), transparent 60%);
+  --topo-borda: linear-gradient(90deg, transparent, rgba(255, 176, 32, .55), rgba(25, 163, 201, .45), transparent);
+  --login-glow: radial-gradient(1100px 500px at 50% -10%, rgba(255, 190, 90, .16), transparent 60%);
+}
+
+/* 4. TEMA EXECUTIVO CLEAN (CLARO) */
+:root[data-tema="clean"] {
+  --tema-nome: "clean";
+  --fundo: #F1F5F9;
+  --cartao: #FFFFFF;
+  --elevado: #FFFFFF;
+  --afundado: #E2E8F0;
+  --afundado-2: #CBD5E1;
+
+  --madeira: #0F172A;
+  --madeira-2: #1E293B;
+  --madeira-3: #0B1120;
+
+  --tinta: #0F172A;
+  --tinta-2: #475569;
+  --tinta-3: #64748B;
+
+  --primaria: #2563EB;
+  --primaria-clara: #60A5FA;
+  --oceano: #0284C7;
+  --mar: #0369A1;
+  --verde: #059669;
+  --vermelho: #DC2626;
+
+  --borda: rgba(15, 23, 42, 0.12);
+  --borda-forte: rgba(15, 23, 42, 0.22);
+
+  --sombra-cartao: 0 4px 12px rgba(15, 23, 42, 0.06);
+  --sombra-elevado: 0 20px 30px rgba(15, 23, 42, 0.12);
+
+  --btn-prim-texto: #FFFFFF;
+  --btn-prim-bg: linear-gradient(180deg, #3B82F6, #1D4ED8);
+  --btn-prim-borda: #1E40AF;
+  --btn-prim-sombra: 0 8px 18px -10px rgba(37, 99, 235, 0.8), inset 0 1px 0 rgba(255, 255, 255, 0.4);
+  --btn-prim-hover: linear-gradient(180deg, #60A5FA, #2563EB);
+
+  --topo-glow: radial-gradient(120% 180% at 12% -40%, rgba(96, 165, 250, 0.25), transparent 60%);
+  --topo-borda: linear-gradient(90deg, transparent, rgba(59, 130, 246, 0.5), rgba(30, 64, 175, 0.4), transparent);
+  --login-glow: radial-gradient(1100px 500px at 50% -10%, rgba(59, 130, 246, 0.15), transparent 60%);
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -92,18 +234,18 @@ h1, h2, h3, .num { font-family: 'Baloo 2', 'DM Sans', sans-serif; letter-spacing
   gap: 16px;
   padding: 0 20px 0 14px;
   background:
-    radial-gradient(120% 180% at 12% -40%, rgba(255, 170, 40, .28), transparent 60%),
+    var(--topo-glow),
     linear-gradient(180deg, var(--madeira-2), var(--madeira));
-  border-bottom: 1px solid rgba(0, 0, 0, .35);
-  box-shadow: inset 0 1px 0 rgba(255, 220, 160, .18), 0 6px 18px -12px rgba(0, 0, 0, .6);
+  border-bottom: 1px solid var(--borda-forte);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .08), 0 6px 18px -12px rgba(0, 0, 0, .6);
   position: relative;
   z-index: 20;
 }
 .topo::after {
   content: '';
   position: absolute; left: 0; right: 0; bottom: 0; height: 2px;
-  background: linear-gradient(90deg, transparent, rgba(255, 176, 32, .55), rgba(25, 163, 201, .45), transparent);
-  opacity: .8;
+  background: var(--topo-borda);
+  opacity: .9;
 }
 .topo__marca { display: flex; align-items: center; gap: 14px; min-width: calc(var(--trilho) - 14px); }
 .topo__logo { height: 58px; max-height: 60px; max-width: 220px; width: auto; object-fit: contain; filter: drop-shadow(0 3px 6px rgba(0, 0, 0, .45)); }
@@ -957,13 +1099,14 @@ h1, h2, h3, .num { font-family: 'Baloo 2', 'DM Sans', sans-serif; letter-spacing
 .btn-primario {
   height: 42px;
   padding: 0 18px;
-  color: #3A1E00;
-  background: linear-gradient(180deg, #FFC048, var(--primaria));
-  border: 1px solid #C96C04;
-  box-shadow: 0 8px 18px -10px rgba(232, 130, 10, .95), inset 0 1px 0 rgba(255, 255, 255, .5), inset 0 -2px 0 rgba(160, 80, 0, .18);
-  text-shadow: 0 1px 0 rgba(255, 255, 255, .35);
+  color: var(--btn-prim-texto, #FFFFFF);
+  background: var(--btn-prim-bg);
+  border: 1px solid var(--btn-prim-borda);
+  box-shadow: var(--btn-prim-sombra);
+  text-shadow: 0 1px 2px rgba(0, 0, 0, .35);
+  font-weight: 700;
 }
-.btn-primario:hover { background: linear-gradient(180deg, #FFCE63, #F28D0E); box-shadow: 0 12px 22px -10px rgba(232, 130, 10, .95), inset 0 1px 0 rgba(255, 255, 255, .55); }
+.btn-primario:hover { background: var(--btn-prim-hover); box-shadow: var(--btn-prim-sombra), 0 0 16px var(--primaria-clara); }
 .btn-primario:active { transform: translateY(1px); }
 .btn-primario:disabled { opacity: .45; pointer-events: none; }
 .btn-primario .ic { stroke-width: 2; }
@@ -1566,7 +1709,7 @@ select optgroup {
   position: fixed; inset: 0; z-index: 200;
   display: flex; align-items: center; justify-content: center;
   background:
-    radial-gradient(1100px 500px at 50% -10%, rgba(255, 190, 90, .16), transparent 60%),
+    var(--login-glow),
     linear-gradient(180deg, var(--madeira-2), var(--madeira));
   padding: 24px;
 }
@@ -1577,7 +1720,7 @@ select optgroup {
   border: 1px solid var(--borda-forte);
   border-radius: 24px;
   padding: 38px 34px 30px;
-  box-shadow: 0 30px 70px -24px rgba(25, 12, 4, .75);
+  box-shadow: var(--sombra-elevado);
   text-align: center;
   animation: loginIn .28s cubic-bezier(.2, .9, .3, 1);
 }
@@ -2260,3 +2403,185 @@ select optgroup {
   background: #FFF;
 }
 
+
+/* ==========================================================================
+   COMPONENTES DO SISTEMA DE TEMAS E AUTO-UPDATE
+   ========================================================================== */
+
+/* Botão de Tema no Topo */
+.topo__btn-tema {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 12px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid var(--borda-forte);
+  color: var(--tinta);
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all .16s ease;
+}
+.topo__btn-tema:hover {
+  background: rgba(255, 255, 255, 0.16);
+  border-color: var(--primaria-clara);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+}
+.topo__btn-tema .ic {
+  width: 15px;
+  height: 15px;
+  color: var(--primaria-clara);
+}
+
+/* Menu Dropdown de Temas */
+.menu-tema-dropdown {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 20px;
+  width: 240px;
+  background: var(--cartao);
+  border: 1px solid var(--borda-forte);
+  border-radius: 16px;
+  padding: 8px;
+  box-shadow: var(--sombra-elevado);
+  z-index: 999;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.menu-tema-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--tinta);
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  text-align: left;
+  transition: all .14s ease;
+}
+.menu-tema-item:hover {
+  background: var(--elevado);
+  border-color: var(--borda);
+}
+.menu-tema-item.ativo {
+  background: var(--elevado);
+  border-color: var(--primaria);
+  color: var(--primaria-clara);
+}
+.tema-swatch-mini {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  border: 2px solid rgba(255, 255, 255, 0.4);
+  flex: none;
+}
+
+/* Seção de Temas nas Configurações */
+.config-temas-grade {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 14px;
+  margin-top: 10px;
+}
+.card-tema-item {
+  padding: 16px;
+  border-radius: 14px;
+  border: 2px solid var(--borda);
+  background: var(--elevado);
+  cursor: pointer;
+  transition: all .2s ease;
+  position: relative;
+  text-align: left;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.card-tema-item:hover {
+  border-color: var(--primaria-clara);
+  transform: translateY(-2px);
+  box-shadow: var(--sombra-cartao);
+}
+.card-tema-item.ativo {
+  border-color: var(--primaria);
+  background: var(--cartao);
+  box-shadow: 0 0 0 1px var(--primaria), 0 8px 20px -8px var(--primaria);
+}
+.card-tema-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.card-tema-nome {
+  font-weight: 800;
+  font-size: 14px;
+  color: var(--tinta);
+}
+.card-tema-badge {
+  font-size: 10px;
+  font-weight: 800;
+  text-transform: uppercase;
+  padding: 2px 6px;
+  border-radius: 4px;
+  background: var(--primaria);
+  color: #FFF;
+}
+.card-tema-swatches {
+  display: flex;
+  height: 28px;
+  border-radius: 8px;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+}
+.card-tema-swatch {
+  flex: 1;
+  height: 100%;
+}
+.card-tema-desc {
+  font-size: 11.5px;
+  color: var(--tinta-2);
+  line-height: 1.35;
+}
+
+/* Modal de Auto-Update */
+.modal-autoupdate-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.75);
+  backdrop-filter: blur(8px);
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+.modal-autoupdate-caixa {
+  width: min(440px, 94vw);
+  background: var(--cartao);
+  border: 1.5px solid var(--borda-forte);
+  border-radius: 24px;
+  padding: 30px 24px;
+  text-align: center;
+  box-shadow: var(--sombra-elevado);
+  position: relative;
+  animation: loginIn .25s ease-out;
+}
+.autoupdate-robo-badge {
+  width: 90px;
+  height: 90px;
+  margin: 0 auto 16px;
+  display: block;
+  object-fit: contain;
+  filter: drop-shadow(0 0 16px rgba(0, 210, 255, 0.4));
+  animation: flutuarRobo 3s ease-in-out infinite;
+}
+@keyframes flutuarRobo {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-6px); }
+}

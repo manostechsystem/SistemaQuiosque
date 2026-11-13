@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>ManosTech System</title>
-  <link rel="stylesheet" href="styles.css?v=2.4.6" />
+  <link rel="stylesheet" href="styles.css?v=2.4.7" />
 </head>
 <body>
   <!-- Tela de Cadastro Inicial do Estabelecimento (Primeiro Acesso) -->
@@ -21,7 +21,7 @@
           <label style="font-size:12px;font-weight:800;color:var(--tinta-2);display:block;margin-bottom:4px">
             Nome do Estabelecimento / Empresa <span style="color:var(--alerta)">*</span>
           </label>
-          <input type="text" id="init-loja" required placeholder="Ex.: Quiosque Sol, Restaurante Central, Bar do Zé..." style="width:100%;height:40px;padding:0 12px;border:1.5px solid var(--borda-forte);border-radius:8px;font-size:13.5px;background:#FFF;font-weight:700;color:var(--tinta)" />
+          <input type="text" id="init-loja" required placeholder="Ex.: Quiosque Sol, Restaurante Central, Bar do Zé..." style="width:100%;height:40px;padding:0 12px;border:1.5px solid var(--borda-forte);border-radius:8px;font-size:13.5px;background:var(--elevado);font-weight:700;color:var(--tinta)" />
         </div>
 
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
@@ -29,7 +29,7 @@
             <label style="font-size:12px;font-weight:800;color:var(--tinta-2);display:block;margin-bottom:4px">
               Segmento / Atividade
             </label>
-            <select id="init-segmento" style="width:100%;height:40px;padding:0 8px;border:1.5px solid var(--borda-forte);border-radius:8px;font-size:13px;background:#FFF;font-weight:700;color:var(--tinta)">
+            <select id="init-segmento" style="width:100%;height:40px;padding:0 8px;border:1.5px solid var(--borda-forte);border-radius:8px;font-size:13px;background:var(--elevado);font-weight:700;color:var(--tinta)">
               <option value="quiosque">Quiosque / Praia</option>
               <option value="restaurante">Restaurante / Bar</option>
               <option value="lanchonete">Lanchonete / Fast Food</option>
@@ -41,7 +41,7 @@
             <label style="font-size:12px;font-weight:800;color:var(--tinta-2);display:block;margin-bottom:4px">
               CNPJ (Opcional)
             </label>
-            <input type="text" id="init-cnpj" placeholder="00.000.000/0000-00" style="width:100%;height:40px;padding:0 12px;border:1.5px solid var(--borda-forte);border-radius:8px;font-size:13px;background:#FFF;font-weight:700;color:var(--tinta)" />
+            <input type="text" id="init-cnpj" placeholder="00.000.000/0000-00" style="width:100%;height:40px;padding:0 12px;border:1.5px solid var(--borda-forte);border-radius:8px;font-size:13px;background:var(--elevado);font-weight:700;color:var(--tinta)" />
           </div>
         </div>
 
@@ -50,13 +50,13 @@
             <label style="font-size:12px;font-weight:800;color:var(--tinta-2);display:block;margin-bottom:4px">
               Telefone / WhatsApp
             </label>
-            <input type="text" id="init-telefone" placeholder="(00) 00000-0000" style="width:100%;height:40px;padding:0 12px;border:1.5px solid var(--borda-forte);border-radius:8px;font-size:13px;background:#FFF;font-weight:700;color:var(--tinta)" />
+            <input type="text" id="init-telefone" placeholder="(00) 00000-0000" style="width:100%;height:40px;padding:0 12px;border:1.5px solid var(--borda-forte);border-radius:8px;font-size:13px;background:var(--elevado);font-weight:700;color:var(--tinta)" />
           </div>
           <div>
             <label style="font-size:12px;font-weight:800;color:var(--tinta-2);display:block;margin-bottom:4px">
               Senha de Admin
             </label>
-            <input type="password" id="init-senha" placeholder="Padrão: 1234" value="1234" style="width:100%;height:40px;padding:0 12px;border:1.5px solid var(--borda-forte);border-radius:8px;font-size:13px;background:#FFF;font-weight:700;color:var(--tinta)" />
+            <input type="password" id="init-senha" placeholder="Padrão: 1234" value="1234" style="width:100%;height:40px;padding:0 12px;border:1.5px solid var(--borda-forte);border-radius:8px;font-size:13px;background:var(--elevado);font-weight:700;color:var(--tinta)" />
           </div>
         </div>
 
@@ -64,7 +64,7 @@
           <label style="font-size:12px;font-weight:800;color:var(--tinta-2);display:block;margin-bottom:4px">
             Endereço Completo (Opcional)
           </label>
-          <input type="text" id="init-endereco" placeholder="Rua, número, bairro, cidade..." style="width:100%;height:40px;padding:0 12px;border:1.5px solid var(--borda-forte);border-radius:8px;font-size:13px;background:#FFF;font-weight:700;color:var(--tinta)" />
+          <input type="text" id="init-endereco" placeholder="Rua, número, bairro, cidade..." style="width:100%;height:40px;padding:0 12px;border:1.5px solid var(--borda-forte);border-radius:8px;font-size:13px;background:var(--elevado);font-weight:700;color:var(--tinta)" />
         </div>
 
         <button class="btn-primario" type="submit" style="width:100%;height:44px;font-size:14.5px;font-weight:900;margin-top:6px">
@@ -123,6 +123,10 @@
       </button>
     </div>
     <div class="topo__dir">
+      <button class="topo__btn-tema" id="btn-tema-topo" title="Personalizar Tema Visual (Cores)" type="button">
+        <svg class="ic" viewBox="0 0 24 24"><circle cx="13.5" cy="6.5" r=".5" fill="currentColor"/><circle cx="17.5" cy="10.5" r=".5" fill="currentColor"/><circle cx="8.5" cy="7.5" r=".5" fill="currentColor"/><circle cx="6.5" cy="12.5" r=".5" fill="currentColor"/><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.926 0 1.648-.746 1.648-1.688 0-.437-.18-.835-.437-1.125-.29-.289-.438-.652-.438-1.125a1.64 1.64 0 0 1 1.668-1.668h1.996c3.051 0 5.563-2.512 5.563-5.563C22 6.5 17.5 2 12 2z"/></svg>
+        <span class="topo__tema-label" id="topo-tema-nome">Tema</span>
+      </button>
       <span class="topo__relogio" id="relogio">--:--</span>
       <button class="topo__user" id="btn-user" title="Usuário" hidden>
         <svg class="ic" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/></svg>
@@ -794,6 +798,21 @@
               </div>
             </div>
 
+            <!-- APARÊNCIA E TEMA VISUAL DO SISTEMA -->
+            <div class="painel" style="margin-top:16px">
+              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+                <h3 style="margin:0;display:flex;align-items:center;gap:8px">
+                  <svg class="ic" viewBox="0 0 24 24" style="color:var(--primaria-clara)"><circle cx="13.5" cy="6.5" r=".5" fill="currentColor"/><circle cx="17.5" cy="10.5" r=".5" fill="currentColor"/><circle cx="8.5" cy="7.5" r=".5" fill="currentColor"/><circle cx="6.5" cy="12.5" r=".5" fill="currentColor"/><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.926 0 1.648-.746 1.648-1.688 0-.437-.18-.835-.437-1.125-.29-.289-.438-.652-.438-1.125a1.64 1.64 0 0 1 1.668-1.668h1.996c3.051 0 5.563-2.512 5.563-5.563C22 6.5 17.5 2 12 2z"/></svg>
+                  Aparência e Tema do Sistema
+                </h3>
+                <span style="font-size:11px;font-weight:800;color:var(--primaria-clara);padding:3px 8px;border-radius:6px;background:rgba(0,180,255,0.1)">Personalização</span>
+              </div>
+              <p style="font-size:12.5px;color:var(--tinta-2);line-height:1.4;margin-bottom:12px">
+                Escolha o estilo de cores para a tela principal, retaguarda e dispositivos conectados:
+              </p>
+              <div class="config-temas-grade" id="grade-seletor-temas"></div>
+            </div>
+
             <!-- NUVEM CLOUDFLARE & DISASTER RECOVERY POR CNPJ -->
             <div class="painel" style="border: 2px solid var(--primaria); background: #FFFDF9">
               <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
@@ -957,6 +976,6 @@
   <script src="fiscal.js"></script>
   <script src="printer.js"></script>
   <script src="components.js"></script>
-  <script src="app.js"></script>
+  <script src="app.js?v=2.4.7"></script>
 </body>
 </html>

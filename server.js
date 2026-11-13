@@ -42,6 +42,45 @@ const server = http.createServer((req, res) => {
   const urlObj = new URL(req.url, `http://${req.headers.host || 'localhost'}`);
   const pathname = urlObj.pathname;
 
+  // Endpoint de Informações de Versão e Auto-Update do APK
+  if (pathname === '/api/app-version') {
+    let pkg = { version: '2.4.0' };
+    try {
+      pkg = JSON.parse(fs.readFileSync(path.join(__dirname, 'package.json'), 'utf8'));
+    } catch {}
+
+    const apkLocal = path.join(__dirname, 'dist_mobile', 'ManosTech-System.apk');
+    const temApkLocal = fs.existsSync(apkLocal);
+
+    res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
+    res.end(JSON.stringify({
+      versao: pkg.version || '2.4.0',
+      nome: 'ManosTech System Mobile',
+      downloadUrl: temApkLocal ? '/dist_mobile/ManosTech-System.apk' : 'https://github.com/manostechsystem/SistemaQuiosque/releases/latest',
+      temDownloadLocal: temApkLocal,
+      githubReleases: 'https://github.com/manostechsystem/SistemaQuiosque/releases/latest',
+      notas: 'Nova versão oficial ManosTech com suporte a temas visuais customizáveis, melhorias de desempenho e sincronização em tempo real.',
+      data: new Date().toISOString().slice(0, 10)
+    }));
+    return;
+  }
+
+  // Download do APK diretamente do servidor local
+  if (pathname.includes('/dist_mobile/') && pathname.endsWith('.apk')) {
+    const nomeArquivo = path.basename(pathname);
+    const apkPath = path.join(__dirname, 'dist_mobile', nomeArquivo);
+    if (fs.existsSync(apkPath)) {
+      const stat = fs.statSync(apkPath);
+      res.writeHead(200, {
+        'Content-Type': 'application/vnd.android.package-archive',
+        'Content-Length': stat.size,
+        'Content-Disposition': `attachment; filename="${nomeArquivo}"`
+      });
+      fs.createReadStream(apkPath).pipe(res);
+      return;
+    }
+  }
+
   // Endpoint de API para o Banco de Dados (sincronização do PC com o Celular do ADM via Cloudflare)
   if (pathname === '/api/db') {
     if (req.method === 'GET') {
