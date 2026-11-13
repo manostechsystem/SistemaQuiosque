@@ -3285,17 +3285,36 @@ ${emailRemetente ? `E-mail de contato: ${emailRemetente}` : ''}`;
         const dispositivos = dados.dispositivos || [];
         const ativosQtd = dispositivos.filter(d => d.ativo).length;
 
+        const statusBadge = dados.tunnelOnline
+          ? `<div style="display:inline-flex;align-items:center;gap:6px;padding:4px 12px;background:rgba(34,197,94,0.15);color:#22c55e;border-radius:12px;font-size:11.5px;font-weight:900;border:1px solid rgba(34,197,94,0.3);margin-bottom:8px">
+              <span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#22c55e;box-shadow:0 0 6px #22c55e"></span>
+              Link Seguro 4G Ativo (Acesso Global)
+            </div>`
+          : `<div style="display:inline-flex;align-items:center;gap:6px;padding:4px 12px;background:rgba(234,179,8,0.15);color:#eab308;border-radius:12px;font-size:11.5px;font-weight:900;border:1px solid rgba(234,179,8,0.3);margin-bottom:8px">
+              <span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#eab308"></span>
+              Iniciando Conexão Nuvem 4G...
+            </div>`;
+
+        if (!dados.tunnelOnline && document.getElementById('modal-corpo')) {
+          setTimeout(() => {
+            if (document.getElementById('modal-corpo')) recarregarModalDispositivos();
+          }, 2500);
+        }
+
         elCorpo.innerHTML = `
           <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;align-items:start">
             
             <!-- COLUNA 1: QR CODE DE CONEXÃO -->
             <div style="text-align:center;background:var(--elevado);border-radius:14px;padding:16px;border:1.5px solid var(--borda-forte)">
               <div style="margin-bottom:10px">
-                <span style="display:inline-block;padding:5px 14px;background:rgba(0,210,255,0.15);color:var(--primaria);border-radius:12px;font-size:13px;font-weight:900;border:1px solid rgba(0,210,255,0.3)">
-                  Canal: manostech.quiosque
-                </span>
-                <div style="font-size:11.5px;color:var(--tinta-2);margin-top:5px;font-weight:700">
-                  ${UI.escapar(dados.loja || 'ManosTech System')} · Pareamento Inteligente
+                ${statusBadge}
+                <div>
+                  <span style="display:inline-block;padding:5px 14px;background:rgba(0,210,255,0.15);color:var(--primaria);border-radius:12px;font-size:13px;font-weight:900;border:1px solid rgba(0,210,255,0.3)">
+                    Canal: manostech.quiosque
+                  </span>
+                  <div style="font-size:11.5px;color:var(--tinta-2);margin-top:5px;font-weight:700">
+                    ${UI.escapar(dados.loja || 'ManosTech System')} · Pareamento Inteligente
+                  </div>
                 </div>
               </div>
 

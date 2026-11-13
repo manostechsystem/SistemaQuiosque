@@ -5,6 +5,7 @@ const os = require('os');
 const QRCode = require('qrcode');
 const Backup = require('./backup.js');
 const Dispositivos = require('./dispositivos.js');
+const Tunnel = require('./tunnel.js');
 const { DATA_DIR } = require('./pasta-dados.js');
 
 const PORT = 3000;
@@ -185,6 +186,13 @@ const server = http.createServer((req, res) => {
     return;
   }
 
+  // Endpoint de status do túnel de internet 4G
+  if (pathname === '/api/tunnel-status') {
+    res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
+    res.end(JSON.stringify({ ok: true, ...Tunnel.obterStatus() }));
+    return;
+  }
+
   // Endpoint para gerar QR Code de conexão imediata do celular do administrador
   if (pathname === '/api/qrcode-mobile') {
     (async () => {
@@ -203,7 +211,8 @@ const server = http.createServer((req, res) => {
         const db = fs.existsSync(DATA_FILE) ? JSON.parse(fs.readFileSync(DATA_FILE, 'utf8')) : {};
         const nomeLoja = db.config?.loja || 'ManosTech System';
         const urlLocal = `http://${ipLocal}:${PORT}/mobile.html`;
-        const urlTunnel = db.config?.urlTunnel || '';
+        const tunnelInfo = Tunnel.obterStatus();
+        const urlTunnel = tunnelInfo.urlMobile || db.config?.urlTunnel || '';
         const tokenPareamento = Dispositivos.gerarTokenPareamento();
         const urlBase = urlTunnel || urlLocal;
         const urlFinal = `${urlBase}?conectar=${tokenPareamento}`;
@@ -227,6 +236,8 @@ const server = http.createServer((req, res) => {
           urlLocal,
           urlTunnel,
           urlFinal,
+          tunnelOnline: !!urlTunnel && (tunnelInfo.status === 'online' || !!db.config?.urlTunnel),
+          tunnelStatus: tunnelInfo.status,
           tokenPareamento,
           qrCode: qrCodeDataUrl,
           dispositivos
@@ -249,10 +260,10 @@ const server = http.createServer((req, res) => {
 
   if (pathname === '/api/download-exe') {
     const possiveisExe = [
+      path.join(__dirname, 'dist', 'ManosTech System Setup 2.4.2.exe'),
+      path.join(__dirname, 'dist', 'ManosTech System 2.4.2.exe'),
       path.join(__dirname, 'dist', 'ManosTech System Setup 2.4.1.exe'),
-      path.join(__dirname, 'dist', 'ManosTech System 2.4.1.exe'),
-      path.join(__dirname, 'dist', 'ManosTech System Setup 2.4.0.exe'),
-      path.join(__dirname, 'dist', 'ManosTech System 2.4.0.exe')
+      path.join(__dirname, 'dist', 'ManosTech System 2.4.1.exe')
     ];
     let exePath = possiveisExe.find(p => fs.existsSync(p));
     if (exePath) {
@@ -564,4 +575,21 @@ server.on('error', err => {
 
 server.listen(PORT, '0.0.0.0', () => {
   console.log(`Servidor ManosTech System operando na porta ${PORT} (0.0.0.0)`);
+  // Inicializa o túnel automático para acesso remoto 4G
+  try {
+    Tunnel.iniciar(PORT);
+    Tunnel.registrarListener((urlPublica) => {
+      try {
+        const db = fs.existsSync(DATA_FILE) ? JSON.parse(fs.readFileSync(DATA_FILE, 'utf8')) : {};
+        db.config = db.config || {};
+        db.config.urlTunnel = `${urlPublica}/mobile.html`;
+        fs.writeFileSync(DATA_FILE, JSON.stringify(db, null, 2));
+        console.log('[SERVER] urlTunnel sincronizado com pdv.json:', db.config.urlTunnel);
+      } catch (e) {
+        console.warn('[SERVER] Erro ao sincronizar urlTunnel:', e);
+      }
+    });
+  } catch (err) {
+    console.warn('[SERVER] Falha ao inicializar túnel:', err.message);
+  }
 });
