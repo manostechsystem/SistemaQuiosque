@@ -45,21 +45,23 @@ const server = http.createServer((req, res) => {
 
   // Endpoint de Informações de Versão e Auto-Update do APK
   if (pathname === '/api/app-version') {
-    let pkg = { version: '2.4.0' };
+    let pkg = { version: '2.4.4' };
     try {
       pkg = JSON.parse(fs.readFileSync(path.join(__dirname, 'package.json'), 'utf8'));
     } catch {}
 
+    const vAtual = pkg.version || '2.4.4';
     const apkLocal = path.join(__dirname, 'dist_mobile', 'ManosTech-System.apk');
     const temApkLocal = fs.existsSync(apkLocal);
+    const directApkUrl = `https://github.com/manostechsystem/SistemaQuiosque/releases/download/v${vAtual}/ManosTech-System.apk`;
 
     res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
     res.end(JSON.stringify({
-      versao: pkg.version || '2.4.0',
+      versao: vAtual,
       nome: 'ManosTech System Mobile',
-      downloadUrl: temApkLocal ? '/dist_mobile/ManosTech-System.apk' : 'https://github.com/manostechsystem/SistemaQuiosque/releases/latest',
+      downloadUrl: temApkLocal ? '/dist_mobile/ManosTech-System.apk' : directApkUrl,
+      downloadApkUrl: directApkUrl,
       temDownloadLocal: temApkLocal,
-      githubReleases: 'https://github.com/manostechsystem/SistemaQuiosque/releases/latest',
       notas: 'Nova versão oficial ManosTech com suporte a temas visuais customizáveis, melhorias de desempenho e sincronização em tempo real.',
       data: new Date().toISOString().slice(0, 10)
     }));
