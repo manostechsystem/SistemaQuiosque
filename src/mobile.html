@@ -13,6 +13,15 @@
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="icon" type="image/png" href="assets/manostech-icon.png">
   <style>
+    * { box-sizing: border-box; overflow-wrap: break-word; }
+    img { max-width: 100%; height: auto; display: block; }
+
+    /* Garantir que botões sejam clicáveis e responsivos */
+    .btn-acao, .btn-icone-topo, .btn-sanduiche, .drawer-item, .btn-olho-senha {
+      pointer-events: auto !important;
+      touch-action: manipulation;
+    }
+    
     /* 1. TEMA OFICIAL MANOSTECH CYBER (PADRÃO OFICIAL) */
     :root,
     :root[data-tema="manostech"] {
@@ -185,6 +194,12 @@
     .mob-topo__sub { font-size: 12.5px; color: #F0DFC8; font-weight: 600; }
     .mob-topo__acoes { display: flex; align-items: center; gap: 10px; }
 
+    .btn-icone-topo,
+    .btn-sanduiche,
+    .btn-esqueci-link,
+    .btn-olho-senha,
+    .login-logo-img { min-width: 48px; min-height: 48px; }
+    
     .btn-icone-topo {
       background: rgba(255,255,255,0.14);
       border: 1.5px solid rgba(255,255,255,0.25);
@@ -274,8 +289,10 @@
       background: rgba(255,255,255,0.15);
       border: 1px solid rgba(255,255,255,0.3);
       color: #fff;
-      width: 36px;
-      height: 36px;
+      min-width: 48px;
+      min-height: 48px;
+      width: 48px;
+      height: 48px;
       border-radius: 50%;
       display: flex;
       align-items: center;
@@ -334,7 +351,7 @@
     .mob-conteudo { padding: 16px; flex: 1; max-width: 600px; margin: 0 auto; width: 100%; }
 
     /* Cards de Métricas / KPIs com Tipografia Grande */
-    .mob-kpi-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 14px; }
+    .mob-kpi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px; margin-bottom: 14px; }
     .mob-kpi {
       background: var(--papel);
       padding: 14px 16px;
@@ -415,12 +432,7 @@
       background: var(--papel);
       border: 1.5px solid var(--borda);
       border-radius: var(--raio);
-      padding: 14px 16px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 14px;
-      box-shadow: var(--sombra);
+      padding: 16px 20px;
     }
     .mob-item__info { flex: 1; min-width: 0; }
     .mob-item__nome { font-size: 16px; font-weight: 900; color: var(--tinta); line-height: 1.25; }
@@ -448,7 +460,7 @@
       color: var(--tinta);
       font-size: 12.5px;
       font-weight: 800;
-      padding: 6px 12px;
+      padding: 10px 16px;
       border-radius: 8px;
       cursor: pointer;
       display: inline-flex;
@@ -562,7 +574,7 @@
       background: #FFFDF9;
       width: 100%;
       border-radius: 22px 22px 0 0;
-      padding: 22px 18px 30px;
+      padding: 28px 24px 34px;
       transform: translateY(100%);
       transition: transform 0.25s cubic-bezier(0.1, 0.9, 0.2, 1);
       max-height: 85vh;
@@ -854,7 +866,7 @@
     <nav class="drawer-lateral" id="drawer-lateral">
       <div class="drawer-cabecalho">
         <div style="display:flex;align-items:center;gap:10px">
-          <img src="assets/manostech-icon.png" alt="Logo" id="drawer-logo" style="width:36px;height:36px;border-radius:8px;object-fit:cover">
+          <img src="assets/manostech-icon.png" alt="Logo" id="drawer-logo" loading="lazy" style="width:36px;height:36px;border-radius:8px;object-fit:cover">
           <div>
             <div style="font-size:16px;font-weight:900" id="drawer-nome-loja">ManosTech System</div>
             <div style="font-size:12px;color:#E5D5C5">Painel do Administrador</div>
@@ -899,7 +911,7 @@
 
         <button class="drawer-item" id="btn-drawer-update">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-          <span>Atualizações (v2.4.0)</span>
+          <span>Atualizações (v2.4.6)</span>
         </button>
       </div>
 
@@ -1376,10 +1388,10 @@
   <!-- MODAL DE AUTO-UPDATE DO APK -->
   <div id="modal-autoupdate" class="modal-autoupdate-overlay" style="display:none">
     <div class="modal-autoupdate-caixa" id="autoupdate-caixa-conteudo">
-      <img src="assets/manostech-icon.png" alt="ManosTech" class="autoupdate-robo-badge">
+      <img src="assets/manostech-icon.png" alt="ManosTech" loading="lazy" class="autoupdate-robo-badge">
       <div style="font-size:11px;font-weight:900;letter-spacing:0.1em;color:var(--mar);text-transform:uppercase;margin-bottom:6px">Nova Versão Disponível</div>
       <h2 style="font-size:20px;font-weight:900;color:var(--tinta);margin-bottom:6px">Atualização do App</h2>
-      <div id="autoupdate-versao-badge" style="display:inline-block;padding:4px 12px;border-radius:999px;background:var(--primaria-leve);border:1px solid var(--borda-forte);color:var(--mar);font-size:13px;font-weight:800;margin-bottom:14px">v2.4.4 ➔ v2.4.5</div>
+      <div id="autoupdate-versao-badge" style="display:inline-block;padding:4px 12px;border-radius:999px;background:var(--primaria-leve);border:1px solid var(--borda-forte);color:var(--mar);font-size:13px;font-weight:800;margin-bottom:14px">v2.4.4</div>
       <p id="autoupdate-notas" style="font-size:13px;color:var(--tinta-2);line-height:1.45;margin-bottom:20px">
         Uma nova versão do <b>ManosTech Mobile</b> está disponível com melhorias de sincronização, novos temas e novidades.
       </p>
@@ -1612,7 +1624,8 @@
       async function registrarServiceWorker() {
         if ('serviceWorker' in navigator) {
           try {
-            swRegistration = await navigator.serviceWorker.register('sw.js');
+            const swUrl = new URL('sw.js', window.location.href).href;
+            swRegistration = await navigator.serviceWorker.register(swUrl, { scope: './' });
           } catch (err) {
             console.warn('Falha ao registrar Service Worker:', err);
           }
@@ -2536,7 +2549,7 @@
         }
       }
 
-      let VERSAO_LOCAL_APP = '2.4.5';
+      let VERSAO_LOCAL_APP = '2.4.6';
 
       async function verificarAtualizacoesApk(manual = false) {
         try {

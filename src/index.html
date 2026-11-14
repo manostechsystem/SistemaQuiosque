@@ -11,17 +11,17 @@
   <div class="login" id="tela-cadastro-inicial" hidden>
     <div class="login__caixa" style="max-width:500px;padding:28px 24px">
       <img src="assets/manostech-logo.png?v=2.4.6" alt="ManosTech System" style="height:150px;max-height:160px;max-width:320px;object-fit:contain;margin:0 auto 16px;display:block" id="init-logo-preview" />
-      <h1 style="font-size:20px;font-weight:900;color:var(--tinta);margin-bottom:4px">Configuração Inicial do Sistema</h1>
-      <p style="font-size:13px;color:var(--tinta-2);font-weight:700;margin-bottom:18px;line-height:1.4">
+      <h1 class="login-header-tit">Configuração Inicial do Sistema</h1>
+      <p class="login-header-sub">
         Bem-vindo ao <b>ManosTech System</b>! Cadastre os dados do seu estabelecimento para começar:
       </p>
 
-      <form id="form-cadastro-inicial" style="display:flex;flex-direction:column;gap:11px;text-align:left">
+      <form id="form-cadastro-inicial" class="form-cadastro">
         <div>
-          <label style="font-size:12px;font-weight:800;color:var(--tinta-2);display:block;margin-bottom:4px">
+          <label class="campo-label">
             Nome do Estabelecimento / Empresa <span style="color:var(--alerta)">*</span>
           </label>
-          <input type="text" id="init-loja" required placeholder="Ex.: Quiosque Sol, Restaurante Central, Bar do Zé..." style="width:100%;height:40px;padding:0 12px;border:1.5px solid var(--borda-forte);border-radius:8px;font-size:13.5px;background:var(--elevado);font-weight:700;color:var(--tinta)" />
+          <input type="text" id="init-loja" class="campo-input" required placeholder="Ex.: Quiosque Sol, Restaurante Central, Bar do Zé..." />
         </div>
 
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
@@ -111,7 +111,7 @@
           Computador novo? Restaurar backup por CNPJ
         </button>
         <div style="font-size:11px;color:var(--tinta-3);margin-top:4px">
-          ManosTech System · v2.4.5
+          ManosTech System · v2.4.6
         </div>
       </div>
     </div>
@@ -121,7 +121,7 @@
   <header class="topo">
     <div class="topo__marca">
       <img src="assets/manostech-logo.png" alt="Logo ManosTech" class="topo__logo" id="app-logo-topo" style="height:58px;max-height:60px;max-width:220px;object-fit:contain" />
-      <span class="topo__nome" id="topo-badge">PDV</span>
+      <h2 class="topo__nome" id="topo-badge">PDV</h2>
     </div>
     <div class="topo__centro">
       <span class="topo__loja" id="topo-loja">ManosTech System</span>
@@ -131,7 +131,7 @@
       </button>
     </div>
     <div class="topo__dir">
-      <button class="topo__btn-update" id="btn-topo-update" title="Nova versão disponível" type="button" style="display:none;align-items:center;gap:6px;padding:5px 12px;background:rgba(0,210,255,0.18);border:1.5px solid var(--primaria);border-radius:20px;color:var(--primaria);font-size:12px;font-weight:800;cursor:pointer">
+      <button class="topo__btn-update" id="btn-topo-update" title="Nova versão disponível" type="button">
         <svg class="ic" viewBox="0 0 24 24" style="width:14px;height:14px"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
         <span id="btn-topo-update-txt">Nova Versão</span>
       </button>
@@ -524,7 +524,7 @@
         </div>
 
         <div class="ret-painel" id="ret-contabilidade" hidden>
-          <div class="acoes-ret" style="margin-bottom:16px">
+          <div class="acoes-contabil">
             <div>
               <h2 style="font-size:18px;font-weight:800;color:var(--tinta)">Envio para Contabilidade (XML)</h2>
               <p class="sub" style="margin:2px 0 0">Geração de lote fiscal eletrônico das vendas com exclusão estrita de vendas em dinheiro</p>
@@ -532,29 +532,29 @@
           </div>
 
           <!-- DADOS DE ENVIO / CONTABILIDADE -->
-          <div class="painel" style="margin:0 24px 18px;padding:16px 20px">
-            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;flex-wrap:wrap;gap:8px">
-              <h3 style="margin:0;font-size:14px;font-weight:800;color:var(--tinta);display:flex;align-items:center;gap:8px">
+          <div class="painel contabil-painel">
+            <div class="contabil-header">
+              <h3 class="contabil-title">
                 <svg class="ic" viewBox="0 0 24 24" style="color:var(--primaria-forte);width:18px;height:18px"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
                 Contabilidade & E-mails de Envio
               </h3>
-              <button class="btn-secundario" id="btn-salvar-emails-fiscal" type="button" style="padding:5px 12px;font-size:12px;display:inline-flex;align-items:center;gap:6px">
+              <button class="btn-secundario contabil-btn-salvar" id="btn-salvar-emails-fiscal" type="button">
                 <svg class="ic" viewBox="0 0 24 24" style="width:14px;height:14px"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
                 Salvar E-mails
               </button>
             </div>
-            <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(240px, 1fr));gap:14px">
-              <div class="campo" style="margin:0">
-                <label for="cfg-email-contador" style="font-size:11px;font-weight:700">E-mail do Contador / Escritório</label>
-                <input type="email" id="cfg-email-contador" placeholder="contador@escritorio.com.br" style="height:38px" />
+            <div class="contabil-grid">
+              <div class="campo contabil-campo">
+                <label for="cfg-email-contador">E-mail do Contador / Escritório</label>
+                <input type="email" id="cfg-email-contador" placeholder="contador@escritorio.com.br" />
               </div>
-              <div class="campo" style="margin:0">
-                <label for="cfg-email-remetente" style="font-size:11px;font-weight:700">E-mail de Quem Vai Enviar (Remetente)</label>
-                <input type="email" id="cfg-email-remetente" placeholder="quiosque@rotadoforte.com.br" style="height:38px" />
+              <div class="campo contabil-campo">
+                <label for="cfg-email-remetente">E-mail de Quem Vai Enviar (Remetente)</label>
+                <input type="email" id="cfg-email-remetente" placeholder="quiosque@rotadoforte.com.br" />
               </div>
-              <div class="campo" style="margin:0">
-                <label for="cfg-nome-remetente" style="font-size:11px;font-weight:700">Nome / Empresa de Quem Envia</label>
-                <input type="text" id="cfg-nome-remetente" placeholder="Nome da Empresa" style="height:38px" />
+              <div class="campo contabil-campo">
+                <label for="cfg-nome-remetente">Nome / Empresa de Quem Envia</label>
+                <input type="text" id="cfg-nome-remetente" placeholder="Nome da Empresa" />
               </div>
             </div>
           </div>
@@ -683,17 +683,17 @@
 
         <div class="rel-duas">
           <div class="painel">
-            <h3>Por forma de pagamento</h3>
+            <h2>Por forma de pagamento</h2>
             <div id="rel-pagamento" class="barras"></div>
           </div>
           <div class="painel">
-            <h3>Produtos mais vendidos</h3>
+            <h2>Produtos mais vendidos</h2>
             <div id="rel-produtos" class="barras"></div>
           </div>
         </div>
 
         <div class="painel">
-          <h3>Vendas recentes</h3>
+          <h2>Vendas recentes</h2>
           <table class="tabela">
             <thead><tr><th>Pedido / Cupom</th><th>Data</th><th>Itens</th><th>Pagamento</th><th>Operador</th><th class="dir">Total</th><th class="dir">Ações</th></tr></thead>
             <tbody id="rel-corpo"></tbody>
@@ -720,12 +720,12 @@
       <section class="vista" id="vista-config">
         <div class="cabecalho-vista">
           <div><h1>Configurações</h1><p class="sub">Dados da loja, cupom e backup</p></div>
-          <div style="display:flex;align-items:center;gap:10px">
-            <button class="btn-secundario" id="btn-conectar-celular-qrcode" type="button" style="display:inline-flex;align-items:center;gap:6px;border:1.5px solid var(--primaria);color:var(--primaria-forte);font-weight:800">
+          <div class="cabecalho-vista-acoes">
+            <button class="btn-secundario btn-config-acao" id="btn-conectar-celular-qrcode" type="button">
               <svg class="ic" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
               Conectar Celular do Dono (QR Code)
             </button>
-            <button class="btn-secundario" id="btn-abrir-previa-impressao" type="button" style="display:inline-flex;align-items:center;gap:6px">
+            <button class="btn-secundario btn-config-acao" id="btn-abrir-previa-impressao" type="button">
               <svg class="ic" viewBox="0 0 24 24"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>
               Ver Prévia de Impressão (Cliente & Cozinha)
             </button>
@@ -811,19 +811,24 @@
             </div>
 
             <!-- APARÊNCIA E TEMA VISUAL DO SISTEMA -->
-            <div class="painel" style="margin-top:16px">
-              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
-                <h3 style="margin:0;display:flex;align-items:center;gap:8px">
-                  <svg class="ic" viewBox="0 0 24 24" style="color:var(--primaria-clara)"><circle cx="13.5" cy="6.5" r=".5" fill="currentColor"/><circle cx="17.5" cy="10.5" r=".5" fill="currentColor"/><circle cx="8.5" cy="7.5" r=".5" fill="currentColor"/><circle cx="6.5" cy="12.5" r=".5" fill="currentColor"/><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.926 0 1.648-.746 1.648-1.688 0-.437-.18-.835-.437-1.125-.29-.289-.438-.652-.438-1.125a1.64 1.64 0 0 1 1.668-1.668h1.996c3.051 0 5.563-2.512 5.563-5.563C22 6.5 17.5 2 12 2z"/></svg>
-                  Aparência e Tema do Sistema
-                </h3>
-                <span style="font-size:11px;font-weight:800;color:var(--primaria-clara);padding:3px 8px;border-radius:6px;background:rgba(0,180,255,0.1)">Personalização</span>
+            <details class="painel" style="margin-top:16px">
+              <summary style="display:flex;justify-content:space-between;align-items:center;cursor:pointer;list-style:none">
+                <div style="display:flex;align-items:center;gap:8px">
+                  <h3 style="margin:0;display:flex;align-items:center;gap:8px">
+                    <svg class="ic" viewBox="0 0 24 24" style="color:var(--primaria-clara)"><circle cx="13.5" cy="6.5" r=".5" fill="currentColor"/><circle cx="17.5" cy="10.5" r=".5" fill="currentColor"/><circle cx="8.5" cy="7.5" r=".5" fill="currentColor"/><circle cx="6.5" cy="12.5" r=".5" fill="currentColor"/><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.926 0 1.648-.746 1.648-1.688 0-.437-.18-.835-.437-1.125-.29-.289-.438-.652-.438-1.125a1.64 1.64 0 0 1 1.668-1.668h1.996c3.051 0 5.563-2.512 5.563-5.563C22 6.5 17.5 2 12 2z"/></svg>
+                    Aparência e Tema do Sistema
+                  </h3>
+                  <span style="font-size:11px;font-weight:800;color:var(--primaria-clara);padding:3px 8px;border-radius:6px;background:rgba(0,180,255,0.1)">Personalização</span>
+                </div>
+                <svg class="ic" viewBox="0 0 24 24" style="width:20px;height:20px;color:var(--tinta-3)"><path d="M6 9l6 6 6-6"/></svg>
+              </summary>
+              <div style="padding-top:12px">
+                <p style="font-size:12.5px;color:var(--tinta-2);line-height:1.4;margin-bottom:12px">
+                  Escolha o estilo de cores para a tela principal, retaguarda e dispositivos conectados:
+                </p>
+                <div class="config-temas-grade" id="grade-seletor-temas"></div>
               </div>
-              <p style="font-size:12.5px;color:var(--tinta-2);line-height:1.4;margin-bottom:12px">
-                Escolha o estilo de cores para a tela principal, retaguarda e dispositivos conectados:
-              </p>
-              <div class="config-temas-grade" id="grade-seletor-temas"></div>
-            </div>
+            </details>
 
             <!-- NUVEM CLOUDFLARE & DISASTER RECOVERY POR CNPJ -->
             <div class="painel" style="border: 2px solid var(--primaria); background: #FFFDF9">
@@ -954,7 +959,7 @@
                   Desenvolvido por: <span style="color:var(--primaria-forte)">ManosTech System</span>
                 </div>
                 <div style="font-size:12px;color:var(--tinta-2);font-weight:700;margin-top:2px">
-                  Versão do Software: <b id="lbl-versao-sistema">v2.4.0 (Build 2026)</b> · Canal Estável
+                  Versão do Software: <b id="lbl-versao-sistema">v2.4.6 (Build 2026)</b> · Canal Estável
                 </div>
               </div>
 

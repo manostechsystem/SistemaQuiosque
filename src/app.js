@@ -526,31 +526,31 @@ const App = (() => {
       titulo: `Pagamento · Pedido #${DB.numeroComanda(proximaComanda)} (Cupom #${DB.numeroCupom(proximo)})`,
       largo: false,
       corpo: `
-        <div style="background:var(--afundado);border:1px solid var(--borda-suave);border-radius:var(--raio-p);padding:8px 12px;margin-bottom:12px;display:flex;align-items:center;justify-content:space-between">
-          <div style="display:flex;align-items:center;gap:8px">
-            <span style="font-size:11px;font-weight:800;color:var(--tinta-2);text-transform:uppercase;letter-spacing:0.5px">Pedido do Dia:</span>
-            <span class="badge" style="font-size:13px;font-weight:900;background:var(--primaria);color:#fff;padding:2px 8px;border-radius:4px">#${DB.numeroComanda(proximaComanda)}</span>
+        <div class="pg-header-pedido">
+          <div class="pg-pedido-info">
+            <span class="pg-pedido-label">Pedido do Dia:</span>
+            <span class="pg-pedido-badge">#${DB.numeroComanda(proximaComanda)}</span>
           </div>
-          <span style="font-size:10.5px;color:var(--tinta-3);font-weight:600">Zera a contagem todo dia</span>
+          <span class="pg-pedido-dica">Zera a contagem todo dia</span>
         </div>
         <div class="pg-formas" id="pg-formas">
           ${PAGAMENTOS.map(p => `<button class="pg-forma" data-f="${p.id}">${UI.icone(p.icone)}<span>${p.nome}</span></button>`).join('')}
         </div>
         <div class="pg-total"><span>Total a pagar</span><b>${DB.moeda(tot)}</b></div>
 
-        <div class="campo" style="margin-bottom:10px">
-          <label for="pg-cliente">Identificação / Mesa / Cliente <span style="font-weight:normal;text-transform:none;color:var(--tinta-3)">(opcional)</span></label>
-          <input type="text" id="pg-cliente" placeholder="Ex.: Mesa 04 / João / Guarda-sol 12" style="height:36px;font-size:12.5px" autocomplete="off" />
+        <div class="campo">
+          <label for="pg-cliente">Identificação / Mesa / Cliente <span class="pg-pedido-dica">(opcional)</span></label>
+          <input type="text" id="pg-cliente" placeholder="Ex.: Mesa 04 / João / Guarda-sol 12" autocomplete="off" />
         </div>
 
         ${temCozinha ? `
-        <div class="faixa-info" style="margin-bottom:10px;padding:8px 12px;display:flex;align-items:center;gap:8px">
+        <div class="faixa-info">
           ${UI.icone('cozinha')}
           <span><b>Comanda da Cozinha:</b> ${itensCozinha.reduce((s, i) => s + i.qtd, 0)} item(ns) serão impressos na cozinha.</span>
         </div>
-        <div class="campo" style="margin-bottom:12px">
-          <label for="pg-obs">Observação para a Cozinha <span style="font-weight:normal;text-transform:none;color:var(--tinta-3)">(opcional)</span></label>
-          <input type="text" id="pg-obs" placeholder="Ex.: Sem cebola, bem passado..." style="height:36px;font-size:12.5px" autocomplete="off" />
+        <div class="campo">
+          <label for="pg-obs">Observação para a Cozinha <span class="pg-pedido-dica">(opcional)</span></label>
+          <input type="text" id="pg-obs" placeholder="Ex.: Sem cebola, bem passado..." autocomplete="off" />
         </div>` : ''}
 
         <div id="pg-dinheiro">
@@ -658,21 +658,23 @@ const App = (() => {
             okCozinha = await Printer.imprimir(comanda, cfg(), 'cozinha');
           }
 
+          confirmando = false; // Reset flag after printing
+
           const numComTxt = `Pedido #${DB.numeroComanda(venda.numeroComanda || venda.numero)}`;
           if (itensCozinha.length > 0 && cfg().cozinhaAtiva !== false) {
             if (okCaixa && okCozinha) {
-              UI.toast(`${numComTxt} concluída · Caixa e Cozinha impressos!`);
+              UI.toast(`${numComTxt} concluída: impresso no Caixa e na Cozinha.`);
             } else if (okCaixa && !okCozinha) {
-              UI.toast(`${numComTxt} concluída · Atenção: comanda da cozinha não imprimiu`, 'erro');
+              UI.toast(`${numComTxt} finalizada, mas Falha na impressora da Cozinha`, 'erro');
             } else if (!okCaixa && okCozinha) {
-              UI.toast(`${numComTxt} salva · Comanda enviada para a cozinha`, 'ok');
+              UI.toast(`${numComTxt} finalizada, mas Falha na impressora do Caixa`, 'erro');
             } else {
-              UI.toast(`${numComTxt} salva · Impressões não concluídas`, 'erro');
+              UI.toast(`${numComTxt} finalizada: Falha geral nas impressões`, 'erro');
             }
           } else {
             UI.toast(okCaixa
-              ? `${numComTxt} concluída · ${DB.moeda(venda.total)}`
-              : `${numComTxt} salva · cupom não impresso`);
+              ? `${numComTxt} concluída: cupom impresso.`
+              : `${numComTxt} finalizada, mas Falha na impressora do Caixa`, okCaixa ? 'ok' : 'erro');
           }
         });
         setTimeout(() => $('#busca').focus(), 60);
@@ -4009,7 +4011,7 @@ ${emailRemetente ? `E-mail de contato: ${emailRemetente}` : ''}`;
 
     // ==================== VERIFICAÇÃO REAL DE ATUALIZAÇÕES (MANOSTECH SYSTEM) ====================
     async function checarAtualizacoesSistema(manual = true) {
-      let versaoLocal = '2.4.5';
+      let versaoLocal = '2.4.6';
       try {
         const respLoc = await fetch(apiUrl('/api/app-version'), { cache: 'no-store' });
         if (respLoc.ok) {

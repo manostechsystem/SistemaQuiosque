@@ -35,17 +35,19 @@
       "id": "func-admin",
       "nome": "Administrador",
       "usuario": "admin",
-      "senha": "2933abec039e51b0b5fc4879d2f6c8e3:ae244da3cb24dcc21d30ff8004165213867fe35725fee6320effeac0f40b1232",
+      "senha": "59dd3feaaf53dc3b9a7d2b9884887574:47d88e19ee699b9c49aeb1c23b7df0b60cc42d78db386d057ac7461970931868",
       "papel": "admin",
       "ativo": true,
-      "criadoEm": "2026-11-13T15:41:28.726Z"
+      "criadoEm": "2026-11-13T15:41:28.726Z",
+      "tipoPagamento": "mensal",
+      "valorPagamento": 0
     }
   ],
   "compras": [],
   "alertasEstoque": [],
   "config": {
-    "configurado": false,
-    "loja": "",
+    "configurado": true,
+    "loja": "Rota do Forte",
     "cnpj": "",
     "endereco": "",
     "telefone": "",
@@ -67,7 +69,9 @@
     "emailContabilidade": "",
     "emailRemetenteFiscal": "",
     "nomeRemetenteFiscal": "",
-    "urlTunnel": "https://cube-every-excuse-maximize.trycloudflare.com/mobile.html"
+    "urlTunnel": "https://barbie-sierra-sharon-annually.trycloudflare.com/mobile.html",
+    "segmento": "quiosque",
+    "tema": "praia"
   },
   "lotesContabeis": []
 }
