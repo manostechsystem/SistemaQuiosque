@@ -132,17 +132,21 @@ const DB = (() => {
       }
     });
 
-    // Primeiro uso: cria o administrador padrão (admin / admin).
-    if (!estado.funcionarios.length) {
-      estado.funcionarios.push({
+    // Primeiro uso ou recuperação: garante que sempre exista o Administrador padrão ativo
+    const adminAtual = estado.funcionarios.find(f => f.usuario === 'admin' || f.papel === 'admin');
+    if (!adminAtual) {
+      estado.funcionarios.unshift({
         id: 'func-admin',
         nome: 'Administrador',
         usuario: 'admin',
-        senha: await window.pdv.hashSenha('admin'),
+        senha: '2933abec039e51b0b5fc4879d2f6c8e3:ae244da3cb24dcc21d30ff8004165213867fe35725fee6320effeac0f40b1232',
         papel: 'admin',
         ativo: true,
         criadoEm: new Date().toISOString()
       });
+      await salvar();
+    } else if (!adminAtual.ativo) {
+      adminAtual.ativo = true;
       await salvar();
     }
 

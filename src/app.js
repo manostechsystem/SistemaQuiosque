@@ -2717,8 +2717,18 @@ ${emailRemetente ? `E-mail de contato: ${emailRemetente}` : ''}`;
 
   /* ================== LOGIN ================== */
   function renderLogin() {
-    const fs = DB.funcionarios().filter(f => f.ativo);
+    let fs = DB.funcionarios().filter(f => f.ativo);
+    if (!fs.length) {
+      fs = [{
+        id: 'func-admin',
+        nome: 'Administrador',
+        usuario: 'admin',
+        papel: 'admin',
+        ativo: true
+      }];
+    }
     const lista = $('#login-usuarios');
+    if (!lista) return;
     lista.innerHTML = fs.map(f => `
       <button class="login__usuario" data-user="${f.id}">
         <span class="avatar">${UI.escapar(iniciais(f.nome))}</span>
@@ -2726,7 +2736,7 @@ ${emailRemetente ? `E-mail de contato: ${emailRemetente}` : ''}`;
           <b>${UI.escapar(f.nome)}</b>
           <i>${f.papel === 'admin' ? 'Administrador' : 'Caixa'}</i>
         </span>
-      </button>`).join('') || '<p class="sub">Nenhum acesso cadastrado ainda.</p>';
+      </button>`).join('');
 
     $$('.login__usuario').forEach(b => b.onclick = () => {
       st.loginUser = DB.funcionario(b.dataset.user);
@@ -4301,15 +4311,6 @@ ${emailRemetente ? `E-mail de contato: ${emailRemetente}` : ''}`;
             window.open(urlDownload, '_blank');
           }
         })();
-      }
-    }
-      } catch (err) {
-        console.error(err);
-        if (btn && manual) {
-          btn.disabled = false;
-          btn.innerHTML = `<svg class="ic" viewBox="0 0 24 24"><path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16"/><path d="M16 21h5v-5"/></svg> Verificar Atualizações`;
-        }
-        if (manual) UI.toast('Falha ao verificar atualizações.', 'erro');
       }
     }
 
