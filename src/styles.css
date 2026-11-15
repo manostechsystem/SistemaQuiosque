@@ -1117,8 +1117,9 @@ h1, h2, h3, .num { font-family: 'Baloo 2', 'DM Sans', sans-serif; letter-spacing
   white-space: nowrap;
 }
 .btn-primario {
-  height: 42px;
-  padding: 0 18px;
+  height: 38px;
+  padding: 0 14px;
+  font-size: 13px;
   color: var(--btn-prim-texto, #FFFFFF);
   background: var(--btn-prim-bg);
   border: 1px solid var(--btn-prim-borda);
@@ -1757,8 +1758,8 @@ select optgroup {
   filter: drop-shadow(0 6px 14px rgba(0, 0, 0, .2));
 }
 /* Estilos para tela de configurações */
-.cabecalho-vista-acoes { display: flex; align-items: center; gap: 10px; }
-.btn-config-acao { display: inline-flex; align-items: center; gap: 6px; font-weight: 800; }
+.cabecalho-vista-acoes { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.btn-config-acao { display: inline-flex; align-items: center; gap: 4px; font-weight: 700; height: 38px; padding: 0 12px; font-size: 13px; }
 .logo-config-preview-box { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px; }
 .logo-preview-item { padding: 10px; background: var(--afundado); border-radius: 10px; text-align: center; }
 .logo-preview-item--pb { background: #FFF; border: 1px solid #000; }
