@@ -140,14 +140,85 @@ const Fiscal = (() => {
     return chave.match(/.{1,4}/g).join(' ');
   }
 
+  const TABELA_ALIQUOTAS_IBPT = {
+    '2202': { nome: 'Águas, Sucos e Bebidas Não Alcoólicas', fed: 13.45, est: 17.00, total: 30.45 },
+    '2203': { nome: 'Cervejas e Chopes (Bebidas Frias / ST)', fed: 16.59, est: 25.00, total: 41.59 },
+    '2106': { nome: 'Pastéis, Porções, Lanches e Alimentos', fed: 12.45, est: 12.00, total: 24.45 },
+    '1806': { nome: 'Chocolates, Açaí, Sobremesas e Doces', fed: 14.25, est: 17.00, total: 31.25 },
+    '2105': { nome: 'Sorvetes e Picolés', fed: 13.80, est: 17.00, total: 30.80 },
+    'padrao': { nome: 'Outros Produtos Comerciais', fed: 13.45, est: 17.00, total: 30.45 }
+  };
+
+  const TABELA_SIMPLES_NACIONAL = {
+    'faixa1': { nome: 'Faixa 1 (até R$ 180 mil/ano)', aliquota: 4.00, icms: 1.36, fed: 2.64 },
+    'faixa2': { nome: 'Faixa 2 (R$ 180k a R$ 360k/ano)', aliquota: 7.30, icms: 2.48, fed: 4.82 },
+    'faixa3': { nome: 'Faixa 3 (R$ 360k a R$ 720k/ano)', aliquota: 9.50, icms: 3.23, fed: 6.27 },
+    'mei': { nome: 'MEI (Microempreendedor Individual)', aliquota: 0.00, icms: 0.00, fed: 0.00 }
+  };
+
+  function obterAliquotaItem(ncm) {
+    const limpo = String(ncm || '').replace(/\D/g, '');
+    const cap4 = limpo.slice(0, 4);
+    return TABELA_ALIQUOTAS_IBPT[cap4] || TABELA_ALIQUOTAS_IBPT['padrao'];
+  }
+
   function calcularTributosAproximados(venda, config) {
-    const aliquota = Number(config.aliquotaIbptPadrao) || 4.25;
+    const modoCalculo = config.modoCalculoAliquota || 'ibpt'; // 'ibpt' ou 'simples'
     const total = Number(venda.total || 0);
-    const valorTributos = Math.round((total * (aliquota / 100)) * 100) / 100;
+
+    if (modoCalculo === 'simples') {
+      const aliquota = Number(config.aliquotaIbptPadrao != null ? config.aliquotaIbptPadrao : 4.25);
+      const valorTotal = Math.round((total * (aliquota / 100)) * 100) / 100;
+      const valorEstadual = Math.round((valorTotal * 0.34) * 100) / 100; // ~34% ICMS no Simples
+      const valorFederal = Math.round((valorTotal - valorEstadual) * 100) / 100;
+      return {
+        modo: 'simples',
+        aliquota,
+        valorTributos: valorTotal,
+        valorFederal,
+        valorEstadual,
+        fedPerc: Math.round((aliquota * 0.66) * 100) / 100,
+        estPerc: Math.round((aliquota * 0.34) * 100) / 100,
+        fonte: 'Simples Nacional / DAS Lei Complementar 123/2006'
+      };
+    }
+
+    // Modo Oficial IBPT (Lei Federal 12.741/2012) produto a produto:
+    let somaFederal = 0;
+    let somaEstadual = 0;
+    const itens = venda.itens || [];
+
+    if (itens.length > 0) {
+      itens.forEach(it => {
+        const prod = typeof DB !== 'undefined' && DB.produto ? DB.produto(it.produtoId) : null;
+        const ncm = prod?.ncm || it.ncm || '22021000';
+        const aliq = obterAliquotaItem(ncm);
+        const subItem = Number(it.preco || 0) * Number(it.qtd || 1);
+        somaFederal += subItem * (aliq.fed / 100);
+        somaEstadual += subItem * (aliq.est / 100);
+      });
+    } else {
+      const aliqPadrao = TABELA_ALIQUOTAS_IBPT.padrao;
+      somaFederal = total * (aliqPadrao.fed / 100);
+      somaEstadual = total * (aliqPadrao.est / 100);
+    }
+
+    somaFederal = Math.round(somaFederal * 100) / 100;
+    somaEstadual = Math.round(somaEstadual * 100) / 100;
+    const somaTotal = Math.round((somaFederal + somaEstadual) * 100) / 100;
+    const percTotal = total > 0 ? Math.round((somaTotal / total) * 10000) / 100 : 30.45;
+    const percFed = total > 0 ? Math.round((somaFederal / total) * 10000) / 100 : 13.45;
+    const percEst = total > 0 ? Math.round((somaEstadual / total) * 10000) / 100 : 17.00;
+
     return {
-      aliquota,
-      valorTributos,
-      fonte: 'IBPT/empresometro.com.br'
+      modo: 'ibpt',
+      aliquota: percTotal,
+      valorTributos: somaTotal,
+      valorFederal: somaFederal,
+      valorEstadual: somaEstadual,
+      fedPerc: percFed,
+      estPerc: percEst,
+      fonte: 'IBPT/empresometro.com.br (Chave 26.1.B)'
     };
   }
 
@@ -248,6 +319,10 @@ const Fiscal = (() => {
       tipoIntegracao: '1', // 1 = Pagamento integrado com o sistema (SEFAZ TEF/POS)
       tributosAprox: tributos.valorTributos,
       tributosPerc: tributos.aliquota,
+      tributosFederais: tributos.valorFederal,
+      tributosEstaduais: tributos.valorEstadual,
+      tributosFedPerc: tributos.fedPerc,
+      tributosEstPerc: tributos.estPerc,
       tributosFonte: tributos.fonte,
       qrCodeUrl: gerarQrCodeSefazUrl(chave, config)
     };
@@ -364,10 +439,12 @@ const Fiscal = (() => {
         </div>
       </div>
 
-      <!-- INFORMAÇÃO DOS TRIBUTOS (LEI 12.741/2012 - IBPT) -->
-      <div class="borda-t" style="font-size:8px;color:#333">
-        Tributos Incidentes (Lei Federal 12.741/2012):<br>
-        Total aprox.: <b>R$ ${Number(fiscal.tributosAprox || 0).toFixed(2).replace('.', ',')}</b> (${fiscal.tributosPerc}%) · Fonte: ${escapar(fiscal.tributosFonte)}
+      <!-- INFORMAÇÃO DETALHADA DOS TRIBUTOS (LEI 12.741/2012 - IBPT) -->
+      <div class="borda-t" style="font-size:7.5px;color:#222;line-height:1.35">
+        <b>Tributos Incidentes (Lei Federal 12.741/2012):</b><br>
+        Total aprox.: <b>R$ ${Number(fiscal.tributosAprox || 0).toFixed(2).replace('.', ',')}</b> (${fiscal.tributosPerc}%)<br>
+        Federal: R$ ${Number(fiscal.tributosFederais || 0).toFixed(2).replace('.', ',')} (${fiscal.tributosFedPerc}%) | Estadual: R$ ${Number(fiscal.tributosEstaduais || 0).toFixed(2).replace('.', ',')} (${fiscal.tributosEstPerc}%)<br>
+        <span style="font-size:7px;color:#555">Fonte: ${escapar(fiscal.tributosFonte)}</span>
       </div>
 
       <!-- DADOS DE AUTORIZAÇÃO SEFAZ -->

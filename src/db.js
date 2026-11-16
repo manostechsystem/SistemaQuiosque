@@ -66,6 +66,7 @@ const DB = (() => {
       cscTokenId: '000001',
       cscCodigo: '',
       ambienteFiscal: 'homologacao', // 'homologacao' ou 'producao'
+      modoCalculoAliquota: 'ibpt', // 'ibpt' ou 'simples'
       aliquotaIbptPadrao: 4.25,
       imprimirDanfeNfce: true,
       termoIsencaoAceito: true

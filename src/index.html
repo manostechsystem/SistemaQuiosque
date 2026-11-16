@@ -932,9 +932,46 @@
                     <input type="text" id="cfg-csc-codigo" placeholder="Chave CSC gerada na SEFAZ" />
                   </div>
                 </div>
-                <div class="campo" style="margin-top:6px">
-                  <label for="cfg-aliquota-ibpt">Alíquota Média de Impostos IBPT (%) <small style="text-transform:none;font-weight:normal">- Lei 12.741/2012</small></label>
-                  <input type="number" id="cfg-aliquota-ibpt" step="0.05" value="4.25" placeholder="4.25" style="width:120px" />
+                <!-- CONFIGURAÇÃO DE ALÍQUOTAS DE IMPOSTO -->
+                <div style="background:var(--afundado);padding:10px;border-radius:8px;margin-top:10px;border:1px solid var(--borda)">
+                  <div style="font-size:11px;font-weight:800;color:var(--primaria-forte);margin-bottom:6px;display:flex;align-items:center;gap:6px">
+                    <svg class="ic" viewBox="0 0 24 24" style="width:14px;height:14px"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+                    Alíquotas de Imposto & Lei da Transparência (IBPT)
+                  </div>
+                  
+                  <div class="grid-2" style="gap:10px">
+                    <div class="campo">
+                      <label for="cfg-modo-aliquota" style="font-size:11px">Modo de Cálculo</label>
+                      <select id="cfg-modo-aliquota" class="campo-select">
+                        <option value="ibpt">Tabela Oficial IBPT por NCM (Recomendado SEFAZ)</option>
+                        <option value="simples">Alíquota Efetiva do Simples Nacional (DAS)</option>
+                      </select>
+                    </div>
+                    <div class="campo">
+                      <label for="cfg-aliquota-ibpt" style="font-size:11px">Alíquota Simples Nacional (%)</label>
+                      <input type="number" id="cfg-aliquota-ibpt" step="0.05" value="4.25" placeholder="4.25" />
+                    </div>
+                  </div>
+
+                  <!-- Atalhos Rápidos de Faixas do Simples -->
+                  <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:6px;align-items:center">
+                    <span style="font-size:10px;color:var(--tinta-3)">Atalhos Simples:</span>
+                    <button type="button" class="btn-secundario btn-aliq-atalho" data-aliq="0.00" style="padding:2px 8px;font-size:10px">MEI (0%)</button>
+                    <button type="button" class="btn-secundario btn-aliq-atalho" data-aliq="4.00" style="padding:2px 8px;font-size:10px">Faixa 1 (4,00%)</button>
+                    <button type="button" class="btn-secundario btn-aliq-atalho" data-aliq="5.47" style="padding:2px 8px;font-size:10px">Faixa 2 (5,47%)</button>
+                    <button type="button" class="btn-secundario btn-aliq-atalho" data-aliq="6.84" style="padding:2px 8px;font-size:10px">Faixa 3 (6,84%)</button>
+                  </div>
+
+                  <!-- Tabela Resumo das Alíquotas IBPT Aplicadas nos Produtos -->
+                  <div style="margin-top:8px;padding-top:8px;border-top:1px dashed var(--borda);font-size:10px;color:var(--tinta-2);line-height:1.4">
+                    <b>Alíquotas IBPT Aplicadas Automaticamente (por Produto):</b>
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px;margin-top:4px;font-size:9.5px">
+                      <div>🥤 <b>Bebidas:</b> 13,45% Fed + 17% Est = <b>30,45%</b></div>
+                      <div>🍺 <b>Cervejas (ST):</b> 16,59% Fed + 25% Est = <b>41,59%</b></div>
+                      <div>🥟 <b>Pastéis/Lanches:</b> 12,45% Fed + 12% Est = <b>24,45%</b></div>
+                      <div>🍫 <b>Doces/Açaí:</b> 14,25% Fed + 17% Est = <b>31,25%</b></div>
+                    </div>
+                  </div>
                 </div>
               </div>
 

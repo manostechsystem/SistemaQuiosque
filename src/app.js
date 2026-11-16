@@ -3131,7 +3131,17 @@ ${emailRemetente ? `E-mail de contato: ${emailRemetente}` : ''}`;
     if ($('#cfg-uf-emitente')) $('#cfg-uf-emitente').value = c.ufEmitente || 'SC';
     if ($('#cfg-csc-token-id')) $('#cfg-csc-token-id').value = c.cscTokenId || '000001';
     if ($('#cfg-csc-codigo')) $('#cfg-csc-codigo').value = c.cscCodigo || '';
-    if ($('#cfg-aliquota-ibpt')) $('#cfg-aliquota-ibpt').value = c.aliquotaIbptPadrao || 4.25;
+    if ($('#cfg-modo-aliquota')) $('#cfg-modo-aliquota').value = c.modoCalculoAliquota || 'ibpt';
+    if ($('#cfg-aliquota-ibpt')) $('#cfg-aliquota-ibpt').value = c.aliquotaIbptPadrao != null ? c.aliquotaIbptPadrao : 4.25;
+
+    // Atalhos de alíquotas do Simples
+    document.querySelectorAll('.btn-aliq-atalho').forEach(btn => {
+      btn.onclick = () => {
+        if ($('#cfg-aliquota-ibpt')) $('#cfg-aliquota-ibpt').value = btn.dataset.aliq;
+        if ($('#cfg-modo-aliquota')) $('#cfg-modo-aliquota').value = 'simples';
+        UI.toast(`Alíquota definida: ${btn.dataset.aliq}% (${btn.textContent})`);
+      };
+    });
 
     // Configurações da Logo
     const previewCor = $('#cfg-logo-preview-cor');
@@ -3171,6 +3181,7 @@ ${emailRemetente ? `E-mail de contato: ${emailRemetente}` : ''}`;
     c.ufEmitente = ($('#cfg-uf-emitente')?.value || 'SC').trim();
     c.cscTokenId = ($('#cfg-csc-token-id')?.value || '000001').trim();
     c.cscCodigo = ($('#cfg-csc-codigo')?.value || '').trim();
+    c.modoCalculoAliquota = ($('#cfg-modo-aliquota')?.value || 'ibpt').trim();
     c.aliquotaIbptPadrao = Number($('#cfg-aliquota-ibpt')?.value || 4.25);
     c.termoIsencaoAceito = true;
 
