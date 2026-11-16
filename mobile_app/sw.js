@@ -62,8 +62,17 @@ self.addEventListener('fetch', (e) => {
         if (respostaRede && respostaRede.status === 200) {
           const copia = respostaRede.clone();
           caches.open(CACHE_NAME).then(c => c.put(req, copia));
+          return respostaRede;
         }
-        return respostaRede;
+        // Se a resposta for erro de túnel/servidor (502, 503, 530 da Cloudflare ao desligar o PC):
+        // NÃO mostra a tela de erro da Cloudflare! Entrega o cache da aplicação!
+        return caches.open(CACHE_NAME).then(async cache => {
+          const emCache = await cache.match(req) || 
+                          await cache.match('mobile.html') || 
+                          await cache.match('index.html') || 
+                          await cache.match('./');
+          return emCache || respostaRede;
+        });
       }).catch(async () => {
         // Fallback offline: busca no cache local
         const cache = await caches.open(CACHE_NAME);

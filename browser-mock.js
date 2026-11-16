@@ -37,23 +37,51 @@ if (!window.pdv) {
     } catch {}
   }
 
+  let ultimoHostDescoberto = '';
+  async function obterHostAtivo() {
+    if (ultimoHostDescoberto) return ultimoHostDescoberto;
+    try {
+      const ctrl = new AbortController();
+      const tm = setTimeout(() => ctrl.abort(), 1800);
+      const resp = await fetch(`https://raw.githubusercontent.com/manostechsystem/SistemaQuiosque/main/tunnel_active.json?t=${Date.now()}`, { signal: ctrl.signal });
+      clearTimeout(tm);
+      if (resp.ok) {
+        const info = await resp.json();
+        if (info && info.url) {
+          ultimoHostDescoberto = info.url.replace(/\/$/, '');
+          return ultimoHostDescoberto;
+        }
+      }
+    } catch {}
+    return '';
+  }
+
   window.pdv = {
     ler: async () => {
-      // CAMADA 1: Tenta sincronizar com o computador da loja (PC principal via Wi-Fi/Rede Local)
+      // CAMADA 1: Tenta sincronizar com o computador da loja (PC principal via túnel ativo ou rede local)
       try {
-        const ctrl = new AbortController();
-        const timer = setTimeout(() => ctrl.abort(), 1600);
-        const resp = await fetch('/api/db', { cache: 'no-store', signal: ctrl.signal });
-        clearTimeout(timer);
-        if (resp.ok) {
-          const dados = await resp.json();
-          if (dados && (dados.produtos?.length || dados.categorias?.length || dados.config)) {
-            try { localStorage.setItem(STORAGE_KEY, JSON.stringify(dados)); } catch {}
-            atualizarStatusConexao('pc');
-            // Se havia pendências salvas no celular enquanto o PC estava desligado, envia agora
-            descarregarPendenciasPc();
-            return dados;
-          }
+        const hostAtivo = await obterHostAtivo();
+        const urlsParaTentar = ['/api/db'];
+        if (hostAtivo && !window.location.origin.includes(new URL(hostAtivo).hostname)) {
+          urlsParaTentar.unshift(`${hostAtivo}/api/db`);
+        }
+
+        for (const urlDb of urlsParaTentar) {
+          try {
+            const ctrl = new AbortController();
+            const timer = setTimeout(() => ctrl.abort(), 2000);
+            const resp = await fetch(urlDb, { cache: 'no-store', signal: ctrl.signal, mode: 'cors' });
+            clearTimeout(timer);
+            if (resp.ok) {
+              const dados = await resp.json();
+              if (dados && (dados.produtos?.length || dados.categorias?.length || dados.config)) {
+                try { localStorage.setItem(STORAGE_KEY, JSON.stringify(dados)); } catch {}
+                atualizarStatusConexao('pc');
+                descarregarPendenciasPc();
+                return dados;
+              }
+            }
+          } catch {}
         }
       } catch {}
 
@@ -128,19 +156,31 @@ if (!window.pdv) {
       // 2. Se houver conexão com o PC da loja, persiste no servidor
       let salvouPc = false;
       try {
-        const ctrl = new AbortController();
-        const timer = setTimeout(() => ctrl.abort(), 2000);
-        const resp = await fetch('/api/db', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(dados),
-          signal: ctrl.signal
-        });
-        clearTimeout(timer);
-        if (resp.ok) {
-          salvouPc = true;
-          localStorage.removeItem(PENDENCIAS_KEY);
-          atualizarStatusConexao('pc');
+        const hostAtivo = await obterHostAtivo();
+        const urlsParaSalvar = ['/api/db'];
+        if (hostAtivo && !window.location.origin.includes(new URL(hostAtivo).hostname)) {
+          urlsParaSalvar.unshift(`${hostAtivo}/api/db`);
+        }
+
+        for (const u of urlsParaSalvar) {
+          try {
+            const ctrl = new AbortController();
+            const timer = setTimeout(() => ctrl.abort(), 2000);
+            const resp = await fetch(u, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify(dados),
+              signal: ctrl.signal,
+              mode: 'cors'
+            });
+            clearTimeout(timer);
+            if (resp.ok) {
+              salvouPc = true;
+              localStorage.removeItem(PENDENCIAS_KEY);
+              atualizarStatusConexao('pc');
+              break;
+            }
+          } catch {}
         }
       } catch {}
 

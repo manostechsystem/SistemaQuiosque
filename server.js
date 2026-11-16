@@ -233,9 +233,10 @@ const server = http.createServer((req, res) => {
         const cnpjLimpo = (db.config?.cnpj || '').replace(/\D/g, '') || 'SEM_CNPJ';
         const urlBase = urlTunnel || urlLocal;
         const urlWebNuvem = `https://manostechsystem.github.io/SistemaQuiosque/?cnpj=${cnpjLimpo}&loja=${encodeURIComponent(nomeLoja)}`;
-        // O QR Code principal aponta diretamente para o Web App permanente 24h na nuvem
-        // garantindo que NUNCA caia com Error 1033 mesmo se o computador for desligado!
-        const urlFinal = urlWebNuvem;
+        // O QR Code aponta para o túnel ativo 4G conectado direto ao PC (com fallback para a nuvem permanente)
+        const urlFinal = urlTunnel 
+          ? `${urlTunnel}?conectar=${tokenPareamento}&cnpj=${cnpjLimpo}&loja=${encodeURIComponent(nomeLoja)}`
+          : urlWebNuvem;
 
         const qrCodeDataUrl = await QRCode.toDataURL(urlFinal, {
           width: 320,

@@ -80,6 +80,86 @@ async function baixarExecutavelSeNecessario() {
   });
 }
 
+function obterGitHubToken() {
+  if (process.env.GH_TOKEN) return process.env.GH_TOKEN;
+  if (process.env.GITHUB_TOKEN) return process.env.GITHUB_TOKEN;
+  try {
+    const { execSync } = require('child_process');
+    const url = execSync('git remote get-url origin', { cwd: __dirname }).toString().trim();
+    const m = url.match(/:([a-zA-Z0-9_]+)@github\.com/);
+    if (m && m[1]) return m[1];
+  } catch {}
+  return '';
+}
+
+const GITHUB_TOKEN = obterGitHubToken();
+const GITHUB_OWNER = 'manostechsystem';
+const GITHUB_REPO = 'SistemaQuiosque';
+
+async function publicarTunnelNoGitHub(urlTunnel) {
+  if (!urlTunnel) return;
+  try {
+    const payloadContent = JSON.stringify({
+      url: urlTunnel,
+      updatedAt: new Date().toISOString(),
+      loja: 'ManosTech System'
+    }, null, 2);
+
+    const base64 = Buffer.from(payloadContent, 'utf8').toString('base64');
+
+    const sha = await new Promise(resolve => {
+      https.get({
+        hostname: 'api.github.com',
+        path: `/repos/${GITHUB_OWNER}/${GITHUB_REPO}/contents/tunnel_active.json`,
+        headers: {
+          'User-Agent': 'ManosTech-System',
+          'Authorization': `token ${GITHUB_TOKEN}`
+        }
+      }, res => {
+        let b = '';
+        res.on('data', c => b += c);
+        res.on('end', () => {
+          try { resolve(JSON.parse(b).sha || null); } catch { resolve(null); }
+        });
+      }).on('error', () => resolve(null));
+    });
+
+    const bodyEnvio = JSON.stringify({
+      message: 'sync: atualiza tunnel ativo',
+      content: base64,
+      sha: sha || undefined
+    });
+
+    await new Promise(resolve => {
+      const req = https.request({
+        hostname: 'api.github.com',
+        path: `/repos/${GITHUB_OWNER}/${GITHUB_REPO}/contents/tunnel_active.json`,
+        method: 'PUT',
+        headers: {
+          'User-Agent': 'ManosTech-System',
+          'Authorization': `token ${GITHUB_TOKEN}`,
+          'Content-Type': 'application/json',
+          'Content-Length': Buffer.byteLength(bodyEnvio)
+        }
+      }, res => {
+        res.on('data', () => {});
+        res.on('end', () => {
+          console.log('[TUNNEL] Endereço público sincronizado no GitHub:', urlTunnel);
+          resolve();
+        });
+      });
+      req.on('error', (e) => {
+        console.warn('[TUNNEL] Falha ao publicar no GitHub:', e.message);
+        resolve();
+      });
+      req.write(bodyEnvio);
+      req.end();
+    });
+  } catch (err) {
+    console.warn('[TUNNEL] Erro ao sincronizar GitHub:', err.message);
+  }
+}
+
 function registrarListener(fn) {
   if (typeof fn === 'function') listeners.push(fn);
 }
@@ -125,6 +205,7 @@ async function iniciar(porta = 3000) {
           tunnelStatus = 'online';
           console.log('[TUNNEL] Link seguro 4G ativo:', currentTunnelUrl);
           notificar(currentTunnelUrl);
+          publicarTunnelNoGitHub(currentTunnelUrl);
         }
       }
     };
