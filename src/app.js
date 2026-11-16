@@ -633,6 +633,19 @@ const App = (() => {
       const cliente = (document.querySelector('#pg-cliente')?.value || '').trim();
       const obsCozinha = (document.querySelector('#pg-obs')?.value || '').trim();
       try {
+        let dadosFiscais = null;
+        if (cfg().emissorFiscalAtivo && (forma === 'debito' || forma === 'credito' || forma === 'pix')) {
+          dadosFiscais = Fiscal.processarVendaSmartpos({
+            total: tot,
+            subtotal: tot + st.desconto,
+            desconto: st.desconto,
+            pagamento: forma,
+            itens: st.carrinho,
+            numero: (DB.estado.config.ultimoCupom || 0) + 1,
+            cliente
+          }, cfg());
+        }
+
         const venda = DB.registrarVenda({
           itens: st.carrinho,
           desconto: st.desconto,
@@ -640,16 +653,21 @@ const App = (() => {
           recebido: r,
           operador: st.usuario?.nome,
           cliente,
-          obsCozinha
+          obsCozinha,
+          dadosFiscais
         });
-        const fiscal = Fiscal.emitir(venda, cfg());
+        const fiscal = dadosFiscais || Fiscal.emitir(venda, cfg());
         UI.fecharModal();
         st.carrinho = [];
         st.desconto = 0;
         renderCarrinho(); renderGrade();
 
-        // 1. Imprime cupom do cliente no Caixa
-        const cupom = Printer.montarCupom(venda, cfg(), { chave: fiscal.chave });
+        // 1. Imprime cupom ou DANFE NFC-e da maquininha
+        const cupom = Printer.montarCupom(venda, cfg(), {
+          chave: fiscal.chave,
+          fiscal: !!fiscal.fiscal,
+          dadosFiscais: fiscal
+        });
         Printer.imprimir(cupom, cfg(), 'caixa').then(async okCaixa => {
           let okCozinha = null;
           // 2. Se houver itens de cozinha e comanda ativa, imprime na impressora da cozinha
@@ -1002,6 +1020,52 @@ const App = (() => {
               <span class="alternador__txt" style="display:inline-flex;align-items:center;gap:4px">${UI.icone('raio')} Fixar no Acesso Rápido da Venda<small style="display:block;margin-top:2px">Exibe card menor no topo do PDV para toque ágil (itens mais vendidos)</small></span>
             </label>
           </div>
+
+          <!-- DADOS FISCAIS PARA SMARTPOS / NFC-e (OPÇÃO C) -->
+          <div class="campo col-full" style="background:var(--afundado);padding:12px;border-radius:10px;border:1px solid var(--borda);margin-top:6px">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+              <span style="font-weight:800;font-size:12px;color:var(--primaria-forte);display:flex;align-items:center;gap:6px">
+                <svg class="ic" viewBox="0 0 24 24" style="width:15px;height:15px"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+                Classificação Fiscal (NFC-e / Maquininha)
+              </span>
+              <span style="font-size:10px;font-weight:700;padding:2px 6px;background:rgba(0,136,255,0.1);color:var(--primaria-forte);border-radius:6px">Opção C</span>
+            </div>
+            <div class="grid-2" style="gap:10px">
+              <div>
+                <label for="f-ncm" style="font-size:11px">NCM (8 dígitos)</label>
+                <input id="f-ncm" type="text" maxlength="8" placeholder="22021000" value="${p?.ncm || '22021000'}"
+                  style="width:100%;height:38px;padding:0 8px;border-radius:var(--r-campo);border:1px solid var(--borda-forte);background:var(--elevado);font:inherit" />
+              </div>
+              <div>
+                <label for="f-cfop" style="font-size:11px">CFOP</label>
+                <input id="f-cfop" type="text" maxlength="4" placeholder="5102" value="${p?.cfop || '5102'}"
+                  style="width:100%;height:38px;padding:0 8px;border-radius:var(--r-campo);border:1px solid var(--borda-forte);background:var(--elevado);font:inherit" />
+              </div>
+            </div>
+            <div class="grid-2" style="gap:10px;margin-top:6px">
+              <div>
+                <label for="f-csosn" style="font-size:11px">CSOSN (Simples Nacional)</label>
+                <select id="f-csosn" style="width:100%;height:38px;padding:0 8px;border-radius:var(--r-campo);border:1px solid var(--borda-forte);background:var(--elevado);font:inherit">
+                  <option value="102" ${(!p || p.csosn === '102') ? 'selected' : ''}>102 - Tributada sem crédito</option>
+                  <option value="500" ${p?.csosn === '500' ? 'selected' : ''}>500 - ICMS cobrado por ST</option>
+                  <option value="101" ${p?.csosn === '101' ? 'selected' : ''}>101 - Tributada com crédito</option>
+                  <option value="400" ${p?.csosn === '400' ? 'selected' : ''}>400 - Não tributada</option>
+                </select>
+              </div>
+              <div>
+                <label for="f-unidade" style="font-size:11px">Unidade Comercial</label>
+                <input id="f-unidade" type="text" maxlength="6" placeholder="UN" value="${p?.unidadeTributavel || 'UN'}"
+                  style="width:100%;height:38px;padding:0 8px;border-radius:var(--r-campo);border:1px solid var(--borda-forte);background:var(--elevado);font:inherit;text-transform:uppercase" />
+              </div>
+            </div>
+            <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:8px">
+              <span style="font-size:10px;color:var(--tinta-3);align-self:center">Sugestões rápidas:</span>
+              <button type="button" class="btn-secundario btn-sug-ncm" data-ncm="22021000" data-cfop="5102" data-csosn="102" style="padding:2px 8px;font-size:10.5px">Bebidas (2202)</button>
+              <button type="button" class="btn-secundario btn-sug-ncm" data-ncm="22030000" data-cfop="5405" data-csosn="500" style="padding:2px 8px;font-size:10.5px">Cervejas (2203)</button>
+              <button type="button" class="btn-secundario btn-sug-ncm" data-ncm="21069090" data-cfop="5102" data-csosn="102" style="padding:2px 8px;font-size:10.5px">Alimentos (2106)</button>
+              <button type="button" class="btn-secundario btn-sug-ncm" data-ncm="18069000" data-cfop="5102" data-csosn="102" style="padding:2px 8px;font-size:10.5px">Doces/Açaí (1806)</button>
+            </div>
+          </div>
         </div>`,
       rodape: `
         <button class="btn-secundario" id="f-cancelar">Cancelar</button>
@@ -1011,6 +1075,16 @@ const App = (() => {
     document.querySelector('#f-cancelar').onclick = UI.fecharModal;
     document.querySelector('#f-cat').addEventListener('change', e => {
       document.querySelector('#f-cozinha').checked = (e.target.value === 'cat-pasteis');
+    });
+
+    // Cliques nas sugestões de NCM
+    document.querySelectorAll('.btn-sug-ncm').forEach(btn => {
+      btn.onclick = () => {
+        if (btn.dataset.ncm && document.querySelector('#f-ncm')) document.querySelector('#f-ncm').value = btn.dataset.ncm;
+        if (btn.dataset.cfop && document.querySelector('#f-cfop')) document.querySelector('#f-cfop').value = btn.dataset.cfop;
+        if (btn.dataset.csosn && document.querySelector('#f-csosn')) document.querySelector('#f-csosn').value = btn.dataset.csosn;
+        UI.toast(`Preenchido: NCM ${btn.dataset.ncm} / CFOP ${btn.dataset.cfop}`);
+      };
     });
 
     const salvar = () => {
@@ -1040,7 +1114,12 @@ const App = (() => {
           estoqueMinimo: document.querySelector('#f-estoque-min')?.value,
           vaiParaCozinha: document.querySelector('#f-cozinha').checked,
           acessoRapido: document.querySelector('#f-acesso-rapido').checked,
-          opcoes
+          opcoes,
+          // Campos fiscais
+          ncm: (document.querySelector('#f-ncm')?.value || '22021000').trim(),
+          cfop: (document.querySelector('#f-cfop')?.value || '5102').trim(),
+          csosn: (document.querySelector('#f-csosn')?.value || '102').trim(),
+          unidadeTributavel: (document.querySelector('#f-unidade')?.value || 'UN').trim().toUpperCase()
         });
         UI.fecharModal();
         renderProdutos(); renderGrade(); renderCategorias();
@@ -3040,6 +3119,20 @@ ${emailRemetente ? `E-mail de contato: ${emailRemetente}` : ''}`;
     $$('#cfg-largura .seg').forEach(b => b.classList.toggle('ativo', Number(b.dataset.l) === Number(c.larguraCupom || 80)));
     $$('#cfg-largura-cozinha .seg').forEach(b => b.classList.toggle('ativo', Number(b.dataset.l) === Number(c.larguraCozinha || 80)));
 
+    // Configurações Fiscais e SmartPOS (Opção C)
+    if ($('#cfg-emissor-fiscal-ativo')) $('#cfg-emissor-fiscal-ativo').checked = !!c.emissorFiscalAtivo;
+    if ($('#cfg-adquirente-fiscal')) $('#cfg-adquirente-fiscal').value = c.adquirenteFiscal || 'pagbank';
+    if ($('#cfg-modelo-maquininha')) $('#cfg-modelo-maquininha').value = c.modeloMaquininha || 'smartpos';
+    if ($('#cfg-ambiente-fiscal')) $('#cfg-ambiente-fiscal').value = c.ambienteFiscal || 'homologacao';
+    if ($('#cfg-razao-social')) $('#cfg-razao-social').value = c.razaoSocial || c.loja || '';
+    if ($('#cfg-nome-fantasia')) $('#cfg-nome-fantasia').value = c.nomeFantasia || c.loja || '';
+    if ($('#cfg-ie')) $('#cfg-ie').value = c.inscricaoEstadual || '';
+    if ($('#cfg-regime-tributario')) $('#cfg-regime-tributario').value = c.regimeTributario || '1';
+    if ($('#cfg-uf-emitente')) $('#cfg-uf-emitente').value = c.ufEmitente || 'SC';
+    if ($('#cfg-csc-token-id')) $('#cfg-csc-token-id').value = c.cscTokenId || '000001';
+    if ($('#cfg-csc-codigo')) $('#cfg-csc-codigo').value = c.cscCodigo || '';
+    if ($('#cfg-aliquota-ibpt')) $('#cfg-aliquota-ibpt').value = c.aliquotaIbptPadrao || 4.25;
+
     // Configurações da Logo
     const previewCor = $('#cfg-logo-preview-cor');
     const previewPB = $('#cfg-logo-preview-pb');
@@ -3066,6 +3159,21 @@ ${emailRemetente ? `E-mail de contato: ${emailRemetente}` : ''}`;
     c.impressoraCaixa = ($('#cfg-imp-caixa')?.value || '').trim();
     c.impressoraCozinha = ($('#cfg-imp-cozinha')?.value || '').trim();
 
+    // Salva configurações fiscais da Opção C
+    c.emissorFiscalAtivo = $('#cfg-emissor-fiscal-ativo') ? $('#cfg-emissor-fiscal-ativo').checked : false;
+    c.adquirenteFiscal = ($('#cfg-adquirente-fiscal')?.value || 'pagbank').trim();
+    c.modeloMaquininha = ($('#cfg-modelo-maquininha')?.value || 'smartpos').trim();
+    c.ambienteFiscal = ($('#cfg-ambiente-fiscal')?.value || 'homologacao').trim();
+    c.razaoSocial = ($('#cfg-razao-social')?.value || '').trim();
+    c.nomeFantasia = ($('#cfg-nome-fantasia')?.value || '').trim();
+    c.inscricaoEstadual = ($('#cfg-ie')?.value || '').trim();
+    c.regimeTributario = ($('#cfg-regime-tributario')?.value || '1').trim();
+    c.ufEmitente = ($('#cfg-uf-emitente')?.value || 'SC').trim();
+    c.cscTokenId = ($('#cfg-csc-token-id')?.value || '000001').trim();
+    c.cscCodigo = ($('#cfg-csc-codigo')?.value || '').trim();
+    c.aliquotaIbptPadrao = Number($('#cfg-aliquota-ibpt')?.value || 4.25);
+    c.termoIsencaoAceito = true;
+
     c.imprimirLogoCupom = $('#cfg-imprimir-logo') ? $('#cfg-imprimir-logo').checked : true;
     if (logoOriginalTemporaria) {
       c.logo = logoOriginalTemporaria;
@@ -3080,7 +3188,64 @@ ${emailRemetente ? `E-mail de contato: ${emailRemetente}` : ''}`;
     aplicarLogoSistema(c.logo);
     DB.salvar();
     $('#topo-loja').textContent = c.loja;
-    UI.toast('Configurações e Logomarca salvas com sucesso!');
+    UI.toast('Configurações Fiscais e da Loja salvas com sucesso!');
+  }
+
+  function abrirModalPreviaDanfeNfce() {
+    const c = cfg();
+    const vendaTeste = {
+      numero: (c.ultimoCupom || 1) + 1,
+      numeroComanda: DB.obterProximoNumeroComanda(),
+      data: new Date().toISOString(),
+      itens: [
+        { produtoId: 'p-1', nome: 'Água Mineral 500ml', preco: 5.00, qtd: 2 },
+        { produtoId: 'p-2', nome: 'Pastel de Camarão', preco: 18.00, qtd: 1 },
+        { produtoId: 'p-3', nome: 'Cerveja Long Neck', preco: 12.00, qtd: 1 }
+      ],
+      subtotal: 40.00,
+      desconto: 2.00,
+      total: 38.00,
+      pagamento: 'debito'
+    };
+    const fiscalData = Fiscal.processarVendaSmartpos(vendaTeste, c);
+    const htmlDanfe = Fiscal.montarDanfeNfceHtml(vendaTeste, { ...c, larguraCupom: 58 }, fiscalData);
+
+    UI.abrirModal({
+      titulo: 'Prévia DANFE NFC-e (Bobina 58mm Maquininha)',
+      largo: false,
+      corpo: `
+        <div style="background:var(--afundado);padding:10px;border-radius:8px;margin-bottom:12px;font-size:12px;color:var(--tinta-2)">
+          Esta é a visualização exata do cupom fiscal emitido pela maquininha <b>${Fiscal.obterAdquirente(c.adquirenteFiscal).nome}</b> na bobina estreita (58mm), com QR Code SEFAZ e vinculação TEF.
+        </div>
+        <div style="display:flex;justify-content:center;background:#e5e7eb;padding:16px;border-radius:12px">
+          <iframe id="iframe-previa-danfe" style="width:300px;height:520px;border:none;background:#fff;border-radius:6px;box-shadow:0 4px 14px rgba(0,0,0,0.15)"></iframe>
+        </div>`,
+      rodape: `
+        <button class="btn-secundario" id="btn-fechar-previa-danfe">Fechar</button>
+        <button class="btn-primario" id="btn-imprimir-previa-danfe">
+          ${UI.icone('imprimir')} Imprimir Teste na Bobina
+        </button>`
+    });
+
+    const iframe = document.querySelector('#iframe-previa-danfe');
+    if (iframe) {
+      setTimeout(() => {
+        iframe.contentDocument.open();
+        iframe.contentDocument.write(htmlDanfe);
+        iframe.contentDocument.close();
+      }, 50);
+    }
+
+    const btnFechar = document.querySelector('#btn-fechar-previa-danfe');
+    if (btnFechar) btnFechar.onclick = UI.fecharModal;
+
+    const btnImp = document.querySelector('#btn-imprimir-previa-danfe');
+    if (btnImp) {
+      btnImp.onclick = async () => {
+        const ok = await Printer.imprimir(htmlDanfe, { ...c, larguraCupom: 58 }, 'caixa');
+        UI.toast(ok ? 'Cupom fiscal enviado para a impressora!' : 'Falha ao imprimir na impressora', ok ? 'ok' : 'erro');
+      };
+    }
   }
 
   /* ================== SIMULADOR / PRÉVIA DE IMPRESSÃO TÉRMICA REAL ================== */
@@ -3798,6 +3963,19 @@ ${emailRemetente ? `E-mail de contato: ${emailRemetente}` : ''}`;
       const ok = await Printer.imprimir(html, cfg(), 'cozinha');
       UI.toast(ok ? 'Teste enviado para a impressora da Cozinha' : 'Impressão de teste não concluída', ok ? 'ok' : 'erro');
     };
+
+    // Ações Fiscais e SmartPOS (Opção C)
+    if ($('#btn-previa-danfe-58mm')) {
+      $('#btn-previa-danfe-58mm').onclick = abrirModalPreviaDanfeNfce;
+    }
+    if ($('#btn-teste-danfe-imprimir')) {
+      $('#btn-teste-danfe-imprimir').onclick = async () => {
+        const c = cfg();
+        const html = Printer.montarTeste('fiscal', c);
+        const ok = await Printer.imprimir(html, { ...c, larguraCupom: 58 }, 'caixa');
+        UI.toast(ok ? 'Cupom fiscal de teste enviado para a impressora!' : 'Falha ao imprimir teste fiscal', ok ? 'ok' : 'erro');
+      };
+    }
 
     // Botões de prévia térmica visual (Cliente & Cozinha)
     const btnPreviaGeral = $('#btn-abrir-previa-impressao');

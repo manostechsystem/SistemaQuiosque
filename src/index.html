@@ -830,6 +830,131 @@
               </div>
             </details>
 
+            <!-- EMISSOR FISCAL & MAQUININHA SMARTPOS (OPÇÃO C — ADQUIRENTE) -->
+            <div class="painel" style="border: 2px solid #0088FF; background: #FAFDFE; margin-top: 16px">
+              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+                <h3 style="margin:0;color:#0066CC;display:flex;align-items:center;gap:8px">
+                  <svg class="ic" viewBox="0 0 24 24" style="color:#0088FF"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>
+                  Maquininha de Cartão & Emissão Fiscal
+                </h3>
+                <span style="font-size:11px;font-weight:900;padding:3px 8px;background:rgba(0,136,255,0.12);color:#0066CC;border-radius:8px">
+                  Opção C: Adquirente
+                </span>
+              </div>
+
+              <p style="font-size:12px;color:var(--tinta-2);line-height:1.4;margin-bottom:12px">
+                Emissão de NFC-e (Cupom Fiscal) e vinculação automática TEF direto na maquininha contratada pelo quiosque (PagBank, Stone, Cielo, Mercado Pago).
+              </p>
+
+              <label class="alternador" style="margin-bottom:12px;background:#fff;padding:8px 12px;border-radius:8px;border:1px solid var(--borda)">
+                <input type="checkbox" id="cfg-emissor-fiscal-ativo" />
+                <span class="alternador__pista"></span>
+                <span class="alternador__txt">Ativar Emissão Fiscal na Maquininha<small>Dispara comprovante fiscal (DANFE NFC-e) com QR Code nas vendas em cartão e PIX</small></span>
+              </label>
+
+              <div class="campo">
+                <label for="cfg-adquirente-fiscal">Adquirente / Marca da Maquininha</label>
+                <select id="cfg-adquirente-fiscal" class="campo-select">
+                  <option value="pagbank">PagBank / PagSeguro (Moderninha Smart 2 / PlugPag)</option>
+                  <option value="stone">Stone Pagamentos (Stone Smart A910/A920 / Partner)</option>
+                  <option value="cielo">Cielo LIO (Cielo LIO V2 / LIO On)</option>
+                  <option value="mercadopago">Mercado Pago (Point Smart Pax A910)</option>
+                  <option value="rede">Rede Smart (Sunmi Android)</option>
+                  <option value="generico">TEF / POS Genérico (Multi-adquirente)</option>
+                </select>
+              </div>
+
+              <div class="grid-2" style="gap:10px">
+                <div class="campo">
+                  <label for="cfg-modelo-maquininha">Dispositivo</label>
+                  <select id="cfg-modelo-maquininha" class="campo-select">
+                    <option value="smartpos">SmartPOS Android (Na própria máquina)</option>
+                    <option value="tef_pc">TEF no Computador (Pinpad USB / POS)</option>
+                  </select>
+                </div>
+                <div class="campo">
+                  <label for="cfg-ambiente-fiscal">Ambiente SEFAZ</label>
+                  <select id="cfg-ambiente-fiscal" class="campo-select">
+                    <option value="homologacao">Homologação (Testes sem valor)</option>
+                    <option value="producao">Produção (Oficial com validade jurídica)</option>
+                  </select>
+                </div>
+              </div>
+
+              <!-- DADOS FISCAIS DO CLIENTE / CNPJ DELE -->
+              <div style="background:#fff;padding:10px;border-radius:8px;border:1px dashed var(--borda);margin-top:10px">
+                <div style="font-size:11px;font-weight:800;color:var(--primaria-forte);margin-bottom:8px;text-transform:uppercase">
+                  Identidade Fiscal da Empresa (CNPJ do Cliente)
+                </div>
+                <div class="campo">
+                  <label for="cfg-razao-social">Razão Social Oficial</label>
+                  <input type="text" id="cfg-razao-social" placeholder="Razão social registrada na Receita Federal" />
+                </div>
+                <div class="grid-2" style="gap:10px">
+                  <div class="campo">
+                    <label for="cfg-nome-fantasia">Nome Fantasia</label>
+                    <input type="text" id="cfg-nome-fantasia" placeholder="Nome comercial" />
+                  </div>
+                  <div class="campo">
+                    <label for="cfg-ie">Inscrição Estadual (IE)</label>
+                    <input type="text" id="cfg-ie" placeholder="Ex.: 258.987.123 ou ISENTO" />
+                  </div>
+                </div>
+                <div class="grid-2" style="gap:10px">
+                  <div class="campo">
+                    <label for="cfg-regime-tributario">Regime Tributário</label>
+                    <select id="cfg-regime-tributario" class="campo-select">
+                      <option value="1">1 - Simples Nacional (MEI / ME / EPP)</option>
+                      <option value="3">3 - Regime Normal (Lucro Presumido / Real)</option>
+                    </select>
+                  </div>
+                  <div class="campo">
+                    <label for="cfg-uf-emitente">UF do Estado</label>
+                    <select id="cfg-uf-emitente" class="campo-select">
+                      <option value="SC">SC - Santa Catarina</option>
+                      <option value="SP">SP - São Paulo</option>
+                      <option value="RJ">RJ - Rio de Janeiro</option>
+                      <option value="PR">PR - Paraná</option>
+                      <option value="RS">RS - Rio Grande do Sul</option>
+                      <option value="MG">MG - Minas Gerais</option>
+                      <option value="BA">BA - Bahia</option>
+                      <option value="OUTRO">Outro Estado</option>
+                    </select>
+                  </div>
+                </div>
+                <div class="grid-2" style="gap:10px">
+                  <div class="campo">
+                    <label for="cfg-csc-token-id">ID do CSC / Token</label>
+                    <input type="text" id="cfg-csc-token-id" placeholder="Ex.: 000001" />
+                  </div>
+                  <div class="campo">
+                    <label for="cfg-csc-codigo">Código de Segurança CSC</label>
+                    <input type="text" id="cfg-csc-codigo" placeholder="Chave CSC gerada na SEFAZ" />
+                  </div>
+                </div>
+                <div class="campo" style="margin-top:6px">
+                  <label for="cfg-aliquota-ibpt">Alíquota Média de Impostos IBPT (%) <small style="text-transform:none;font-weight:normal">- Lei 12.741/2012</small></label>
+                  <input type="number" id="cfg-aliquota-ibpt" step="0.05" value="4.25" placeholder="4.25" style="width:120px" />
+                </div>
+              </div>
+
+              <!-- TERMO DE ISENÇÃO E AUTONOMIA JURÍDICA -->
+              <div style="margin-top:10px;background:rgba(0,0,0,0.03);padding:8px 10px;border-radius:6px;font-size:11px;color:var(--tinta-2);line-height:1.4">
+                ⚖️ <b>Autonomia do Contribuinte:</b> O ManosTech System é um sistema de licença vitalícia. As obrigações tributárias, contratos com adquirentes e credenciamento SEFAZ pertencem exclusivamente ao CNPJ do cliente.
+              </div>
+
+              <div style="display:flex;gap:8px;margin-top:12px">
+                <button class="btn-secundario" id="btn-previa-danfe-58mm" type="button" style="flex:1;justify-content:center;font-weight:700">
+                  <svg class="ic" viewBox="0 0 24 24"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>
+                  Ver Prévia DANFE NFC-e (58mm)
+                </button>
+                <button class="btn-secundario" id="btn-teste-danfe-imprimir" type="button" style="flex:1;justify-content:center;font-weight:700">
+                  <svg class="ic" viewBox="0 0 24 24"><path d="M6 9V3h12v6"/><rect x="6" y="14" width="12" height="7"/><path d="M6 18H4a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v3a2 2 0 0 1-2 2h-2"/></svg>
+                  Imprimir Teste Fiscal
+                </button>
+              </div>
+            </div>
+
             <!-- NUVEM CLOUDFLARE & DISASTER RECOVERY POR CNPJ -->
             <div class="painel" style="border: 2px solid var(--primaria); background: #FFFDF9">
               <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">

@@ -65,6 +65,13 @@ const Printer = (() => {
   }
 
   function montarCupom(venda, config, extra = {}) {
+    // Se o emissor fiscal da maquininha estiver ativo e a venda for fiscal, gera DANFE NFC-e
+    if (config && config.emissorFiscalAtivo && (extra.fiscal || venda.fiscal || extra.dadosFiscais)) {
+      if (typeof Fiscal !== 'undefined' && Fiscal.montarDanfeNfceHtml) {
+        return Fiscal.montarDanfeNfceHtml(venda, config, extra.dadosFiscais || extra);
+      }
+    }
+
     const pagamento = PAGAMENTOS[venda.pagamento] || venda.pagamento;
     const descontoHTML = venda.desconto > 0
       ? `<div class="linha"><span>Desconto</span><span>-${dinheiro(venda.desconto)}</span></div>
@@ -298,6 +305,25 @@ const Printer = (() => {
       ];
       return montarComandaCozinha(vendaFake, itensFake, config);
     }
+    if (tipo === 'fiscal' || tipo === 'danfe') {
+      const vendaFake = {
+        numero: 42,
+        numeroComanda: 12,
+        data: new Date().toISOString(),
+        itens: [
+          { produtoId: 'p-1', nome: 'Água Mineral 500ml', preco: 5, qtd: 2 },
+          { produtoId: 'p-2', nome: 'Pastel de Camarão Especial', preco: 18, qtd: 1 }
+        ],
+        subtotal: 28,
+        desconto: 0,
+        total: 28,
+        pagamento: 'debito'
+      };
+      if (typeof Fiscal !== 'undefined' && Fiscal.processarVendaSmartpos) {
+        const fiscalData = Fiscal.processarVendaSmartpos(vendaFake, config);
+        return Fiscal.montarDanfeNfceHtml(vendaFake, config, fiscalData);
+      }
+    }
     const vendaFake = {
       numero: 999,
       data: new Date().toISOString(),
@@ -310,6 +336,13 @@ const Printer = (() => {
       troco: 0
     };
     return montarCupom(vendaFake, config);
+  }
+
+  function montarDanfeNfce(venda, config, fiscalData) {
+    if (typeof Fiscal !== 'undefined' && Fiscal.montarDanfeNfceHtml) {
+      return Fiscal.montarDanfeNfceHtml(venda, config, fiscalData);
+    }
+    return montarCupom(venda, config, fiscalData);
   }
 
   async function imprimir(html, config, destino = 'caixa') {
@@ -334,5 +367,5 @@ const Printer = (() => {
     }
   }
 
-  return { imprimir, montarCupom, montarComandaCozinha, montarFechamento, montarTeste, PAGAMENTOS };
+  return { imprimir, montarCupom, montarDanfeNfce, montarComandaCozinha, montarFechamento, montarTeste, PAGAMENTOS };
 })();

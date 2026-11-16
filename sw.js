@@ -6,6 +6,7 @@ const ASSETS_STATICOS = [
   'index.html',
   'browser-mock.js',
   'db.js',
+  'fiscal.js',
   'manifest.webmanifest',
   'assets/manostech-icon.png',
   'assets/manostech-logo.png',

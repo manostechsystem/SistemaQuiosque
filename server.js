@@ -55,6 +55,26 @@ const server = http.createServer((req, res) => {
   const urlObj = new URL(req.url, `http://${req.headers.host || 'localhost'}`);
   const pathname = urlObj.pathname;
 
+  // Endpoint de Geração de QR Code Fiscal (SEFAZ / Maquininha)
+  if (pathname === '/api/fiscal/qrcode') {
+    const texto = urlObj.searchParams.get('texto') || '';
+    if (!texto) {
+      res.writeHead(400, { 'Content-Type': 'application/json; charset=utf-8' });
+      res.end(JSON.stringify({ erro: 'Texto não informado' }));
+      return;
+    }
+    QRCode.toDataURL(texto, { margin: 1, width: 260 }, (err, dataUrl) => {
+      if (err) {
+        res.writeHead(500, { 'Content-Type': 'application/json; charset=utf-8' });
+        res.end(JSON.stringify({ erro: err.message }));
+        return;
+      }
+      res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
+      res.end(JSON.stringify({ ok: true, dataUrl }));
+    });
+    return;
+  }
+
   // Endpoint de Informações de Versão e Auto-Update do APK
   if (pathname === '/api/app-version') {
     let pkg = { version: '2.5.0' };

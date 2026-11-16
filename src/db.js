@@ -52,7 +52,23 @@ const DB = (() => {
       imprimirLogoCupom: true,
       emailContabilidade: '',
       emailRemetenteFiscal: '',
-      nomeRemetenteFiscal: ''
+      nomeRemetenteFiscal: '',
+      // Configurações Fiscais e SmartPOS (Opção C - Adquirente)
+      emissorFiscalAtivo: false,
+      adquirenteFiscal: 'pagbank', // 'pagbank', 'stone', 'cielo', 'mercadopago', 'rede', 'generico'
+      modeloMaquininha: 'smartpos', // 'smartpos', 'tef_pc'
+      razaoSocial: '',
+      nomeFantasia: '',
+      inscricaoEstadual: '',
+      regimeTributario: '1', // 1 = Simples Nacional
+      ufEmitente: 'SC',
+      municipioEmitente: 'Florianópolis',
+      cscTokenId: '000001',
+      cscCodigo: '',
+      ambienteFiscal: 'homologacao', // 'homologacao' ou 'producao'
+      aliquotaIbptPadrao: 4.25,
+      imprimirDanfeNfce: true,
+      termoIsencaoAceito: true
     }
   };
 
@@ -361,7 +377,12 @@ const DB = (() => {
       estoqueMinimo: dados.estoqueMinimo != null && !isNaN(dados.estoqueMinimo) ? Math.max(0, Number(dados.estoqueMinimo)) : 5,
       vaiParaCozinha: !!dados.vaiParaCozinha,
       acessoRapido: !!dados.acessoRapido,
-      opcoes: Array.isArray(dados.opcoes) ? dados.opcoes : null
+      opcoes: Array.isArray(dados.opcoes) ? dados.opcoes : null,
+      // Campos Fiscais para Maquininha / NFC-e (Opção C)
+      ncm: (dados.ncm || '').trim().replace(/\D/g, '') || '22021000',
+      cfop: (dados.cfop || '').trim().replace(/\D/g, '') || '5102',
+      csosn: (dados.csosn || '').trim().replace(/\D/g, '') || '102',
+      unidadeTributavel: (dados.unidadeTributavel || 'UN').trim().toUpperCase()
     };
     if (!base.nome) throw new Error('Informe o nome do produto.');
     if (!(base.preco > 0)) throw new Error('Informe um preço maior que zero.');
@@ -517,7 +538,7 @@ const DB = (() => {
   }
 
   /* --------- vendas --------- */
-  function registrarVenda({ itens, desconto, pagamento, recebido, operador, cliente, obsCozinha }) {
+  function registrarVenda({ itens, desconto, pagamento, recebido, operador, cliente, obsCozinha, dadosFiscais }) {
     if (!itens.length) throw new Error('Carrinho vazio.');
     const cx = caixaAberto();
     if (!cx) throw new Error('Abra o caixa para vender.');
@@ -549,6 +570,19 @@ const DB = (() => {
       cliente: (cliente || '').trim(),
       obsCozinha: (obsCozinha || '').trim()
     };
+
+    if (dadosFiscais && dadosFiscais.fiscal) {
+      venda.fiscal = true;
+      venda.chaveNfce = dadosFiscais.chave;
+      venda.chaveFormatada = dadosFiscais.chaveFormatada;
+      venda.protocoloNfce = dadosFiscais.protocolo;
+      venda.cAut = dadosFiscais.cAut;
+      venda.nsu = dadosFiscais.nsu;
+      venda.bandeira = dadosFiscais.bandeiraNome;
+      venda.adquirente = dadosFiscais.adquirenteNome;
+      venda.tributosAprox = dadosFiscais.tributosAprox;
+      venda.dadosFiscais = dadosFiscais;
+    }
 
     estado.vendas.push(venda);
     estado.config.ultimoCupom = numero;

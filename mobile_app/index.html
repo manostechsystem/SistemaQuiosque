@@ -2556,8 +2556,10 @@
                 <div class="venda-live-card__itens">${itensTexto}</div>
                 <div class="venda-live-card__rodape">
                   <span>Operador: <b>${v.operador || 'Caixa'}</b> ${v.cliente ? `· ${v.cliente}` : ''}</span>
-                  <span style="font-weight:900;color:var(--tinta);font-size:15px">
-                    ${DB.moeda(v.total)} <span class="badge-estoque badge-estoque--ok" style="font-size:11.5px">${nomesPag[v.pagamento] || v.pagamento}</span>
+                  <span style="font-weight:900;color:var(--tinta);font-size:15px;display:inline-flex;align-items:center;gap:6px">
+                    ${DB.moeda(v.total)} 
+                    <span class="badge-estoque badge-estoque--ok" style="font-size:11.5px">${nomesPag[v.pagamento] || v.pagamento}</span>
+                    ${v.fiscal || v.chaveNfce ? `<span class="badge-estoque" style="font-size:10px;background:rgba(0,210,255,0.18);color:var(--mar);font-weight:800" title="NFC-e Autorizada: ${v.chaveNfce || ''}">NFC-e</span>` : ''}
                   </span>
                 </div>
               </div>
