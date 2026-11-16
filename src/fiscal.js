@@ -823,7 +823,7 @@ const Fiscal = (() => {
         <indFinal>1</indFinal>
         <indPres>1</indPres>
         <procEmi>0</procEmi>
-        <verProc>2.5.0</verProc>
+        <verProc>2.5.1</verProc>
       </ide>
       <emit>
         <CNPJ>${cnpjEmit}</CNPJ>

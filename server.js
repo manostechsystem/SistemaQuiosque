@@ -77,12 +77,12 @@ const server = http.createServer((req, res) => {
 
   // Endpoint de Informações de Versão e Auto-Update do APK
   if (pathname === '/api/app-version') {
-    let pkg = { version: '2.5.0' };
+    let pkg = { version: '2.5.1' };
     try {
       pkg = JSON.parse(fs.readFileSync(path.join(__dirname, 'package.json'), 'utf8'));
     } catch {}
 
-    const vAtual = pkg.version || '2.5.0';
+    const vAtual = pkg.version || '2.5.1';
     const apkLocal = path.join(__dirname, 'dist_mobile', 'ManosTech-System.apk');
     const temApkLocal = fs.existsSync(apkLocal);
     const directApkUrl = `https://github.com/manostechsystem/SistemaQuiosque/releases/download/v${vAtual}/ManosTech-System.apk`;
@@ -302,6 +302,8 @@ const server = http.createServer((req, res) => {
 
   if (pathname === '/api/download-exe') {
     const possiveisExe = [
+      path.join(__dirname, 'dist', 'ManosTech System Setup 2.5.1.exe'),
+      path.join(__dirname, 'dist', 'ManosTech System 2.5.1.exe'),
       path.join(__dirname, 'dist', 'ManosTech System Setup 2.5.0.exe'),
       path.join(__dirname, 'dist', 'ManosTech System 2.5.0.exe'),
       path.join(__dirname, 'dist', 'ManosTech System Setup 2.4.9.exe'),
