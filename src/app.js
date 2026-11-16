@@ -4018,7 +4018,7 @@ ${emailRemetente ? `E-mail de contato: ${emailRemetente}` : ''}`;
 
     // ==================== VERIFICAÇÃO REAL DE ATUALIZAÇÕES (MANOSTECH SYSTEM) ====================
     async function checarAtualizacoesSistema(manual = true) {
-      let versaoLocal = '2.4.7';
+      let versaoLocal = '2.4.8';
       try {
         const respLoc = await fetch(apiUrl('/api/app-version'), { cache: 'no-store' });
         if (respLoc.ok) {
