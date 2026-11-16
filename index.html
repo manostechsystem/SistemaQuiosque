@@ -1456,88 +1456,153 @@
       const $ = s => document.querySelector(s);
       const $$ = s => document.querySelectorAll(s);
 
-      /* ==================== SINTETIZADOR E TOCADOR DE SONS ==================== */
+      /* ==================== SINTETIZADOR E TOCADOR DE SONS (SAFARI & APK RESILIENTE) ==================== */
       const SomAlerta = {
         ctx: null,
+        desbloqueado: false,
+        pool: {},
+
         obterCtx() {
           if (!this.ctx) {
             const AudioCtx = window.AudioContext || window.webkitAudioContext;
-            if (AudioCtx) this.ctx = new AudioCtx();
+            if (AudioCtx) {
+              this.ctx = new AudioCtx();
+            }
           }
           if (this.ctx && this.ctx.state === 'suspended') {
-            this.ctx.resume();
+            this.ctx.resume().catch(() => {});
           }
           return this.ctx;
         },
+
+        desbloquearGlobal() {
+          if (this.desbloqueado) return;
+          this.desbloqueado = true;
+
+          // 1. Desbloqueia Web Audio Context (Safari iOS + Android WebView)
+          try {
+            const c = this.obterCtx();
+            if (c) {
+              const buf = c.createBuffer(1, 1, 22050);
+              const src = c.createBufferSource();
+              src.buffer = buf;
+              src.connect(c.destination);
+              src.start(0);
+              if (c.state === 'suspended') c.resume();
+            }
+          } catch {}
+
+          // 2. Pré-instancia os elementos de áudio para estarem prontos no cache de hardware
+          try {
+            const criarAudio = (caminho) => {
+              const a = new Audio(caminho);
+              a.preload = 'auto';
+              try { a.load(); } catch {}
+              return a;
+            };
+            this.pool.caixa_oficial = criarAudio('assets/som-venda-caixa.mp3');
+            this.pool.voz_quiosque = criarAudio('assets/som-venda-voz.mp3');
+            this.pool.sirene_oficial = criarAudio('assets/som-estoque-critico.mp3');
+
+            // Safari iOS requer que um play()/pause() silencioso ocorra no gesto do usuário
+            const silent = new Audio('data:audio/wav;base64,UklGRigAAABXQVZFZm10IBIAAAABAAEARKwAAIhYAQACABAAAABkYXRhAgAAAAEA');
+            silent.play().then(() => {
+              silent.pause();
+              silent.currentTime = 0;
+            }).catch(() => {});
+          } catch {}
+
+          console.log('[AUDIO] Sistema de som desbloqueado com sucesso para Safari e APK!');
+        },
+
         tocar(tipo) {
           if (tipo === 'silencioso') return;
 
-          // Som 1 Oficial: Caixa Registradora (Cha-ching!)
-          if (tipo === 'caixa_oficial' || tipo === 'caixa') {
+          // Garante que o contexto de áudio seja acordado
+          this.obterCtx();
+
+          // Toca beep nativo no APK se disponível
+          if (window.navigator && window.navigator.notification && typeof window.navigator.notification.beep === 'function') {
+            try { window.navigator.notification.beep(1); } catch {}
+          }
+
+          // Mapeamento para os elementos do pool
+          const chaveAudio = (tipo === 'caixa' || tipo === 'caixa_oficial') ? 'caixa_oficial' :
+                             (tipo === 'voz' || tipo === 'voz_quiosque') ? 'voz_quiosque' :
+                             (tipo === 'alarme' || tipo === 'sirene_oficial') ? 'sirene_oficial' : null;
+
+          if (chaveAudio && this.pool[chaveAudio]) {
             try {
-              const a = new Audio('assets/som-venda-caixa.mp3');
-              a.play().catch(() => this.tocarSintetizado('caixa'));
-              return;
+              const a = this.pool[chaveAudio];
+              a.currentTime = 0;
+              const promessa = a.play();
+              if (promessa && typeof promessa.then === 'function') {
+                promessa.catch(() => {
+                  // Se o Safari ou o APK bloquear o arquivo MP3, usa o sintetizador Web Audio nativo
+                  this.tocarSintetizado(tipo);
+                });
+                return;
+              }
             } catch {
-              this.tocarSintetizado('caixa');
+              this.tocarSintetizado(tipo);
               return;
             }
           }
 
-          // Som 2 Oficial: Voz do Quiosque ("Vou vender de novo essa peste!")
-          if (tipo === 'voz_quiosque') {
-            try {
-              const a = new Audio('assets/som-venda-voz.mp3');
-              a.play().catch(() => this.tocarSintetizado('caixa'));
-              return;
-            } catch {
-              this.tocarSintetizado('caixa');
-              return;
-            }
-          }
-
-          // Som 3 Oficial: Sirene de Estoque Crítico
-          if (tipo === 'sirene_oficial' || tipo === 'alarme') {
-            try {
-              const a = new Audio('assets/som-estoque-critico.mp3');
-              a.play().catch(() => this.tocarSintetizado('alarme'));
-              return;
-            } catch {
-              this.tocarSintetizado('alarme');
-              return;
-            }
-          }
-
+          // Se não houver elemento no pool ou se for som sintetizado (sino, bip):
           this.tocarSintetizado(tipo);
         },
+
         tocarSintetizado(tipo) {
           const c = this.obterCtx();
           if (!c) return;
+
+          // Se estiver suspenso, força o resume
+          if (c.state === 'suspended') {
+            c.resume().then(() => this._executarSintese(c, tipo)).catch(() => {});
+            return;
+          }
+          this._executarSintese(c, tipo);
+        },
+
+        _executarSintese(c, tipo) {
           const t = c.currentTime;
 
-          if (tipo === 'caixa') {
+          if (tipo === 'caixa' || tipo === 'caixa_oficial') {
+            // Cha-Ching de Caixa Registradora de Alta Fidelidade
             const o1 = c.createOscillator();
             const o2 = c.createOscillator();
+            const o3 = c.createOscillator();
             const g1 = c.createGain();
             const g2 = c.createGain();
+            const g3 = c.createGain();
 
             o1.type = 'triangle';
-            o1.frequency.setValueAtTime(1318.51, t);
+            o1.frequency.setValueAtTime(987.77, t);
             o1.frequency.exponentialRampToValueAtTime(1760, t + 0.12);
-            g1.gain.setValueAtTime(0.3, t);
-            g1.gain.exponentialRampToValueAtTime(0.001, t + 0.5);
+            g1.gain.setValueAtTime(0.4, t);
+            g1.gain.exponentialRampToValueAtTime(0.001, t + 0.55);
 
             o2.type = 'sine';
             o2.frequency.setValueAtTime(2637, t + 0.08);
-            g2.gain.setValueAtTime(0.35, t + 0.08);
-            g2.gain.exponentialRampToValueAtTime(0.001, t + 0.65);
+            g2.gain.setValueAtTime(0.45, t + 0.08);
+            g2.gain.exponentialRampToValueAtTime(0.001, t + 0.7);
+
+            o3.type = 'sine';
+            o3.frequency.setValueAtTime(5274, t + 0.12);
+            g3.gain.setValueAtTime(0.3, t + 0.12);
+            g3.gain.exponentialRampToValueAtTime(0.001, t + 0.4);
 
             o1.connect(g1); g1.connect(c.destination);
             o2.connect(g2); g2.connect(c.destination);
-            o1.start(t); o1.stop(t + 0.5);
-            o2.start(t + 0.08); o2.stop(t + 0.65);
+            o3.connect(g3); g3.connect(c.destination);
 
-          } else if (tipo === 'alarme') {
+            o1.start(t); o1.stop(t + 0.55);
+            o2.start(t + 0.08); o2.stop(t + 0.7);
+            o3.start(t + 0.12); o3.stop(t + 0.4);
+
+          } else if (tipo === 'alarme' || tipo === 'sirene_oficial') {
+            // Sirene de Estoque Crítico
             for (let i = 0; i < 3; i++) {
               const o = c.createOscillator();
               const g = c.createGain();
@@ -1545,36 +1610,55 @@
               o.type = 'sawtooth';
               o.frequency.setValueAtTime(880, inicio);
               o.frequency.linearRampToValueAtTime(587.33, inicio + 0.14);
-              g.gain.setValueAtTime(0.25, inicio);
+              g.gain.setValueAtTime(0.35, inicio);
               g.gain.exponentialRampToValueAtTime(0.001, inicio + 0.16);
               o.connect(g); g.connect(c.destination);
               o.start(inicio); o.stop(inicio + 0.16);
             }
 
           } else if (tipo === 'sino') {
+            // Sino de Balcão (Chime)
             const o = c.createOscillator();
+            const oHarm = c.createOscillator();
             const g = c.createGain();
+            const gHarm = c.createGain();
+
             o.type = 'sine';
-            o.frequency.setValueAtTime(783.99, t);
-            g.gain.setValueAtTime(0.3, t);
-            g.gain.exponentialRampToValueAtTime(0.001, t + 0.8);
+            o.frequency.setValueAtTime(1046.50, t);
+            g.gain.setValueAtTime(0.4, t);
+            g.gain.exponentialRampToValueAtTime(0.001, t + 1.2);
+
+            oHarm.type = 'sine';
+            oHarm.frequency.setValueAtTime(2093, t);
+            gHarm.gain.setValueAtTime(0.2, t);
+            gHarm.gain.exponentialRampToValueAtTime(0.001, t + 0.8);
+
             o.connect(g); g.connect(c.destination);
-            o.start(t); o.stop(t + 0.8);
+            oHarm.connect(gHarm); gHarm.connect(c.destination);
+
+            o.start(t); o.stop(t + 1.2);
+            oHarm.start(t); oHarm.stop(t + 0.8);
 
           } else if (tipo === 'bip') {
+            // Bip Duplo Tecnológico
             [0, 0.1].forEach(delay => {
               const o = c.createOscillator();
               const g = c.createGain();
               o.type = 'sine';
-              o.frequency.setValueAtTime(1046.50, t + delay);
-              g.gain.setValueAtTime(0.25, t + delay);
-              g.gain.exponentialRampToValueAtTime(0.001, t + delay + 0.07);
+              o.frequency.setValueAtTime(1567.98, t + delay);
+              g.gain.setValueAtTime(0.35, t + delay);
+              g.gain.exponentialRampToValueAtTime(0.001, t + delay + 0.08);
               o.connect(g); g.connect(c.destination);
-              o.start(t + delay); o.stop(t + delay + 0.07);
+              o.start(t + delay); o.stop(t + delay + 0.08);
             });
           }
         }
       };
+
+      // Desbloqueia o áudio automaticamente no primeiro toque em qualquer ponto da tela
+      ['touchstart', 'touchend', 'click', 'pointerdown'].forEach(evt => {
+        document.addEventListener(evt, () => SomAlerta.desbloquearGlobal(), { passive: true });
+      });
 
       /* ==================== CONTROLE DO MENU SANDUÍCHE LATERAL (DRAWER) ==================== */
       const drawerOverlay = $('#drawer-overlay');
@@ -1683,7 +1767,14 @@
       };
 
       function dispararPush(titulo, corpo, tag = 'alerta-adm') {
+        // Vibração física no aparelho celular (haptic feedback para Android e Safari)
+        if ('vibrate' in navigator) {
+          try { navigator.vibrate([200, 100, 200, 100, 300]); } catch {}
+        }
+
         if (!('Notification' in window) || Notification.permission !== 'granted') return;
+
+        const iconeValido = 'assets/manostech-icon.png';
 
         if (swRegistration && swRegistration.active) {
           swRegistration.active.postMessage({
@@ -1691,7 +1782,7 @@
             titulo,
             corpo,
             tag,
-            icone: '/assets/logo-topo.png'
+            icone: iconeValido
           });
         } else if (navigator.serviceWorker && navigator.serviceWorker.controller) {
           navigator.serviceWorker.controller.postMessage({
@@ -1699,14 +1790,14 @@
             titulo,
             corpo,
             tag,
-            icone: '/assets/logo-topo.png'
+            icone: iconeValido
           });
         } else {
           try {
             new Notification(titulo, {
               body: corpo,
-              icon: '/assets/logo-topo.png',
-              badge: '/assets/logo-topo.png',
+              icon: iconeValido,
+              badge: iconeValido,
               tag
             });
           } catch {}
@@ -1715,9 +1806,11 @@
 
       // Configuração de Sons
       $('#btn-testar-som-venda').onclick = () => {
+        SomAlerta.desbloquearGlobal();
         SomAlerta.tocar($('#cfg-som-venda').value);
       };
       $('#btn-testar-som-estoque').onclick = () => {
+        SomAlerta.desbloquearGlobal();
         SomAlerta.tocar($('#cfg-som-estoque').value);
       };
 
@@ -2483,7 +2576,7 @@
         if (primeiraCargaFeita) {
           vendasHoje.forEach(v => {
             if (!idsVendasConhecidas.has(v.id)) {
-              const somVenda = $('#cfg-som-venda')?.value || 'caixa_oficial';
+              const somVenda = $('#cfg-som-venda')?.value || localStorage.getItem('cfg_som_venda') || 'caixa_oficial';
               if (somVenda !== 'silencioso') SomAlerta.tocar(somVenda);
 
               const descPag = { dinheiro: 'Dinheiro', pix: 'PIX', debito: 'Débito', credito: 'Crédito' }[v.pagamento] || v.pagamento;
@@ -2500,7 +2593,7 @@
         if (primeiraCargaFeita) {
           alertasAtuais.forEach(p => {
             if (!produtosAlertaConhecidos.has(p.id)) {
-              const somEstoque = $('#cfg-som-estoque')?.value || 'sirene_oficial';
+              const somEstoque = $('#cfg-som-estoque')?.value || localStorage.getItem('cfg_som_estoque') || 'sirene_oficial';
               if (somEstoque !== 'silencioso') SomAlerta.tocar(somEstoque);
 
               dispararPush(
