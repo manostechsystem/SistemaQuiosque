@@ -856,8 +856,8 @@
       <span id="txt-status-caixa" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Conectando...</span>
     </div>
     <div style="display:flex;align-items:center;gap:6px;flex:none;margin-left:8px">
-      <span class="pulso-verde"></span>
-      <span id="txt-hora-sync" style="font-size:12px;font-weight:800">Ao Vivo</span>
+      <span class="pulso-verde" id="pulso-status-conexao"></span>
+      <span id="txt-status-conexao" style="font-size:11.5px;font-weight:800">Conectando...</span>
     </div>
   </div>
 
@@ -2796,10 +2796,51 @@
       const btnDemo = $('#btn-demo-preview');
       if (btnDemo) btnDemo.onclick = ativarModoDemo;
 
+      // Atualização em tempo real do badge de conexão (PC, Nuvem ou Offline)
+      function atualizarBadgeConexao(status) {
+        const txt = $('#txt-status-conexao');
+        const pulso = $('#pulso-status-conexao');
+        if (!txt || !pulso) return;
+
+        if (status === 'pc') {
+          txt.textContent = '🟢 PC Conectado';
+          txt.title = 'Sincronizado em tempo real com o computador da loja';
+          pulso.style.background = '#22c55e';
+          pulso.style.boxShadow = '0 0 8px #22c55e';
+        } else if (status === 'nuvem') {
+          txt.textContent = '☁️ Nuvem (PC Desligado)';
+          txt.title = 'Computador da loja desligado. Operando sincronizado via Nuvem Cloudflare.';
+          pulso.style.background = '#00d2ff';
+          pulso.style.boxShadow = '0 0 8px #00d2ff';
+        } else if (status === 'offline') {
+          txt.textContent = '⚡ Modo Offline';
+          txt.title = 'Sem conexão com o PC ou internet. Operando 100% com dados locais no aparelho.';
+          pulso.style.background = '#f59e0b';
+          pulso.style.boxShadow = '0 0 8px #f59e0b';
+        }
+      }
+
+      window.addEventListener('manostech:conexao-mudou', e => {
+        atualizarBadgeConexao(e.detail?.status || window.pdvStatusConexao);
+      });
+
       // Inicialização
       async function iniciar() {
         aplicarTemaMob(localStorage.getItem('manostech_tema') || 'manostech', false);
         const params = new URLSearchParams(window.location.search);
+
+        // Captura e armazena CNPJ / Loja passados via URL para acesso sem dependência do PC
+        if (params.has('cnpj')) {
+          try {
+            const raw = localStorage.getItem('manostech_system_pdv_dados');
+            const d = raw ? JSON.parse(raw) : { config: {} };
+            d.config = d.config || {};
+            d.config.cnpj = params.get('cnpj');
+            if (params.has('loja')) d.config.loja = params.get('loja');
+            localStorage.setItem('manostech_system_pdv_dados', JSON.stringify(d));
+          } catch {}
+        }
+
         if (params.has('demo')) {
           ativarModoDemo();
           return;
@@ -2807,6 +2848,7 @@
         await registrarServiceWorker();
         await verificarPareamentoQrCode();
         await sincronizarTudo();
+        atualizarBadgeConexao(window.pdvStatusConexao || (navigator.onLine ? 'nuvem' : 'offline'));
         verificarLogin();
         verificarAtualizacoesApk(false);
 
@@ -2814,6 +2856,7 @@
           const ativa = await validarSessaoAtiva();
           if (ativa) {
             await sincronizarTudo();
+            atualizarBadgeConexao(window.pdvStatusConexao || (navigator.onLine ? 'nuvem' : 'offline'));
           }
         }, 6000);
       }

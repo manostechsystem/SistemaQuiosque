@@ -3338,8 +3338,9 @@ ${emailRemetente ? `E-mail de contato: ${emailRemetente}` : ''}`;
               <!-- Instruções -->
               <div style="font-size:12px;line-height:1.45;color:var(--tinta-2);text-align:left;background:var(--papel);padding:10px 12px;border-radius:10px;border:1px solid var(--borda-forte);margin-bottom:10px">
                 <div style="font-weight:800;color:var(--primaria);margin-bottom:3px">📡 Como Funciona a Conexão:</div>
-                <div style="margin-bottom:3px">📶 <b>No Wi-Fi da loja:</b> Abra o app (ou câmera) e aponte para o QR Code para conectar direto (funciona até sem internet!).</div>
-                <div>🌐 <b>No 4G / Fora da loja:</b> O app sincroniza automaticamente via Nuvem ManosTech (Cloudflare) usando o CNPJ da sua loja.</div>
+                <div style="margin-bottom:3px">📶 <b>No Wi-Fi da loja:</b> Aponte a câmera para conectar direto (funciona até sem internet!).</div>
+                <div style="margin-bottom:3px">🌐 <b>No 4G / Fora da loja:</b> Sincroniza automaticamente via Nuvem ManosTech Cloudflare.</div>
+                <div>⚡ <b>Computador Desligado:</b> O APK e a Web funcionam 100% de forma autônoma pelo cache do celular e pela Nuvem.</div>
               </div>
 
               <!-- Link direto -->
@@ -3348,6 +3349,12 @@ ${emailRemetente ? `E-mail de contato: ${emailRemetente}` : ''}`;
                 <button class="btn-secundario" id="btn-copiar-url-qrcode" type="button" style="height:34px;padding:0 10px;font-size:11.5px;font-weight:800;white-space:nowrap">
                   Copiar Link
                 </button>
+              </div>
+              ${dados.urlWebNuvem ? `
+              <div style="font-size:11px;color:var(--tinta-3);margin-top:6px;text-align:left">
+                🌐 <b>Acesso Web 24h:</b> <span style="color:var(--primaria);font-weight:800">${dados.urlWebNuvem}</span>
+              </div>
+              ` : ''}
               </div>
             </div>
 

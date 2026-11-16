@@ -216,8 +216,10 @@ const server = http.createServer((req, res) => {
         const tunnelInfo = Tunnel.obterStatus();
         const urlTunnel = tunnelInfo.urlMobile || db.config?.urlTunnel || '';
         const tokenPareamento = Dispositivos.gerarTokenPareamento();
+        const cnpjLimpo = (db.config?.cnpj || '').replace(/\D/g, '') || 'SEM_CNPJ';
         const urlBase = urlTunnel || urlLocal;
-        const urlFinal = `${urlBase}?conectar=${tokenPareamento}`;
+        const urlFinal = `${urlBase}?conectar=${tokenPareamento}&cnpj=${cnpjLimpo}&loja=${encodeURIComponent(nomeLoja)}`;
+        const urlWebNuvem = `https://manostechsystem.github.io/SistemaQuiosque/?cnpj=${cnpjLimpo}&loja=${encodeURIComponent(nomeLoja)}`;
 
         const qrCodeDataUrl = await QRCode.toDataURL(urlFinal, {
           width: 320,
@@ -238,6 +240,7 @@ const server = http.createServer((req, res) => {
           urlLocal,
           urlTunnel,
           urlFinal,
+          urlWebNuvem,
           tunnelOnline: !!urlTunnel && (tunnelInfo.status === 'online' || !!db.config?.urlTunnel),
           tunnelStatus: tunnelInfo.status,
           tokenPareamento,
