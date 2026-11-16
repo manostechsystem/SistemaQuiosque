@@ -51,11 +51,25 @@ function lerDados() {
   }
 }
 
+let debounceBackupTimer = null;
+function agendarBackupNuvem() {
+  if (debounceBackupTimer) clearTimeout(debounceBackupTimer);
+  debounceBackupTimer = setTimeout(() => {
+    try {
+      const Backup = require('./backup.js');
+      Backup.gerarBackup('alteracao_desktop');
+    } catch (e) {
+      console.warn('[MAIN] Falha ao agendar backup na nuvem:', e.message);
+    }
+  }, 1500);
+}
+
 function salvarDados(dados) {
   fs.mkdirSync(DATA_DIR, { recursive: true });
   const tmp = DATA_FILE + '.tmp';
   fs.writeFileSync(tmp, JSON.stringify(dados));
   fs.renameSync(tmp, DATA_FILE);
+  agendarBackupNuvem();
   return true;
 }
 

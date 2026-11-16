@@ -28,6 +28,18 @@ const MIME = {
   '.ogg': 'audio/ogg'
 };
 
+let debounceBackupTimer = null;
+function agendarBackupNuvem() {
+  if (debounceBackupTimer) clearTimeout(debounceBackupTimer);
+  debounceBackupTimer = setTimeout(() => {
+    try {
+      Backup.gerarBackup('sincronizacao_automatica');
+    } catch (e) {
+      console.warn('[BACKUP NUVEM] Falha ao sincronizar:', e.message);
+    }
+  }, 1500);
+}
+
 const server = http.createServer((req, res) => {
   // CORS para permitir acesso local, tunneling ou subdomínios
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -45,12 +57,12 @@ const server = http.createServer((req, res) => {
 
   // Endpoint de Informações de Versão e Auto-Update do APK
   if (pathname === '/api/app-version') {
-    let pkg = { version: '2.4.8' };
+    let pkg = { version: '2.4.9' };
     try {
       pkg = JSON.parse(fs.readFileSync(path.join(__dirname, 'package.json'), 'utf8'));
     } catch {}
 
-    const vAtual = pkg.version || '2.4.8';
+    const vAtual = pkg.version || '2.4.9';
     const apkLocal = path.join(__dirname, 'dist_mobile', 'ManosTech-System.apk');
     const temApkLocal = fs.existsSync(apkLocal);
     const directApkUrl = `https://github.com/manostechsystem/SistemaQuiosque/releases/download/v${vAtual}/ManosTech-System.apk`;
@@ -122,6 +134,8 @@ const server = http.createServer((req, res) => {
 
           if (caixaFechouRecente) {
             Backup.gerarBackup('fechamento_caixa');
+          } else {
+            agendarBackupNuvem();
           }
 
           res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
@@ -218,8 +232,10 @@ const server = http.createServer((req, res) => {
         const tokenPareamento = Dispositivos.gerarTokenPareamento();
         const cnpjLimpo = (db.config?.cnpj || '').replace(/\D/g, '') || 'SEM_CNPJ';
         const urlBase = urlTunnel || urlLocal;
-        const urlFinal = `${urlBase}?conectar=${tokenPareamento}&cnpj=${cnpjLimpo}&loja=${encodeURIComponent(nomeLoja)}`;
         const urlWebNuvem = `https://manostechsystem.github.io/SistemaQuiosque/?cnpj=${cnpjLimpo}&loja=${encodeURIComponent(nomeLoja)}`;
+        // O QR Code principal aponta diretamente para o Web App permanente 24h na nuvem
+        // garantindo que NUNCA caia com Error 1033 mesmo se o computador for desligado!
+        const urlFinal = urlWebNuvem;
 
         const qrCodeDataUrl = await QRCode.toDataURL(urlFinal, {
           width: 320,
@@ -265,6 +281,8 @@ const server = http.createServer((req, res) => {
 
   if (pathname === '/api/download-exe') {
     const possiveisExe = [
+      path.join(__dirname, 'dist', 'ManosTech System Setup 2.4.9.exe'),
+      path.join(__dirname, 'dist', 'ManosTech System 2.4.9.exe'),
       path.join(__dirname, 'dist', 'ManosTech System Setup 2.4.8.exe'),
       path.join(__dirname, 'dist', 'ManosTech System 2.4.8.exe'),
       path.join(__dirname, 'dist', 'ManosTech System Setup 2.4.7.exe'),

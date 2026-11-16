@@ -3297,21 +3297,10 @@ ${emailRemetente ? `E-mail de contato: ${emailRemetente}` : ''}`;
         const dispositivos = dados.dispositivos || [];
         const ativosQtd = dispositivos.filter(d => d.ativo).length;
 
-        const statusBadge = dados.tunnelOnline
-          ? `<div style="display:inline-flex;align-items:center;gap:6px;padding:4px 12px;background:rgba(34,197,94,0.15);color:#22c55e;border-radius:12px;font-size:11.5px;font-weight:900;border:1px solid rgba(34,197,94,0.3);margin-bottom:8px">
-              <span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#22c55e;box-shadow:0 0 6px #22c55e"></span>
-              Link Seguro 4G Ativo (Acesso Global)
-            </div>`
-          : `<div style="display:inline-flex;align-items:center;gap:6px;padding:4px 12px;background:rgba(234,179,8,0.15);color:#eab308;border-radius:12px;font-size:11.5px;font-weight:900;border:1px solid rgba(234,179,8,0.3);margin-bottom:8px">
-              <span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#eab308"></span>
-              Iniciando Conexão Nuvem 4G...
-            </div>`;
-
-        if (!dados.tunnelOnline && document.getElementById('modal-corpo')) {
-          setTimeout(() => {
-            if (document.getElementById('modal-corpo')) recarregarModalDispositivos();
-          }, 2500);
-        }
+        const statusBadge = `<div style="display:inline-flex;align-items:center;gap:6px;padding:4px 12px;background:rgba(34,197,94,0.15);color:#22c55e;border-radius:12px;font-size:11.5px;font-weight:900;border:1px solid rgba(34,197,94,0.3);margin-bottom:8px">
+            <span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#22c55e;box-shadow:0 0 6px #22c55e"></span>
+            Acesso 24h Permanente (PC Ligado ou Desligado)
+          </div>`;
 
         elCorpo.innerHTML = `
           <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;align-items:start">
@@ -3322,10 +3311,10 @@ ${emailRemetente ? `E-mail de contato: ${emailRemetente}` : ''}`;
                 ${statusBadge}
                 <div>
                   <span style="display:inline-block;padding:5px 14px;background:rgba(0,210,255,0.15);color:var(--primaria);border-radius:12px;font-size:13px;font-weight:900;border:1px solid rgba(0,210,255,0.3)">
-                    Canal: manostech.quiosque
+                    Acesso Nuvem 24h: manostech.quiosque
                   </span>
                   <div style="font-size:11.5px;color:var(--tinta-2);margin-top:5px;font-weight:700">
-                    ${UI.escapar(dados.loja || 'ManosTech System')} · Pareamento Inteligente
+                    ${UI.escapar(dados.loja || 'ManosTech System')} · Sincronização Inteligente
                   </div>
                 </div>
               </div>
@@ -3337,22 +3326,25 @@ ${emailRemetente ? `E-mail de contato: ${emailRemetente}` : ''}`;
 
               <!-- Instruções -->
               <div style="font-size:12px;line-height:1.45;color:var(--tinta-2);text-align:left;background:var(--papel);padding:10px 12px;border-radius:10px;border:1px solid var(--borda-forte);margin-bottom:10px">
-                <div style="font-weight:800;color:var(--primaria);margin-bottom:3px">📡 Como Funciona a Conexão:</div>
-                <div style="margin-bottom:3px">📶 <b>No Wi-Fi da loja:</b> Aponte a câmera para conectar direto (funciona até sem internet!).</div>
-                <div style="margin-bottom:3px">🌐 <b>No 4G / Fora da loja:</b> Sincroniza automaticamente via Nuvem ManosTech Cloudflare.</div>
-                <div>⚡ <b>Computador Desligado:</b> O APK e a Web funcionam 100% de forma autônoma pelo cache do celular e pela Nuvem.</div>
+                <div style="font-weight:800;color:var(--primaria);margin-bottom:3px">📡 Como Funciona o Acesso Móvel:</div>
+                <div style="margin-bottom:3px">📱 <b>Aponte a câmera do celular:</b> Abre o Web App oficial 24h na Nuvem (ou instale o APK).</div>
+                <div style="margin-bottom:3px">⚡ <b>Computador Desligado:</b> O celular continua funcionando normalmente com backup em tempo real na Nuvem!</div>
+                <div>📶 <b>Sem Internet:</b> Funciona 100% offline no celular pelo cache local do sistema.</div>
               </div>
 
-              <!-- Link direto -->
+              <!-- Link direto permanente -->
               <div style="display:flex;align-items:center;gap:6px">
                 <input type="text" value="${dados.urlFinal}" id="input-url-qrcode" readonly style="flex:1;height:34px;padding:0 8px;border:1px solid var(--borda-forte);border-radius:8px;font-size:11.5px;background:var(--papel);font-weight:700;color:var(--tinta)" />
                 <button class="btn-secundario" id="btn-copiar-url-qrcode" type="button" style="height:34px;padding:0 10px;font-size:11.5px;font-weight:800;white-space:nowrap">
                   Copiar Link
                 </button>
               </div>
-              ${dados.urlWebNuvem ? `
               <div style="font-size:11px;color:var(--tinta-3);margin-top:6px;text-align:left">
-                🌐 <b>Acesso Web 24h:</b> <span style="color:var(--primaria);font-weight:800">${dados.urlWebNuvem}</span>
+                🌐 <b>Link Permanente 24h:</b> <span style="color:var(--primaria);font-weight:800">${dados.urlFinal}</span>
+              </div>
+              ${dados.urlLocal ? `
+              <div style="font-size:10.5px;color:var(--tinta-3);margin-top:3px;text-align:left">
+                📶 <i>Wi-Fi da Loja (PC ligado): ${dados.urlLocal}</i>
               </div>
               ` : ''}
               </div>
@@ -4018,7 +4010,7 @@ ${emailRemetente ? `E-mail de contato: ${emailRemetente}` : ''}`;
 
     // ==================== VERIFICAÇÃO REAL DE ATUALIZAÇÕES (MANOSTECH SYSTEM) ====================
     async function checarAtualizacoesSistema(manual = true) {
-      let versaoLocal = '2.4.8';
+      let versaoLocal = '2.4.9';
       try {
         const respLoc = await fetch(apiUrl('/api/app-version'), { cache: 'no-store' });
         if (respLoc.ok) {

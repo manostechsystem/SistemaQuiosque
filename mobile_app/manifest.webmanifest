@@ -1,0 +1,24 @@
+{
+  "name": "ManosTech System",
+  "short_name": "ManosTech System",
+  "description": "Painel Móvel de Gestão Empresarial, Estoque e Faturamento — ManosTech System",
+  "start_url": "/mobile.html",
+  "display": "standalone",
+  "background_color": "#F8F2E7",
+  "theme_color": "#23140A",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "/assets/manostech-icon.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/assets/manostech-icon.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

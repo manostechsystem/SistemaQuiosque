@@ -269,6 +269,7 @@ function gerarBackup(motivo = 'rotina') {
     // Sincroniza em segundo plano com a Nuvem Cloudflare KV (sem bloquear a resposta local)
     const envelopeCloudflare = {
       meta,
+      dados: db,
       dadosGzipBase64: bufferGzip.toString('base64')
     };
     enviarParaCloudflare(`backup_${cnpj}_${dataIso}_${motivo}`, envelopeCloudflare, DIAS_RETENCAO);

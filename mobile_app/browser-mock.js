@@ -59,8 +59,10 @@ if (!window.pdv) {
 
       // CAMADA 2: Se o computador estiver DESLIGADO, busca na Nuvem Cloudflare KV (via 4G / Internet)
       try {
+        const urlParams = new URLSearchParams(window.location.search);
+        const cnpjUrl = urlParams.get('cnpj');
         const cfgLocal = (() => { try { return JSON.parse(localStorage.getItem(STORAGE_KEY))?.config || {}; } catch { return {}; } })();
-        const cnpjLimpo = (cfgLocal.cnpj || '').replace(/\D/g, '') || 'SEM_CNPJ';
+        const cnpjLimpo = (cnpjUrl || cfgLocal.cnpj || '').replace(/\D/g, '') || 'SEM_CNPJ';
         const chavesParaTentar = [`backup_${cnpjLimpo}_latest`];
         if (cnpjLimpo !== 'SEM_CNPJ') chavesParaTentar.push('backup_SEM_CNPJ_latest');
 
@@ -75,14 +77,20 @@ if (!window.pdv) {
             const env = await resKv.json();
             let dados = null;
 
-            if (env && env.dadosGzipBase64) {
-              const raw = Uint8Array.from(atob(env.dadosGzipBase64), c => c.charCodeAt(0));
-              const ds = new Response(raw).body.pipeThrough(new DecompressionStream('gzip'));
-              const text = await new Response(ds).text();
-              const dec = JSON.parse(text);
-              dados = dec.dados || dec;
+            if (env && env.dados) {
+              dados = env.dados;
             } else if (env && (env.produtos || env.categorias || env.config)) {
               dados = env;
+            } else if (env && env.dadosGzipBase64) {
+              try {
+                if (typeof DecompressionStream !== 'undefined') {
+                  const raw = Uint8Array.from(atob(env.dadosGzipBase64), c => c.charCodeAt(0));
+                  const ds = new Response(raw).body.pipeThrough(new DecompressionStream('gzip'));
+                  const text = await new Response(ds).text();
+                  const dec = JSON.parse(text);
+                  dados = dec.dados || dec;
+                }
+              } catch (eGz) {}
             }
 
             if (dados && (dados.produtos || dados.categorias || dados.config)) {
@@ -139,7 +147,9 @@ if (!window.pdv) {
       // 3. Se o computador estiver DESLIGADO, mas o celular tiver internet (4G/Wi-Fi), salva direto na Nuvem Cloudflare KV
       if (!salvouPc && navigator.onLine) {
         try {
-          const cnpjLimpo = (dados.config?.cnpj || '').replace(/\D/g, '') || 'SEM_CNPJ';
+          const urlParams = new URLSearchParams(window.location.search);
+          const cnpjUrl = urlParams.get('cnpj');
+          const cnpjLimpo = (dados.config?.cnpj || cnpjUrl || '').replace(/\D/g, '') || 'SEM_CNPJ';
           const chaveKv = `backup_${cnpjLimpo}_latest`;
           const urlKv = `https://api.cloudflare.com/client/v4/accounts/${CF_CONFIG.acc}/storage/kv/namespaces/${CF_CONFIG.ns}/values/${chaveKv}`;
           
@@ -149,7 +159,14 @@ if (!window.pdv) {
               'Authorization': `Bearer ${CF_CONFIG.tok}`,
               'Content-Type': 'application/json'
             },
-            body: JSON.stringify(dados)
+            body: JSON.stringify({
+              meta: {
+                cnpj: cnpjLimpo,
+                data: new Date().toISOString(),
+                motivo: 'mobile_online_pc_offline'
+              },
+              dados: dados
+            })
           });
           atualizarStatusConexao('nuvem');
           console.log('[NUVEM CLOUDFLARE] Dados sincronizados diretamente com a nuvem (PC desligado).');
