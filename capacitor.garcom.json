@@ -1,0 +1,11 @@
+{
+  "appId": "com.manostech.garcom",
+  "appName": "ManosTech Garçom",
+  "webDir": "garcom_app",
+  "server": {
+    "cleartext": true,
+    "allowNavigation": [
+      "*"
+    ]
+  }
+}

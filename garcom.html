@@ -9,7 +9,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <link rel="icon" type="image/png" href="assets/manostech-icon.png">
-  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="manifest" href="manifest-garcom.webmanifest">
   <style>
     :root {
       --fundo: #0F172A;
@@ -577,10 +577,16 @@
         <div class="topo-avatar" id="avatar-inicial">G</div>
         <div class="topo-info">
           <b id="lbl-garcom-nome">Garçom</b>
-          <span id="lbl-status-rede">🟢 Conectado ao Quiosque</span>
+          <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">
+            <span id="lbl-status-rede">🟢 Conectado</span>
+            <span id="badge-turno-status" style="font-size:10px;font-weight:800;padding:2px 7px;border-radius:10px;background:var(--afundado);color:var(--tinta-2)">⚪ Fora de Turno</span>
+          </div>
         </div>
       </div>
       <div class="topo-acoes">
+        <button class="btn-topo" id="btn-ponto-rapido" title="Bater Ponto / Turno" style="width:auto;padding:0 8px;font-size:11px;font-weight:800;gap:4px">
+          ⏱️ <span id="lbl-btn-ponto">Ponto</span>
+        </button>
         <button class="btn-topo" id="btn-abrir-guia" title="Como Funciona o App">
           <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
         </button>
@@ -821,6 +827,48 @@
     </div>
   </div>
 
+  <!-- MODAL OBRIGATÓRIA: REGISTRO DE PRESENÇA / PONTO NO QUIOSQUE -->
+  <div class="modal-overlay" id="modal-bater-ponto">
+    <div class="modal-corpo" style="border-top:3px solid var(--primaria-forte);text-align:center">
+      <div style="font-size:42px;margin:4px 0 10px">⏱️</div>
+      <div class="modal-tit" style="justify-content:center;font-size:18px">
+        <span>Confirmação de Presença</span>
+      </div>
+      <p style="font-size:13px;color:var(--tinta-2);line-height:1.5;margin-bottom:14px">
+        Olá, <b id="nome-garcom-ponto">Garçom</b>! Para começar a atender mesas e enviar comandas, confirme que você está presente no quiosque.
+      </p>
+
+      <div style="background:var(--primaria-leve);border:1px dashed var(--primaria-forte);border-radius:10px;padding:12px;margin-bottom:16px;text-align:left;font-size:12px;line-height:1.5">
+        📍 <b>Local:</b> Quiosque / Praia (Rota do Forte)<br>
+        🛡️ <b>Segurança Anti-Falta:</b> Seus pedidos só podem ser lançados com o ponto ativo.
+      </div>
+
+      <button type="button" class="btn-acao" id="btn-confirmar-ponto" style="padding:14px;font-size:15px;font-weight:900">
+        ✅ Bater Ponto: Estou no Quiosque Trabalhando
+      </button>
+      <div class="aviso-erro" id="aviso-erro-ponto"></div>
+    </div>
+  </div>
+
+  <!-- MODAL DE BLOQUEIO PREVENTIVO PELO ADM (ANTI-AVACALHAÇÃO) -->
+  <div class="modal-overlay" id="modal-bloqueado">
+    <div class="modal-corpo" style="border-top:3px solid var(--alerta);text-align:center">
+      <div style="font-size:46px;margin:6px 0 10px">⛔</div>
+      <div class="modal-tit" style="justify-content:center;color:var(--alerta);font-size:18px">
+        <span>Acesso Bloqueado</span>
+      </div>
+      <p style="font-size:13.5px;color:var(--tinta);font-weight:600;line-height:1.4;margin-bottom:10px" id="txt-motivo-bloqueio">
+        Seu acesso ao aplicativo de garçom foi bloqueado pelo Administrador do quiosque.
+      </p>
+      <p style="font-size:12px;color:var(--tinta-2);line-height:1.4;margin-bottom:16px">
+        Se você está presente no quiosque, procure a gerência ou o operador de caixa para verificar sua situação.
+      </p>
+      <button type="button" class="btn-acao" id="btn-sair-bloqueado" style="background:var(--afundado);color:var(--tinta);border:1px solid var(--borda)">
+        Voltar à Tela de Login
+      </button>
+    </div>
+  </div>
+
   <script>
     (() => {
       /* ========================================================
@@ -977,6 +1025,175 @@
       }
 
       /* ========================================================
+         2.1 REGISTRO DE PRESENÇA (PONTO DO GARÇOM) & SEGURANÇA
+         ======================================================== */
+      function atualizarBarraPonto() {
+        const badge = $('#badge-turno-status');
+        const btnPonto = $('#lbl-btn-ponto');
+        if (!badge) return;
+
+        if (garcomLogado && garcomLogado.emTurno) {
+          const hora = garcomLogado.pontoEntrada ? new Date(garcomLogado.pontoEntrada).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }) : '';
+          badge.textContent = `🟢 Em Turno ${hora ? '(' + hora + ')' : ''}`;
+          badge.style.background = 'rgba(46,125,50,0.18)';
+          badge.style.color = 'var(--sucesso)';
+          if (btnPonto) btnPonto.textContent = 'Encerrar';
+          $('#modal-bater-ponto').classList.remove('aberto');
+        } else {
+          badge.textContent = '⚪ Fora de Turno';
+          badge.style.background = 'var(--afundado)';
+          badge.style.color = 'var(--tinta-2)';
+          if (btnPonto) btnPonto.textContent = 'Ponto';
+        }
+      }
+
+      function abrirModalPonto() {
+        if ($('#nome-garcom-ponto') && garcomLogado) {
+          $('#nome-garcom-ponto').textContent = garcomLogado.nome;
+        }
+        $('#aviso-erro-ponto').style.display = 'none';
+        $('#modal-bater-ponto').classList.add('aberto');
+      }
+
+      async function alternarPonto() {
+        if (!garcomLogado) return;
+        if (garcomLogado.emTurno) {
+          if (!confirm('Deseja encerrar seu turno de trabalho no quiosque agora?')) return;
+          await registrarPonto('saida');
+        } else {
+          abrirModalPonto();
+        }
+      }
+
+      async function registrarPonto(tipo = 'entrada') {
+        const erroBox = $('#aviso-erro-ponto');
+        if (erroBox) erroBox.style.display = 'none';
+        const btn = $('#btn-confirmar-ponto');
+        if (btn) { btn.disabled = true; btn.textContent = 'Registrando Presença...'; }
+
+        try {
+          const resp = await fetch('/api/garcom/bater-ponto', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ usuario: garcomLogado.usuario, tipo })
+          });
+          const res = await resp.json();
+          if (res.ok) {
+            garcomLogado.emTurno = res.emTurno;
+            garcomLogado.pontoEntrada = res.pontoEntrada;
+            localStorage.setItem('manostech_garcom_sessao', JSON.stringify(garcomLogado));
+            atualizarBarraPonto();
+            toast(res.mensagem || 'Presença confirmada!', '⏱️');
+          } else {
+            if (res.bloqueado) {
+              localStorage.removeItem('manostech_garcom_sessao');
+              $('#modal-bater-ponto').classList.remove('aberto');
+              $('#txt-motivo-bloqueio').textContent = res.erro || 'Acesso bloqueado.';
+              $('#modal-bloqueado').classList.add('aberto');
+              return;
+            }
+            if (erroBox) {
+              erroBox.textContent = res.erro || 'Falha ao registrar ponto.';
+              erroBox.style.display = 'block';
+            }
+          }
+        } catch (err) {
+          if (erroBox) {
+            erroBox.textContent = 'Erro ao conectar ao servidor.';
+            erroBox.style.display = 'block';
+          }
+          autoDescobrirNovoTunnel();
+        } finally {
+          if (btn) { btn.disabled = false; btn.textContent = '✅ Bater Ponto: Estou no Quiosque Trabalhando'; }
+        }
+      }
+
+      /* Polling de Segurança em Segundo Plano (Anti-Avacalhação / Falta) */
+      let timerSeguranca = null;
+      let timerAutoTunnel = null;
+
+      function iniciarMonitoramentoSeguranca() {
+        clearInterval(timerSeguranca);
+        clearInterval(timerAutoTunnel);
+        timerSeguranca = setInterval(checarStatusSeguranca, 3500);
+        timerAutoTunnel = setInterval(autoDescobrirNovoTunnel, 10000);
+      }
+
+      async function checarStatusSeguranca() {
+        if (!garcomLogado || !garcomLogado.usuario) return;
+        try {
+          const resp = await fetch(`/api/garcom/status?usuario=${encodeURIComponent(garcomLogado.usuario)}`);
+          if (resp.status === 404 || resp.status === 401) return;
+          const dados = await resp.json();
+          if (dados.ok) {
+            if (dados.ativo === false) {
+              // Bloqueado pelo Administrador imediatamente!
+              clearInterval(timerSeguranca);
+              localStorage.removeItem('manostech_garcom_sessao');
+              $('#txt-motivo-bloqueio').textContent = dados.motivoBloqueio || 'Seu acesso foi bloqueado pelo Administrador do quiosque.';
+              $('#modal-bloqueado').classList.add('aberto');
+              $('#modal-bater-ponto').classList.remove('aberto');
+              $('#modal-revisao-pedido').classList.remove('aberto');
+              return;
+            }
+            if (garcomLogado.emTurno !== dados.emTurno) {
+              garcomLogado.emTurno = dados.emTurno;
+              garcomLogado.pontoEntrada = dados.pontoEntrada;
+              localStorage.setItem('manostech_garcom_sessao', JSON.stringify(garcomLogado));
+              atualizarBarraPonto();
+            }
+          }
+        } catch (e) {
+          autoDescobrirNovoTunnel();
+        }
+      }
+
+      /* Auto-Descoberta de Túnel Cloudflare para Resiliência no 4G */
+      let buscandoTunnel = false;
+      async function autoDescobrirNovoTunnel() {
+        if (buscandoTunnel) return;
+        buscandoTunnel = true;
+        try {
+          const ctrl = new AbortController();
+          const timer = setTimeout(() => ctrl.abort(), 1400);
+          const resp = await fetch('/api/garcom/cardapio', { cache: 'no-store', signal: ctrl.signal });
+          clearTimeout(timer);
+          if (resp.ok) {
+            $('#lbl-status-rede').innerHTML = '🟢 Conectado';
+            buscandoTunnel = false;
+            return;
+          }
+        } catch {}
+
+        $('#lbl-status-rede').innerHTML = '🟡 Buscando 4G...';
+
+        try {
+          const respGh = await fetch(`https://raw.githubusercontent.com/manostechsystem/SistemaQuiosque/main/tunnel_active.json?t=${Date.now()}`);
+          if (respGh.ok) {
+            const info = await respGh.json();
+            if (info && info.url) {
+              const urlAlvo = info.url.replace(/\/$/, '');
+              const urlAtual = window.location.origin;
+              if (!urlAtual.includes(new URL(urlAlvo).hostname)) {
+                try {
+                  const ctrl2 = new AbortController();
+                  const timer2 = setTimeout(() => ctrl2.abort(), 2000);
+                  const testeNovo = await fetch(`${urlAlvo}/api/garcom/cardapio`, { mode: 'cors', signal: ctrl2.signal });
+                  clearTimeout(timer2);
+                  if (testeNovo.ok) {
+                    console.log('[4G TUNNEL] Redirecionando garçom para o túnel ativo:', urlAlvo);
+                    window.location.replace(`${urlAlvo}/garcom.html${window.location.search}`);
+                    return;
+                  }
+                } catch {}
+              }
+            }
+          }
+        } catch {}
+        buscandoTunnel = false;
+      }
+
+      /* ========================================================
          3. INICIALIZAÇÃO DO APP E DADOS
          ======================================================== */
       async function iniciarAppGarcom() {
@@ -999,8 +1216,15 @@
         }
 
         verificarPrimeiroAcesso();
+        atualizarBarraPonto();
+        if (!garcomLogado.emTurno) {
+          abrirModalPonto();
+        }
+
         await carregarCardapio();
         await carregarMesasAbertas();
+
+        iniciarMonitoramentoSeguranca();
 
         // Atualização periódica de mesas em segundo plano (a cada 6s)
         setInterval(carregarMesasAbertas, 6000);
@@ -1142,6 +1366,12 @@
          5. CONTROLE DO PEDIDO ATUAL E BARRA FLUTUANTE
          ======================================================== */
       function adicionarItemAoPedido(p) {
+        if (!garcomLogado || !garcomLogado.emTurno) {
+          abrirModalPonto();
+          toast('Confirme presença e bata o ponto antes de adicionar itens!', '⏱️');
+          return;
+        }
+
         const mesa = ($('#input-mesa-atual').value || '').trim();
         if (!mesa) {
           toast('Por favor, informe primeiro a Mesa ou Guarda-Sol!', '🎯');
@@ -1237,6 +1467,12 @@
       }
 
       async function dispararPedidoCozinhaEcaixa() {
+        if (!garcomLogado || !garcomLogado.emTurno) {
+          abrirModalPonto();
+          toast('Você precisa bater o ponto antes de enviar o pedido!', '⏱️');
+          return;
+        }
+
         const mesa = ($('#input-mesa-atual').value || '').trim();
         const obsGeral = ($('#rev-obs').value || '').trim();
         const btn = $('#btn-confirmar-envio-cozinha');
@@ -1268,6 +1504,19 @@
             // Alterna para a visualização de mesas
             irParaAba('aba-mesas');
           } else {
+            if (res.bloqueado) {
+              localStorage.removeItem('manostech_garcom_sessao');
+              $('#modal-revisao-pedido').classList.remove('aberto');
+              $('#txt-motivo-bloqueio').textContent = res.erro || 'Acesso bloqueado pelo Administrador do quiosque.';
+              $('#modal-bloqueado').classList.add('aberto');
+              return;
+            }
+            if (res.semPonto) {
+              $('#modal-revisao-pedido').classList.remove('aberto');
+              abrirModalPonto();
+              toast(res.erro || 'Bata o ponto antes de lançar pedidos.', '⏱️');
+              return;
+            }
             alert(res.erro || 'Erro ao lançar pedido.');
           }
         } catch (e) {
@@ -1469,6 +1718,20 @@
         $('#btn-fechar-det-mesa').onclick = () => $('#modal-detalhes-mesa').classList.remove('aberto');
         $('#btn-atualizar-mesas').onclick = carregarMesasAbertas;
         $('#btn-fechar-conta-mesa').onclick = finalizarContaMesaPeloGarcom;
+
+        // Ponto & Segurança Anti-Falta
+        if ($('#btn-confirmar-ponto')) {
+          $('#btn-confirmar-ponto').onclick = () => registrarPonto('entrada');
+        }
+        if ($('#btn-ponto-rapido')) {
+          $('#btn-ponto-rapido').onclick = alternarPonto;
+        }
+        if ($('#btn-sair-bloqueado')) {
+          $('#btn-sair-bloqueado').onclick = () => {
+            $('#modal-bloqueado').classList.remove('aberto');
+            desconectar();
+          };
+        }
 
         // Escolha da Forma de Pagamento
         $$('.btn-forma-pg').forEach(btn => {

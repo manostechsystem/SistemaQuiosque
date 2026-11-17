@@ -1,0 +1,24 @@
+{
+  "name": "ManosTech Garçom",
+  "short_name": "Garçom",
+  "description": "Comanda Móvel & Atendimento de Mesas e Quiosque — ManosTech System",
+  "start_url": "/garcom.html",
+  "display": "standalone",
+  "background_color": "#0F172A",
+  "theme_color": "#0F172A",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "/assets/manostech-icon.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/assets/manostech-icon.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

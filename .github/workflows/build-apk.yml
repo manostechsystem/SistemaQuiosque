@@ -1,4 +1,4 @@
-name: Build Android APK (.apk)
+name: Build Android APKs (Gestor & Garçom)
 
 on:
   push:
@@ -6,7 +6,9 @@ on:
     paths:
       - 'src/**'
       - 'mobile_app/**'
+      - 'garcom_app/**'
       - 'capacitor.config.json'
+      - 'capacitor.garcom.json'
       - '.github/workflows/build-apk.yml'
   workflow_dispatch:
 
@@ -34,17 +36,12 @@ jobs:
           npm install
           npm install --save-dev @capacitor/core@^6.0.0 @capacitor/cli@^6.0.0 @capacitor/android@^6.0.0
 
-      - name: Initialize Android Project
+      - name: Build Gestor APK (ManosTech-System.apk)
         run: |
+          mkdir -p output_apk
           npx cap add android || true
           npx cap sync android
-
-      - name: Configure Android App Icons (ManosTech Robot Mascot)
-        run: |
-          # 1. Remove XMLs de adaptive icon v26 para garantir que o icone PNG do robo seja exibido 100% fiel
           rm -rf android/app/src/main/res/mipmap-anydpi-v26
-
-          # 2. Copia o icone do mascote para todas as densidades (ic_launcher, round e foreground)
           for dir in mdpi hdpi xhdpi xxhdpi xxxhdpi; do
             target="android/app/src/main/res/mipmap-$dir"
             if [ -d "$target" ]; then
@@ -53,30 +50,45 @@ jobs:
               cp mobile_app/assets/manostech-icon.png "$target/ic_launcher_foreground.png"
             fi
           done
-
-      - name: Configure Permissions and Cleartext Traffic
-        run: |
-          # Garante permissao de Camera para QR Code e navegacao em rede local (Cleartext HTTP)
           manifest="android/app/src/main/AndroidManifest.xml"
           if [ -f "$manifest" ]; then
             sed -i '/<application/i \    <uses-permission android:name="android.permission.CAMERA" />\n    <uses-permission android:name="android.permission.INTERNET" />\n    <uses-feature android:name="android.hardware.camera" android:required="false" />' "$manifest"
             sed -i 's/<application/<application android:usesCleartextTraffic="true"/g' "$manifest"
           fi
-
-      - name: Build Android APK (Gradle)
-        run: |
           cd android
           chmod +x gradlew
           ./gradlew assembleDebug
-
-      - name: Prepare APK Output
-        run: |
-          mkdir -p output_apk
+          cd ..
           cp android/app/build/outputs/apk/debug/app-debug.apk output_apk/ManosTech-System.apk
 
-      - name: Upload Android APK Artifact
+      - name: Build Garçom APK (ManosTech-Garcom.apk)
+        run: |
+          rm -rf android
+          npx cap add android --config capacitor.garcom.json || true
+          npx cap sync android --config capacitor.garcom.json
+          rm -rf android/app/src/main/res/mipmap-anydpi-v26
+          for dir in mdpi hdpi xhdpi xxhdpi xxxhdpi; do
+            target="android/app/src/main/res/mipmap-$dir"
+            if [ -d "$target" ]; then
+              cp garcom_app/assets/manostech-icon.png "$target/ic_launcher.png"
+              cp garcom_app/assets/manostech-icon.png "$target/ic_launcher_round.png"
+              cp garcom_app/assets/manostech-icon.png "$target/ic_launcher_foreground.png"
+            fi
+          done
+          manifest="android/app/src/main/AndroidManifest.xml"
+          if [ -f "$manifest" ]; then
+            sed -i '/<application/i \    <uses-permission android:name="android.permission.INTERNET" />' "$manifest"
+            sed -i 's/<application/<application android:usesCleartextTraffic="true"/g' "$manifest"
+          fi
+          cd android
+          chmod +x gradlew
+          ./gradlew assembleDebug
+          cd ..
+          cp android/app/build/outputs/apk/debug/app-debug.apk output_apk/ManosTech-Garcom.apk
+
+      - name: Upload Android APKs Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: ManosTech-System-Android-APK
-          path: output_apk/ManosTech-System.apk
+          name: ManosTech-Android-APKs
+          path: output_apk/*.apk
           retention-days: 30

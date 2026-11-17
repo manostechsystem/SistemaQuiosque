@@ -162,9 +162,9 @@ const server = http.createServer((req, res) => {
         const db = fs.existsSync(DATA_FILE) ? JSON.parse(fs.readFileSync(DATA_FILE, 'utf8')) : {};
         const u = String(usuario || '').trim().toLowerCase();
         const f = (db.funcionarios || []).find(x => x.usuario === u);
-        if (!f || !f.ativo) {
+        if (!f || f.ativo === false) {
           res.writeHead(401, { 'Content-Type': 'application/json; charset=utf-8' });
-          res.end(JSON.stringify({ ok: false, erro: 'Usuário não encontrado ou desativado.' }));
+          res.end(JSON.stringify({ ok: false, erro: f && f.ativo === false ? 'Acesso bloqueado pelo Administrador do quiosque.' : 'Usuário não encontrado ou desativado.' }));
           return;
         }
 
@@ -193,7 +193,10 @@ const server = http.createServer((req, res) => {
             usuario: f.usuario,
             papel: f.papel,
             podeFecharConta: !!f.podeFecharConta,
-            trocarSenhaNoPrimeiroLogin: f.trocarSenhaNoPrimeiroLogin !== false
+            trocarSenhaNoPrimeiroLogin: f.trocarSenhaNoPrimeiroLogin !== false,
+            emTurno: !!f.emTurno,
+            pontoEntrada: f.pontoEntrada || null,
+            ativo: f.ativo !== false
           }
         }));
       } catch (err) {
@@ -284,6 +287,26 @@ const server = http.createServer((req, res) => {
         const db = fs.existsSync(DATA_FILE) ? JSON.parse(fs.readFileSync(DATA_FILE, 'utf8')) : {};
         if (!db.comandasAbertas) db.comandasAbertas = [];
         if (!db.pedidosCozinhaFila) db.pedidosCozinhaFila = [];
+
+        // Validação de Segurança e Turno (Anti-Avacalhação / Falta)
+        const funcGarcom = (db.funcionarios || []).find(f => 
+          (garcomId && f.id === garcomId) || 
+          (garcom && f.usuario === String(garcom).trim().toLowerCase()) ||
+          (garcom && f.nome && f.nome.toLowerCase() === String(garcom).trim().toLowerCase())
+        );
+
+        if (funcGarcom && funcGarcom.papel === 'garcom') {
+          if (funcGarcom.ativo === false) {
+            res.writeHead(403, { 'Content-Type': 'application/json; charset=utf-8' });
+            res.end(JSON.stringify({ ok: false, bloqueado: true, erro: 'Acesso bloqueado pelo Administrador do quiosque.' }));
+            return;
+          }
+          if (!funcGarcom.emTurno) {
+            res.writeHead(403, { 'Content-Type': 'application/json; charset=utf-8' });
+            res.end(JSON.stringify({ ok: false, semPonto: true, erro: 'Você precisa bater o ponto no app antes de lançar comandas! Confirme que está no quiosque.' }));
+            return;
+          }
+        }
 
         const mesaStr = String(mesa).trim();
         const agoraIso = new Date().toISOString();
@@ -441,6 +464,187 @@ const server = http.createServer((req, res) => {
         res.end(JSON.stringify({ ok: false, erro: err.message }));
       }
     });
+    return;
+  }
+
+  // 7. Registro de Presença / Ponto do Garçom (Entrada / Saída)
+  if (pathname === '/api/garcom/bater-ponto' && req.method === 'POST') {
+    let corpo = '';
+    req.on('data', c => corpo += c);
+    req.on('end', () => {
+      try {
+        const { usuario, tipo } = JSON.parse(corpo || '{}');
+        const db = fs.existsSync(DATA_FILE) ? JSON.parse(fs.readFileSync(DATA_FILE, 'utf8')) : {};
+        const u = String(usuario || '').trim().toLowerCase();
+        const f = (db.funcionarios || []).find(x => x.usuario === u);
+        if (!f) {
+          res.writeHead(404, { 'Content-Type': 'application/json; charset=utf-8' });
+          res.end(JSON.stringify({ ok: false, erro: 'Funcionário não encontrado.' }));
+          return;
+        }
+        if (f.ativo === false) {
+          res.writeHead(403, { 'Content-Type': 'application/json; charset=utf-8' });
+          res.end(JSON.stringify({ ok: false, bloqueado: true, erro: 'Seu acesso foi bloqueado pelo Administrador do quiosque.' }));
+          return;
+        }
+
+        const agoraIso = new Date().toISOString();
+        f.pontos = f.pontos || [];
+        if (tipo === 'entrada' || tipo === 'trabalhando') {
+          f.emTurno = true;
+          f.pontoEntrada = agoraIso;
+          f.pontoSaida = null;
+          f.pontos.push({ data: agoraIso, tipo: 'entrada' });
+        } else {
+          f.emTurno = false;
+          f.pontoSaida = agoraIso;
+          f.pontos.push({ data: agoraIso, tipo: 'saida' });
+        }
+
+        fs.writeFileSync(DATA_FILE, JSON.stringify(db, null, 2), 'utf8');
+
+        res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
+        res.end(JSON.stringify({
+          ok: true,
+          emTurno: f.emTurno,
+          pontoEntrada: f.pontoEntrada,
+          pontoSaida: f.pontoSaida,
+          mensagem: f.emTurno ? 'Presença confirmada! Bom trabalho no quiosque.' : 'Turno encerrado com sucesso.'
+        }));
+      } catch (err) {
+        res.writeHead(500, { 'Content-Type': 'application/json; charset=utf-8' });
+        res.end(JSON.stringify({ ok: false, erro: err.message }));
+      }
+    });
+    return;
+  }
+
+  // 8. Consulta de Status e Presença do Garçom (Polling de Segurança no App Móvel)
+  if (pathname === '/api/garcom/status' && req.method === 'GET') {
+    const db = fs.existsSync(DATA_FILE) ? JSON.parse(fs.readFileSync(DATA_FILE, 'utf8')) : {};
+    const usuario = String(query.usuario || '').trim().toLowerCase();
+    const f = (db.funcionarios || []).find(x => x.usuario === usuario);
+    if (!f) {
+      res.writeHead(404, { 'Content-Type': 'application/json; charset=utf-8' });
+      res.end(JSON.stringify({ ok: false, erro: 'Funcionário não encontrado.' }));
+      return;
+    }
+    enviarRespostaOtimizada(req, res, 200, {
+      'Content-Type': 'application/json; charset=utf-8',
+      'Cache-Control': 'no-cache'
+    }, JSON.stringify({
+      ok: true,
+      usuario: f.usuario,
+      nome: f.nome,
+      ativo: f.ativo !== false,
+      emTurno: !!f.emTurno,
+      pontoEntrada: f.pontoEntrada || null,
+      bloqueadoEm: f.bloqueadoEm || null,
+      motivoBloqueio: f.motivoBloqueio || null
+    }));
+    return;
+  }
+
+  // 9. Bloqueio Imediato de Garçom pelo ADM / Caixa (Anti-Avacalhação / Falta)
+  if (pathname === '/api/garcom/bloquear' && req.method === 'POST') {
+    let corpo = '';
+    req.on('data', c => corpo += c);
+    req.on('end', () => {
+      try {
+        const { usuario, motivo } = JSON.parse(corpo || '{}');
+        const db = fs.existsSync(DATA_FILE) ? JSON.parse(fs.readFileSync(DATA_FILE, 'utf8')) : {};
+        const u = String(usuario || '').trim().toLowerCase();
+        const f = (db.funcionarios || []).find(x => x.usuario === u || x.id === u);
+        if (!f) {
+          res.writeHead(404, { 'Content-Type': 'application/json; charset=utf-8' });
+          res.end(JSON.stringify({ ok: false, erro: 'Funcionário não encontrado.' }));
+          return;
+        }
+        if (f.usuario === 'admin' || f.id === 'func-admin') {
+          res.writeHead(400, { 'Content-Type': 'application/json; charset=utf-8' });
+          res.end(JSON.stringify({ ok: false, erro: 'Não é possível bloquear o Administrador principal.' }));
+          return;
+        }
+
+        f.ativo = false;
+        f.emTurno = false;
+        f.bloqueadoEm = new Date().toISOString();
+        f.motivoBloqueio = motivo || 'Bloqueio preventivo pelo Administrador';
+
+        fs.writeFileSync(DATA_FILE, JSON.stringify(db, null, 2), 'utf8');
+
+        res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
+        res.end(JSON.stringify({
+          ok: true,
+          funcionario: f,
+          mensagem: `Acesso de ${f.nome} bloqueado imediatamente!`
+        }));
+      } catch (err) {
+        res.writeHead(500, { 'Content-Type': 'application/json; charset=utf-8' });
+        res.end(JSON.stringify({ ok: false, erro: err.message }));
+      }
+    });
+    return;
+  }
+
+  // 10. Desbloqueio de Garçom pelo ADM
+  if (pathname === '/api/garcom/desbloquear' && req.method === 'POST') {
+    let corpo = '';
+    req.on('data', c => corpo += c);
+    req.on('end', () => {
+      try {
+        const { usuario } = JSON.parse(corpo || '{}');
+        const db = fs.existsSync(DATA_FILE) ? JSON.parse(fs.readFileSync(DATA_FILE, 'utf8')) : {};
+        const u = String(usuario || '').trim().toLowerCase();
+        const f = (db.funcionarios || []).find(x => x.usuario === u || x.id === u);
+        if (!f) {
+          res.writeHead(404, { 'Content-Type': 'application/json; charset=utf-8' });
+          res.end(JSON.stringify({ ok: false, erro: 'Funcionário não encontrado.' }));
+          return;
+        }
+
+        f.ativo = true;
+        f.bloqueadoEm = null;
+        f.motivoBloqueio = null;
+
+        fs.writeFileSync(DATA_FILE, JSON.stringify(db, null, 2), 'utf8');
+
+        res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
+        res.end(JSON.stringify({
+          ok: true,
+          funcionario: f,
+          mensagem: `Acesso de ${f.nome} desbloqueado com sucesso!`
+        }));
+      } catch (err) {
+        res.writeHead(500, { 'Content-Type': 'application/json; charset=utf-8' });
+        res.end(JSON.stringify({ ok: false, erro: err.message }));
+      }
+    });
+    return;
+  }
+
+  // 11. Lista de Garçons e Presenças em Tempo Real para o PDV / ADM
+  if (pathname === '/api/garcom/ativos' && req.method === 'GET') {
+    const db = fs.existsSync(DATA_FILE) ? JSON.parse(fs.readFileSync(DATA_FILE, 'utf8')) : {};
+    const garcons = (db.funcionarios || [])
+      .filter(f => f.papel === 'garcom')
+      .map(f => ({
+        id: f.id,
+        nome: f.nome,
+        usuario: f.usuario,
+        ativo: f.ativo !== false,
+        emTurno: !!f.emTurno,
+        pontoEntrada: f.pontoEntrada || null,
+        pontoSaida: f.pontoSaida || null,
+        podeFecharConta: !!f.podeFecharConta,
+        bloqueadoEm: f.bloqueadoEm || null,
+        motivoBloqueio: f.motivoBloqueio || null
+      }));
+
+    enviarRespostaOtimizada(req, res, 200, {
+      'Content-Type': 'application/json; charset=utf-8',
+      'Cache-Control': 'no-cache'
+    }, JSON.stringify({ ok: true, garcons }));
     return;
   }
 

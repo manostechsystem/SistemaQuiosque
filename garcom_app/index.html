@@ -1,0 +1,1753 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>ManosTech System — Garçom & Comanda Móvel</title>
+  <meta name="theme-color" content="#0F172A">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <link rel="icon" type="image/png" href="assets/manostech-icon.png">
+  <link rel="manifest" href="manifest-garcom.webmanifest">
+  <style>
+    :root {
+      --fundo: #0F172A;
+      --papel: #1E293B;
+      --elevado: #334155;
+      --afundado: #0B1120;
+      --borda: rgba(255, 255, 255, 0.1);
+      --borda-forte: rgba(255, 255, 255, 0.2);
+      --primaria: #0284C7;
+      --primaria-forte: #38BDF8;
+      --primaria-leve: rgba(56, 189, 248, 0.15);
+      --sucesso: #10B981;
+      --sucesso-leve: rgba(16, 185, 129, 0.15);
+      --alerta: #EF4444;
+      --alerta-leve: rgba(239, 68, 68, 0.15);
+      --aviso: #F59E0B;
+      --aviso-leve: rgba(245, 158, 11, 0.15);
+      --tinta: #F8FAFC;
+      --tinta-2: #94A3B8;
+      --tinta-3: #64748B;
+      --raio: 12px;
+      --raio-p: 8px;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+      background: var(--fundo);
+      color: var(--tinta);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      user-select: none;
+      -webkit-user-select: none;
+      overflow-x: hidden;
+    }
+
+    /* Topo do Garçom */
+    .topo-garcom {
+      background: var(--papel);
+      border-bottom: 1px solid var(--borda);
+      padding: 10px 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+    .topo-perfil {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .topo-avatar {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background: var(--primaria-leve);
+      color: var(--primaria-forte);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 900;
+      font-size: 14px;
+      border: 1.5px solid var(--primaria);
+    }
+    .topo-info b { font-size: 14px; display: block; }
+    .topo-info span { font-size: 11px; color: var(--tinta-2); }
+    .topo-acoes { display: flex; gap: 8px; }
+    .btn-topo {
+      background: var(--elevado);
+      border: 1px solid var(--borda);
+      color: var(--tinta);
+      width: 36px;
+      height: 36px;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+    }
+
+    /* Navegação Inferior Touch */
+    .nav-inferior {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 60px;
+      background: var(--papel);
+      border-top: 1px solid var(--borda);
+      display: flex;
+      z-index: 90;
+    }
+    .nav-item {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 3px;
+      background: none;
+      border: none;
+      color: var(--tinta-3);
+      font-size: 11px;
+      font-weight: 700;
+      cursor: pointer;
+      position: relative;
+    }
+    .nav-item.ativo {
+      color: var(--primaria-forte);
+    }
+    .nav-item svg { width: 22px; height: 22px; }
+    .nav-badge {
+      position: absolute;
+      top: 6px;
+      right: 25%;
+      background: var(--alerta);
+      color: #fff;
+      font-size: 10px;
+      font-weight: 900;
+      padding: 1px 6px;
+      border-radius: 10px;
+    }
+
+    /* Conteúdo Principal */
+    .conteudo-app {
+      flex: 1;
+      padding: 14px;
+      padding-bottom: 120px;
+      max-width: 600px;
+      margin: 0 auto;
+      width: 100%;
+    }
+
+    /* Tour e Guia Rápido */
+    .tour-box {
+      background: linear-gradient(135deg, rgba(2, 132, 199, 0.2), rgba(15, 23, 42, 0.6));
+      border: 1.5px solid var(--primaria);
+      border-radius: var(--raio);
+      padding: 14px;
+      margin-bottom: 14px;
+      position: relative;
+    }
+    .tour-box h3 {
+      font-size: 15px;
+      color: var(--primaria-forte);
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .tour-passos {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      font-size: 11.5px;
+      color: var(--tinta);
+      line-height: 1.35;
+    }
+    .tour-passo-item {
+      background: rgba(0, 0, 0, 0.25);
+      padding: 8px;
+      border-radius: 8px;
+      border: 1px solid var(--borda);
+    }
+    .tour-passo-item b { color: var(--primaria-forte); }
+    .btn-fechar-tour {
+      margin-top: 10px;
+      width: 100%;
+      background: var(--primaria);
+      color: #fff;
+      border: none;
+      padding: 8px;
+      border-radius: 8px;
+      font-weight: 800;
+      font-size: 12px;
+      cursor: pointer;
+    }
+
+    /* Campo de Seleção da Mesa */
+    .seletor-mesa-box {
+      background: var(--papel);
+      border: 1.5px solid var(--borda-forte);
+      border-radius: var(--raio);
+      padding: 12px;
+      margin-bottom: 14px;
+    }
+    .seletor-mesa-topo {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+    }
+    .seletor-mesa-topo label {
+      font-size: 12px;
+      font-weight: 800;
+      color: var(--tinta-2);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .seletor-mesa-input {
+      width: 100%;
+      height: 48px;
+      background: var(--afundado);
+      border: 2px solid var(--primaria);
+      border-radius: 10px;
+      color: var(--tinta);
+      font-size: 18px;
+      font-weight: 900;
+      text-align: center;
+      padding: 0 12px;
+      text-transform: uppercase;
+    }
+    .atalhos-mesas {
+      display: flex;
+      gap: 6px;
+      overflow-x: auto;
+      margin-top: 8px;
+      padding-bottom: 4px;
+    }
+    .btn-atalho-mesa {
+      background: var(--elevado);
+      border: 1px solid var(--borda);
+      color: var(--tinta);
+      padding: 5px 10px;
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 800;
+      white-space: nowrap;
+      cursor: pointer;
+    }
+
+    /* Seções e Cards do Cardápio */
+    .secao-titulo {
+      font-size: 14px;
+      font-weight: 900;
+      color: var(--primaria-forte);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .grid-produtos {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-bottom: 18px;
+    }
+    .card-prod {
+      background: var(--papel);
+      border: 1.5px solid var(--borda);
+      border-radius: var(--raio);
+      padding: 12px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      gap: 8px;
+      position: relative;
+      cursor: pointer;
+      transition: transform 0.1s ease, border-color 0.1s ease;
+    }
+    .card-prod:active { transform: scale(0.97); }
+    .card-prod.esgotado {
+      opacity: 0.45;
+      cursor: not-allowed;
+      border-color: rgba(239, 68, 68, 0.4);
+    }
+    .card-prod__topo {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 6px;
+    }
+    .card-prod__nome {
+      font-size: 13.5px;
+      font-weight: 800;
+      color: var(--tinta);
+      line-height: 1.25;
+    }
+    .btn-favorito {
+      background: none;
+      border: none;
+      font-size: 16px;
+      cursor: pointer;
+      padding: 2px;
+      line-height: 1;
+    }
+    .card-prod__badge-est {
+      font-size: 10.5px;
+      font-weight: 800;
+      padding: 2px 6px;
+      border-radius: 6px;
+      align-self: flex-start;
+    }
+    .badge-disp { background: var(--sucesso-leve); color: var(--sucesso); }
+    .badge-indisp { background: var(--alerta-leve); color: var(--alerta); }
+    .card-prod__rodape {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 4px;
+    }
+    .card-prod__preco {
+      font-size: 15px;
+      font-weight: 900;
+      color: var(--primaria-forte);
+    }
+    .btn-adicionar-prod {
+      background: var(--primaria);
+      color: #fff;
+      border: none;
+      width: 32px;
+      height: 32px;
+      border-radius: 8px;
+      font-size: 18px;
+      font-weight: 900;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+    }
+    .card-prod.esgotado .btn-adicionar-prod {
+      background: var(--elevado);
+      color: var(--tinta-3);
+      cursor: not-allowed;
+    }
+
+    /* Barra Flutuante de Pedido Atual */
+    .barra-pedido-flutuante {
+      position: fixed;
+      bottom: 68px;
+      left: 12px;
+      right: 12px;
+      max-width: 576px;
+      margin: 0 auto;
+      background: var(--papel);
+      border: 2px solid var(--primaria);
+      border-radius: 14px;
+      padding: 10px 14px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.6);
+      z-index: 85;
+      animation: subirSuave 0.2s ease-out;
+    }
+    @keyframes subirSuave {
+      from { transform: translateY(20px); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+    .btn-enviar-pedido-acao {
+      background: var(--sucesso);
+      color: #fff;
+      border: none;
+      padding: 10px 16px;
+      border-radius: 10px;
+      font-size: 14px;
+      font-weight: 900;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      cursor: pointer;
+    }
+
+    /* Modais */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.75);
+      display: flex;
+      align-items: flex-end;
+      justify-content: center;
+      z-index: 200;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.2s ease;
+    }
+    .modal-overlay.aberto {
+      opacity: 1;
+      pointer-events: auto;
+    }
+    .modal-corpo {
+      background: var(--papel);
+      border-top-left-radius: 20px;
+      border-top-right-radius: 20px;
+      width: 100%;
+      max-width: 540px;
+      max-height: 85vh;
+      overflow-y: auto;
+      padding: 20px 16px 30px;
+      transform: translateY(100%);
+      transition: transform 0.25s ease-out;
+      border-top: 2px solid var(--primaria);
+    }
+    .modal-overlay.aberto .modal-corpo {
+      transform: translateY(0);
+    }
+    .modal-tit {
+      font-size: 17px;
+      font-weight: 900;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 14px;
+    }
+
+    /* Estilos de Formulários */
+    .input-padrao {
+      width: 100%;
+      height: 44px;
+      background: var(--afundado);
+      border: 1.5px solid var(--borda-forte);
+      border-radius: var(--raio-p);
+      padding: 0 12px;
+      color: var(--tinta);
+      font-size: 15px;
+      margin-top: 6px;
+    }
+    .input-padrao:focus {
+      border-color: var(--primaria-forte);
+      outline: none;
+    }
+    .campo-grupo { margin-bottom: 14px; }
+    .campo-rotulo { font-size: 12px; font-weight: 800; color: var(--tinta-2); text-transform: uppercase; }
+    .btn-acao {
+      width: 100%;
+      height: 46px;
+      background: var(--primaria);
+      color: #fff;
+      border: none;
+      border-radius: 10px;
+      font-size: 15px;
+      font-weight: 900;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+    .btn-acao:active { transform: scale(0.98); }
+
+    /* Login do Garçom */
+    .tela-login-wrapper {
+      min-height: 90vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+    }
+    .login-caixa {
+      background: var(--papel);
+      border: 1.5px solid var(--borda-forte);
+      border-radius: 18px;
+      padding: 24px 20px;
+      width: 100%;
+      max-width: 380px;
+      box-shadow: 0 15px 30px rgba(0, 0, 0, 0.4);
+    }
+    .login-logo {
+      width: 64px;
+      height: 64px;
+      border-radius: 14px;
+      object-fit: cover;
+      margin: 0 auto 12px;
+      display: block;
+      border: 2px solid var(--primaria);
+    }
+    .aviso-erro {
+      background: var(--alerta-leve);
+      color: var(--alerta);
+      border: 1px solid var(--alerta);
+      padding: 8px 12px;
+      border-radius: 8px;
+      font-size: 12px;
+      font-weight: 700;
+      margin-top: 10px;
+      display: none;
+    }
+
+    /* Toast */
+    .toast-garcom {
+      position: fixed;
+      top: 16px;
+      left: 16px;
+      right: 16px;
+      max-width: 480px;
+      margin: 0 auto;
+      background: var(--papel);
+      border: 1.5px solid var(--primaria);
+      color: var(--tinta);
+      padding: 12px 16px;
+      border-radius: 12px;
+      font-size: 13.5px;
+      font-weight: 800;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.6);
+      display: none;
+      z-index: 300;
+      align-items: center;
+      gap: 10px;
+      animation: aparecerToast 0.2s ease;
+    }
+    @keyframes aparecerToast {
+      from { transform: translateY(-20px); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- TOAST DE NOTIFICAÇÃO -->
+  <div class="toast-garcom" id="toast-garcom">
+    <span id="toast-icone">🛎️</span>
+    <span id="toast-txt" style="flex:1">Mensagem</span>
+  </div>
+
+  <!-- TELA 1: LOGIN DO GARÇOM -->
+  <div id="tela-login" class="tela-login-wrapper">
+    <div class="login-caixa">
+      <img src="assets/manostech-icon.png" alt="Logo" class="login-logo" id="login-logo-img">
+      <h2 style="text-align:center;font-size:20px;font-weight:900;margin-bottom:4px" id="login-loja-nome">ManosTech System</h2>
+      <p style="text-align:center;font-size:12px;color:var(--primaria-forte);font-weight:800;margin-bottom:20px;text-transform:uppercase;letter-spacing:1px">
+        App do Garçom & Comanda Móvel
+      </p>
+
+      <form id="form-login-garcom" onsubmit="return false;">
+        <div class="campo-grupo">
+          <label class="campo-rotulo" for="login-usuario">Usuário do Garçom</label>
+          <input type="text" id="login-usuario" class="input-padrao" placeholder="Ex.: joao" autocomplete="username" spellcheck="false" required />
+        </div>
+
+        <div class="campo-grupo">
+          <label class="campo-rotulo" for="login-senha">Senha de Acesso</label>
+          <input type="password" id="login-senha" class="input-padrao" placeholder="Digite sua senha" autocomplete="current-password" required />
+        </div>
+
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:18px">
+          <input type="checkbox" id="chk-lembrar-garcom" checked style="width:18px;height:18px;accent-color:var(--primaria)">
+          <label for="chk-lembrar-garcom" style="font-size:12.5px;color:var(--tinta-2);font-weight:700">Lembrar de mim neste celular</label>
+        </div>
+
+        <button type="submit" class="btn-acao" id="btn-entrar-garcom">
+          Entrar e Atender Mesas
+        </button>
+
+        <div class="aviso-erro" id="aviso-erro-login"></div>
+      </form>
+
+      <div style="margin-top:20px;padding-top:12px;border-top:1px dashed var(--borda);text-align:center;font-size:11px;color:var(--tinta-3)">
+        Credenciais fornecidas pelo Administrador no PDV.
+      </div>
+    </div>
+  </div>
+
+  <!-- TELA 2: APLICATIVO DO GARÇOM (APÓS LOGIN) -->
+  <div id="tela-principal" style="display:none;flex-direction:column;min-height:100vh">
+
+    <!-- BARRA SUPERIOR FIXA -->
+    <header class="topo-garcom">
+      <div class="topo-perfil">
+        <div class="topo-avatar" id="avatar-inicial">G</div>
+        <div class="topo-info">
+          <b id="lbl-garcom-nome">Garçom</b>
+          <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">
+            <span id="lbl-status-rede">🟢 Conectado</span>
+            <span id="badge-turno-status" style="font-size:10px;font-weight:800;padding:2px 7px;border-radius:10px;background:var(--afundado);color:var(--tinta-2)">⚪ Fora de Turno</span>
+          </div>
+        </div>
+      </div>
+      <div class="topo-acoes">
+        <button class="btn-topo" id="btn-ponto-rapido" title="Bater Ponto / Turno" style="width:auto;padding:0 8px;font-size:11px;font-weight:800;gap:4px">
+          ⏱️ <span id="lbl-btn-ponto">Ponto</span>
+        </button>
+        <button class="btn-topo" id="btn-abrir-guia" title="Como Funciona o App">
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+        </button>
+        <button class="btn-topo" id="btn-desconectar" title="Sair da Conta" style="color:var(--alerta)">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+        </button>
+      </div>
+    </header>
+
+    <!-- CONTEÚDO PRINCIPAL -->
+    <main class="conteudo-app">
+
+      <!-- GUIA RÁPIDO DO GARÇOM (FECHÁVEL) -->
+      <section class="tour-box" id="tour-box" style="display:none">
+        <h3>
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>
+          Guia Rápido: Como Usar o App no Quiosque
+        </h3>
+        <div class="tour-passos">
+          <div class="tour-passo-item">
+            <b>1. Escolha a Mesa:</b> Digite o número da mesa ou guarda-sol antes de lançar.
+          </div>
+          <div class="tour-passo-item">
+            <b>2. Toque nos Itens:</b> Escolha no Cardápio Rápido ou no Completo.
+          </div>
+          <div class="tour-passo-item">
+            <b>3. Envie o Pedido:</b> Vai direto para a Cozinha (apita) e soma no Caixa.
+          </div>
+          <div class="tour-passo-item">
+            <b>4. Acompanhe a Conta:</b> Veja todas as mesas abertas na aba "Mesas".
+          </div>
+        </div>
+        <button type="button" class="btn-fechar-tour" id="btn-fechar-tour">
+          Entendi, pronto para a correria! 👍
+        </button>
+      </section>
+
+      <!-- SELETOR DA MESA / COMANDA -->
+      <section class="seletor-mesa-box">
+        <div class="seletor-mesa-topo">
+          <label for="input-mesa-atual">🎯 Mesa / Guarda-Sol do Pedido</label>
+          <span style="font-size:11px;font-weight:800;color:var(--primaria-forte)" id="lbl-status-mesa">Nova Comanda</span>
+        </div>
+        <input type="text" id="input-mesa-atual" class="seletor-mesa-input" placeholder="Ex.: Mesa 08 ou Sol 12" />
+        <div class="atalhos-mesas">
+          <span style="font-size:10px;color:var(--tinta-3);align-self:center">Atalhos:</span>
+          <button type="button" class="btn-atalho-mesa" data-m="01">Mesa 01</button>
+          <button type="button" class="btn-atalho-mesa" data-m="02">Mesa 02</button>
+          <button type="button" class="btn-atalho-mesa" data-m="03">Mesa 03</button>
+          <button type="button" class="btn-atalho-mesa" data-m="04">Mesa 04</button>
+          <button type="button" class="btn-atalho-mesa" data-m="05">Mesa 05</button>
+          <button type="button" class="btn-atalho-mesa" data-m="Balcão">Balcão</button>
+        </div>
+      </section>
+
+      <!-- ABA 1: DASHBOARD & CARDÁPIO RÁPIDO DO GARÇOM -->
+      <section id="aba-dashboard">
+        <div class="secao-titulo">
+          <span>⭐ Meu Cardápio Rápido (Mais Vendidos)</span>
+          <small style="font-size:11px;color:var(--tinta-3);text-transform:none">Toque para adicionar</small>
+        </div>
+        <div class="grid-produtos" id="grid-cardapio-rapido">
+          <!-- Renderizado via JS com produtos favoritos do garçom -->
+        </div>
+
+        <div style="text-align:center;margin-top:-6px;margin-bottom:16px">
+          <button type="button" id="btn-ir-cardapio-completo" style="background:var(--elevado);border:1px dashed var(--borda-forte);color:var(--primaria-forte);padding:10px 16px;border-radius:10px;font-size:12.5px;font-weight:800;cursor:pointer;width:100%">
+            📖 Ver Todo o Cardápio do Quiosque ➔
+          </button>
+        </div>
+      </section>
+
+      <!-- ABA 2: CARDÁPIO COMPLETO POR CATEGORIAS -->
+      <section id="aba-cardapio" style="display:none">
+        <div class="secao-titulo">
+          <span>📖 Cardápio Geral do Quiosque</span>
+        </div>
+
+        <!-- Barra de Busca de Produtos -->
+        <div style="margin-bottom:12px;position:relative">
+          <input type="text" id="busca-cardapio" class="input-padrao" placeholder="🔍 Buscar pastel, cerveja, água, porção..." style="height:40px;font-size:13.5px;padding-left:12px" />
+        </div>
+
+        <!-- Filtros de Categorias -->
+        <div style="display:flex;gap:6px;overflow-x:auto;padding-bottom:8px;margin-bottom:12px" id="filtros-categorias-garcom">
+          <button type="button" class="btn-atalho-mesa ativo" data-cat="todas">Todas</button>
+        </div>
+
+        <div class="grid-produtos" id="grid-cardapio-completo">
+          <!-- Lista completa de produtos com estoque em tempo real -->
+        </div>
+      </section>
+
+      <!-- ABA 3: MESAS ABERTAS / COMANDAS -->
+      <section id="aba-mesas" style="display:none">
+        <div class="secao-titulo">
+          <span>🛎️ Mesas em Atendimento</span>
+          <button type="button" id="btn-atualizar-mesas" style="background:none;border:none;color:var(--primaria-forte);font-size:11.5px;font-weight:800;cursor:pointer">
+            🔄 Atualizar
+          </button>
+        </div>
+
+        <div id="lista-mesas-abertas" style="display:flex;flex-direction:column;gap:10px">
+          <!-- Mesas ativas renderizadas dinamicamente -->
+        </div>
+      </section>
+
+    </main>
+
+    <!-- BARRA FLUTUANTE DE PEDIDO ATUAL (QUANDO HÁ ITENS SELECIONADOS) -->
+    <div class="barra-pedido-flutuante" id="barra-pedido-flutuante" style="display:none">
+      <div>
+        <div style="font-size:12px;font-weight:800;color:var(--tinta-2)" id="barra-mesa-txt">Mesa: —</div>
+        <div style="font-size:16px;font-weight:900;color:var(--primaria-forte)" id="barra-total-txt">R$ 0,00</div>
+      </div>
+      <button type="button" class="btn-enviar-pedido-acao" id="btn-abrir-revisao-pedido">
+        <span>Conferir & Enviar (<b id="barra-qtd-itens">0</b>)</span>
+        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
+      </button>
+    </div>
+
+    <!-- NAVEGAÇÃO INFERIOR -->
+    <nav class="nav-inferior">
+      <button class="nav-item ativo" id="nav-btn-dashboard" data-tela="aba-dashboard">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+        <span>Rápido</span>
+      </button>
+      <button class="nav-item" id="nav-btn-cardapio" data-tela="aba-cardapio">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1-2.5-2.5Z"/><path d="M6 6h10"/><path d="M6 10h10"/></svg>
+        <span>Cardápio</span>
+      </button>
+      <button class="nav-item" id="nav-btn-mesas" data-tela="aba-mesas">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/></svg>
+        <span>Mesas</span>
+        <span class="nav-badge" id="badge-nav-mesas" style="display:none">0</span>
+      </button>
+    </nav>
+  </div>
+
+  <!-- MODAL: REVISÃO E ENVIO DO PEDIDO PARA COZINHA & CAIXA -->
+  <div class="modal-overlay" id="modal-revisao-pedido">
+    <div class="modal-corpo">
+      <div class="modal-tit">
+        <span>Enviar Pedido: <b id="rev-mesa-tit">Mesa</b></span>
+        <button type="button" class="btn-topo" id="btn-fechar-revisao">✕</button>
+      </div>
+
+      <div style="font-size:12px;color:var(--tinta-2);margin-bottom:12px">
+        Itens do pedido (apitará na Cozinha se tiver pastéis/porções):
+      </div>
+
+      <div id="rev-lista-itens" style="display:flex;flex-direction:column;gap:8px;max-height:220px;overflow-y:auto;margin-bottom:14px">
+        <!-- Itens do pedido atual -->
+      </div>
+
+      <div class="campo-grupo">
+        <label class="campo-rotulo" for="rev-obs">Observações para Cozinha / Bar (opcional)</label>
+        <input type="text" id="rev-obs" class="input-padrao" placeholder="Ex.: Sem cebola, gelo e limão, capricha no molho..." />
+      </div>
+
+      <div style="display:flex;justify-content:space-between;align-items:center;padding:12px 0;border-top:1px dashed var(--borda);margin-bottom:14px">
+        <span style="font-size:14px;font-weight:700">Total do Lançamento:</span>
+        <span style="font-size:20px;font-weight:900;color:var(--sucesso)" id="rev-total-val">R$ 0,00</span>
+      </div>
+
+      <button type="button" class="btn-acao" id="btn-confirmar-envio-cozinha" style="background:var(--sucesso);height:50px;font-size:16px">
+        🚀 Disparar Pedido p/ Cozinha & Caixa
+      </button>
+    </div>
+  </div>
+
+  <!-- MODAL: DETALHES DA MESA & FECHAMENTO DE CONTA -->
+  <div class="modal-overlay" id="modal-detalhes-mesa">
+    <div class="modal-corpo">
+      <div class="modal-tit">
+        <span id="det-mesa-tit">Mesa 00</span>
+        <button type="button" class="btn-topo" id="btn-fechar-det-mesa">✕</button>
+      </div>
+
+      <div style="font-size:12px;color:var(--tinta-2);margin-bottom:10px" id="det-garcom-txt">
+        Atendido por: Garçom
+      </div>
+
+      <div id="det-itens-consumidos" style="display:flex;flex-direction:column;gap:6px;max-height:220px;overflow-y:auto;border-top:1px dashed var(--borda);border-bottom:1px dashed var(--borda);padding:8px 0;margin-bottom:14px">
+        <!-- Itens consumidos na mesa -->
+      </div>
+
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+        <span style="font-size:14px;font-weight:800">Total Acumulado:</span>
+        <span style="font-size:22px;font-weight:900;color:var(--primaria-forte)" id="det-total-mesa">R$ 0,00</span>
+      </div>
+
+      <!-- Ações Conforme Permissão do Garçom -->
+      <div id="box-fechamento-garcom">
+        <div id="opcoes-pagamento-garcom" style="margin-bottom:12px">
+          <label class="campo-rotulo" style="margin-bottom:6px;display:block">Forma de Pagamento Recebida na Mesa:</label>
+          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px">
+            <button type="button" class="btn-atalho-mesa btn-forma-pg" data-forma="pix">PIX</button>
+            <button type="button" class="btn-atalho-mesa btn-forma-pg ativo" data-forma="cartao">Cartão</button>
+            <button type="button" class="btn-atalho-mesa btn-forma-pg" data-forma="dinheiro">Dinheiro</button>
+          </div>
+        </div>
+        <button type="button" class="btn-acao" id="btn-fechar-conta-mesa" style="background:var(--sucesso)">
+          💳 Fechar Conta e Receber na Mesa
+        </button>
+      </div>
+
+      <div id="box-fechamento-apenas-caixa" style="display:none;text-align:center;padding:10px;background:var(--afundado);border-radius:10px;font-size:12px;color:var(--tinta-2)">
+        🔒 Quem recebe e fecha esta conta é o <b>Caixa Balcão</b> do quiosque.
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL OBRIGATÓRIA: TROCA DE SENHA NO PRIMEIRO ACESSO -->
+  <div class="modal-overlay" id="modal-primeiro-acesso">
+    <div class="modal-corpo" style="border-top:2px solid var(--aviso)">
+      <div class="modal-tit">
+        <span style="color:var(--aviso)">🔒 Primeiro Acesso: Defina Sua Senha</span>
+      </div>
+      <p style="font-size:12.5px;color:var(--tinta-2);line-height:1.4;margin-bottom:14px">
+        Olá, <b id="primeiro-acesso-nome">Garçom</b>! Por segurança, o sistema exige que você cadastre uma nova senha pessoal no seu primeiro login antes de iniciar os atendimentos.
+      </p>
+
+      <form id="form-primeiro-acesso" onsubmit="return false;">
+        <div class="campo-grupo">
+          <label class="campo-rotulo" for="nova-senha-1">Nova Senha Pessoal</label>
+          <input type="password" id="nova-senha-1" class="input-padrao" placeholder="No mínimo 3 dígitos" required />
+        </div>
+        <div class="campo-grupo">
+          <label class="campo-rotulo" for="nova-senha-2">Confirme a Nova Senha</label>
+          <input type="password" id="nova-senha-2" class="input-padrao" placeholder="Repita a nova senha" required />
+        </div>
+        <button type="submit" class="btn-acao" id="btn-salvar-nova-senha" style="background:var(--aviso);color:#000">
+          Salvar Nova Senha e Começar
+        </button>
+        <div class="aviso-erro" id="aviso-erro-senha"></div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL OBRIGATÓRIA: REGISTRO DE PRESENÇA / PONTO NO QUIOSQUE -->
+  <div class="modal-overlay" id="modal-bater-ponto">
+    <div class="modal-corpo" style="border-top:3px solid var(--primaria-forte);text-align:center">
+      <div style="font-size:42px;margin:4px 0 10px">⏱️</div>
+      <div class="modal-tit" style="justify-content:center;font-size:18px">
+        <span>Confirmação de Presença</span>
+      </div>
+      <p style="font-size:13px;color:var(--tinta-2);line-height:1.5;margin-bottom:14px">
+        Olá, <b id="nome-garcom-ponto">Garçom</b>! Para começar a atender mesas e enviar comandas, confirme que você está presente no quiosque.
+      </p>
+
+      <div style="background:var(--primaria-leve);border:1px dashed var(--primaria-forte);border-radius:10px;padding:12px;margin-bottom:16px;text-align:left;font-size:12px;line-height:1.5">
+        📍 <b>Local:</b> Quiosque / Praia (Rota do Forte)<br>
+        🛡️ <b>Segurança Anti-Falta:</b> Seus pedidos só podem ser lançados com o ponto ativo.
+      </div>
+
+      <button type="button" class="btn-acao" id="btn-confirmar-ponto" style="padding:14px;font-size:15px;font-weight:900">
+        ✅ Bater Ponto: Estou no Quiosque Trabalhando
+      </button>
+      <div class="aviso-erro" id="aviso-erro-ponto"></div>
+    </div>
+  </div>
+
+  <!-- MODAL DE BLOQUEIO PREVENTIVO PELO ADM (ANTI-AVACALHAÇÃO) -->
+  <div class="modal-overlay" id="modal-bloqueado">
+    <div class="modal-corpo" style="border-top:3px solid var(--alerta);text-align:center">
+      <div style="font-size:46px;margin:6px 0 10px">⛔</div>
+      <div class="modal-tit" style="justify-content:center;color:var(--alerta);font-size:18px">
+        <span>Acesso Bloqueado</span>
+      </div>
+      <p style="font-size:13.5px;color:var(--tinta);font-weight:600;line-height:1.4;margin-bottom:10px" id="txt-motivo-bloqueio">
+        Seu acesso ao aplicativo de garçom foi bloqueado pelo Administrador do quiosque.
+      </p>
+      <p style="font-size:12px;color:var(--tinta-2);line-height:1.4;margin-bottom:16px">
+        Se você está presente no quiosque, procure a gerência ou o operador de caixa para verificar sua situação.
+      </p>
+      <button type="button" class="btn-acao" id="btn-sair-bloqueado" style="background:var(--afundado);color:var(--tinta);border:1px solid var(--borda)">
+        Voltar à Tela de Login
+      </button>
+    </div>
+  </div>
+
+  <script>
+    (() => {
+      /* ========================================================
+         ESTADO E DADOS DO GARÇOM
+         ======================================================== */
+      let garcomLogado = null;
+      let cardapio = { categorias: [], produtos: [] };
+      let pedidoAtual = []; // [{ produtoId, nome, preco, qtd, obs, vaiParaCozinha }]
+      let mesaAtual = '';
+      let formaPagamentoEscolhida = 'cartao';
+      let mesaSelecionadaDetalhes = null;
+      let favoritosGarcom = []; // IDs dos produtos fixados no cardápio rápido
+
+      const $ = sel => document.querySelector(sel);
+      const $$ = sel => document.querySelectorAll(sel);
+
+      function moeda(v) {
+        return 'R$ ' + (Number(v) || 0).toFixed(2).replace('.', ',');
+      }
+
+      function toast(msg, icone = '🛎️') {
+        const t = $('#toast-garcom');
+        $('#toast-icone').textContent = icone;
+        $('#toast-txt').textContent = msg;
+        t.style.display = 'flex';
+        clearTimeout(t.__timer);
+        t.__timer = setTimeout(() => { t.style.display = 'none'; }, 2800);
+      }
+
+      /* ========================================================
+         1. LOGIN E LEMBRE-DE-MIM
+         ======================================================== */
+      function verificarSessao() {
+        const salvo = localStorage.getItem('manostech_garcom_sessao');
+        if (salvo) {
+          try {
+            garcomLogado = JSON.parse(salvo);
+            iniciarAppGarcom();
+            return;
+          } catch {}
+        }
+
+        // Preenchimento de Lembre-de-Mim
+        const userSalvo = localStorage.getItem('garcom_lembrar_usuario');
+        const passSalvo = localStorage.getItem('garcom_lembrar_senha');
+        if (userSalvo && $('#login-usuario')) $('#login-usuario').value = userSalvo;
+        if (passSalvo && $('#login-senha')) $('#login-senha').value = passSalvo;
+        if ($('#chk-lembrar-garcom')) $('#chk-lembrar-garcom').checked = !!userSalvo;
+      }
+
+      async function fazerLogin() {
+        const usuario = ($('#login-usuario').value || '').trim();
+        const senha = ($('#login-senha').value || '').trim();
+        const avisoErro = $('#aviso-erro-login');
+        avisoErro.style.display = 'none';
+
+        if (!usuario || !senha) {
+          avisoErro.textContent = 'Informe usuário e senha.';
+          avisoErro.style.display = 'block';
+          return;
+        }
+
+        try {
+          const resp = await fetch('/api/garcom/login', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ usuario, senha })
+          });
+          const res = await resp.json();
+
+          if (!res.ok) {
+            avisoErro.textContent = res.erro || 'Falha ao entrar.';
+            avisoErro.style.display = 'block';
+            return;
+          }
+
+          garcomLogado = res.garcom;
+
+          // Lembre-de-Mim
+          if ($('#chk-lembrar-garcom').checked) {
+            localStorage.setItem('garcom_lembrar_usuario', usuario);
+            localStorage.setItem('garcom_lembrar_senha', senha);
+          } else {
+            localStorage.removeItem('garcom_lembrar_usuario');
+            localStorage.removeItem('garcom_lembrar_senha');
+          }
+
+          localStorage.setItem('manostech_garcom_sessao', JSON.stringify(garcomLogado));
+          iniciarAppGarcom();
+
+        } catch (e) {
+          avisoErro.textContent = 'Sem conexão com o servidor do quiosque.';
+          avisoErro.style.display = 'block';
+        }
+      }
+
+      function desconectar() {
+        if (!confirm('Deseja realmente sair da sua conta de garçom?')) return;
+        localStorage.removeItem('manostech_garcom_sessao');
+        garcomLogado = null;
+        $('#tela-principal').style.display = 'none';
+        $('#tela-login').style.display = 'flex';
+      }
+
+      /* ========================================================
+         2. PRIMEIRO ACESSO: TROCA DE SENHA OBRIGATÓRIA
+         ======================================================== */
+      function verificarPrimeiroAcesso() {
+        if (garcomLogado && garcomLogado.trocarSenhaNoPrimeiroLogin) {
+          $('#primeiro-acesso-nome').textContent = garcomLogado.nome;
+          $('#modal-primeiro-acesso').classList.add('aberto');
+        } else {
+          $('#modal-primeiro-acesso').classList.remove('aberto');
+        }
+      }
+
+      async function salvarNovaSenhaPrimeiroAcesso() {
+        const s1 = ($('#nova-senha-1').value || '').trim();
+        const s2 = ($('#nova-senha-2').value || '').trim();
+        const erro = $('#aviso-erro-senha');
+        erro.style.display = 'none';
+
+        if (s1.length < 3) {
+          erro.textContent = 'A senha deve ter pelo menos 3 dígitos.';
+          erro.style.display = 'block';
+          return;
+        }
+        if (s1 !== s2) {
+          erro.textContent = 'As senhas digitadas não conferem.';
+          erro.style.display = 'block';
+          return;
+        }
+
+        try {
+          const resp = await fetch('/api/garcom/trocar-senha', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ usuario: garcomLogado.usuario, novaSenha: s1 })
+          });
+          const res = await resp.json();
+          if (res.ok) {
+            garcomLogado.trocarSenhaNoPrimeiroLogin = false;
+            localStorage.setItem('manostech_garcom_sessao', JSON.stringify(garcomLogado));
+            $('#modal-primeiro-acesso').classList.remove('aberto');
+            toast('Senha definida com sucesso! Bom trabalho.', '✅');
+          } else {
+            erro.textContent = res.erro || 'Falha ao alterar senha.';
+            erro.style.display = 'block';
+          }
+        } catch {
+          erro.textContent = 'Erro ao conectar ao servidor.';
+          erro.style.display = 'block';
+        }
+      }
+
+      /* ========================================================
+         2.1 REGISTRO DE PRESENÇA (PONTO DO GARÇOM) & SEGURANÇA
+         ======================================================== */
+      function atualizarBarraPonto() {
+        const badge = $('#badge-turno-status');
+        const btnPonto = $('#lbl-btn-ponto');
+        if (!badge) return;
+
+        if (garcomLogado && garcomLogado.emTurno) {
+          const hora = garcomLogado.pontoEntrada ? new Date(garcomLogado.pontoEntrada).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }) : '';
+          badge.textContent = `🟢 Em Turno ${hora ? '(' + hora + ')' : ''}`;
+          badge.style.background = 'rgba(46,125,50,0.18)';
+          badge.style.color = 'var(--sucesso)';
+          if (btnPonto) btnPonto.textContent = 'Encerrar';
+          $('#modal-bater-ponto').classList.remove('aberto');
+        } else {
+          badge.textContent = '⚪ Fora de Turno';
+          badge.style.background = 'var(--afundado)';
+          badge.style.color = 'var(--tinta-2)';
+          if (btnPonto) btnPonto.textContent = 'Ponto';
+        }
+      }
+
+      function abrirModalPonto() {
+        if ($('#nome-garcom-ponto') && garcomLogado) {
+          $('#nome-garcom-ponto').textContent = garcomLogado.nome;
+        }
+        $('#aviso-erro-ponto').style.display = 'none';
+        $('#modal-bater-ponto').classList.add('aberto');
+      }
+
+      async function alternarPonto() {
+        if (!garcomLogado) return;
+        if (garcomLogado.emTurno) {
+          if (!confirm('Deseja encerrar seu turno de trabalho no quiosque agora?')) return;
+          await registrarPonto('saida');
+        } else {
+          abrirModalPonto();
+        }
+      }
+
+      async function registrarPonto(tipo = 'entrada') {
+        const erroBox = $('#aviso-erro-ponto');
+        if (erroBox) erroBox.style.display = 'none';
+        const btn = $('#btn-confirmar-ponto');
+        if (btn) { btn.disabled = true; btn.textContent = 'Registrando Presença...'; }
+
+        try {
+          const resp = await fetch('/api/garcom/bater-ponto', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ usuario: garcomLogado.usuario, tipo })
+          });
+          const res = await resp.json();
+          if (res.ok) {
+            garcomLogado.emTurno = res.emTurno;
+            garcomLogado.pontoEntrada = res.pontoEntrada;
+            localStorage.setItem('manostech_garcom_sessao', JSON.stringify(garcomLogado));
+            atualizarBarraPonto();
+            toast(res.mensagem || 'Presença confirmada!', '⏱️');
+          } else {
+            if (res.bloqueado) {
+              localStorage.removeItem('manostech_garcom_sessao');
+              $('#modal-bater-ponto').classList.remove('aberto');
+              $('#txt-motivo-bloqueio').textContent = res.erro || 'Acesso bloqueado.';
+              $('#modal-bloqueado').classList.add('aberto');
+              return;
+            }
+            if (erroBox) {
+              erroBox.textContent = res.erro || 'Falha ao registrar ponto.';
+              erroBox.style.display = 'block';
+            }
+          }
+        } catch (err) {
+          if (erroBox) {
+            erroBox.textContent = 'Erro ao conectar ao servidor.';
+            erroBox.style.display = 'block';
+          }
+          autoDescobrirNovoTunnel();
+        } finally {
+          if (btn) { btn.disabled = false; btn.textContent = '✅ Bater Ponto: Estou no Quiosque Trabalhando'; }
+        }
+      }
+
+      /* Polling de Segurança em Segundo Plano (Anti-Avacalhação / Falta) */
+      let timerSeguranca = null;
+      let timerAutoTunnel = null;
+
+      function iniciarMonitoramentoSeguranca() {
+        clearInterval(timerSeguranca);
+        clearInterval(timerAutoTunnel);
+        timerSeguranca = setInterval(checarStatusSeguranca, 3500);
+        timerAutoTunnel = setInterval(autoDescobrirNovoTunnel, 10000);
+      }
+
+      async function checarStatusSeguranca() {
+        if (!garcomLogado || !garcomLogado.usuario) return;
+        try {
+          const resp = await fetch(`/api/garcom/status?usuario=${encodeURIComponent(garcomLogado.usuario)}`);
+          if (resp.status === 404 || resp.status === 401) return;
+          const dados = await resp.json();
+          if (dados.ok) {
+            if (dados.ativo === false) {
+              // Bloqueado pelo Administrador imediatamente!
+              clearInterval(timerSeguranca);
+              localStorage.removeItem('manostech_garcom_sessao');
+              $('#txt-motivo-bloqueio').textContent = dados.motivoBloqueio || 'Seu acesso foi bloqueado pelo Administrador do quiosque.';
+              $('#modal-bloqueado').classList.add('aberto');
+              $('#modal-bater-ponto').classList.remove('aberto');
+              $('#modal-revisao-pedido').classList.remove('aberto');
+              return;
+            }
+            if (garcomLogado.emTurno !== dados.emTurno) {
+              garcomLogado.emTurno = dados.emTurno;
+              garcomLogado.pontoEntrada = dados.pontoEntrada;
+              localStorage.setItem('manostech_garcom_sessao', JSON.stringify(garcomLogado));
+              atualizarBarraPonto();
+            }
+          }
+        } catch (e) {
+          autoDescobrirNovoTunnel();
+        }
+      }
+
+      /* Auto-Descoberta de Túnel Cloudflare para Resiliência no 4G */
+      let buscandoTunnel = false;
+      async function autoDescobrirNovoTunnel() {
+        if (buscandoTunnel) return;
+        buscandoTunnel = true;
+        try {
+          const ctrl = new AbortController();
+          const timer = setTimeout(() => ctrl.abort(), 1400);
+          const resp = await fetch('/api/garcom/cardapio', { cache: 'no-store', signal: ctrl.signal });
+          clearTimeout(timer);
+          if (resp.ok) {
+            $('#lbl-status-rede').innerHTML = '🟢 Conectado';
+            buscandoTunnel = false;
+            return;
+          }
+        } catch {}
+
+        $('#lbl-status-rede').innerHTML = '🟡 Buscando 4G...';
+
+        try {
+          const respGh = await fetch(`https://raw.githubusercontent.com/manostechsystem/SistemaQuiosque/main/tunnel_active.json?t=${Date.now()}`);
+          if (respGh.ok) {
+            const info = await respGh.json();
+            if (info && info.url) {
+              const urlAlvo = info.url.replace(/\/$/, '');
+              const urlAtual = window.location.origin;
+              if (!urlAtual.includes(new URL(urlAlvo).hostname)) {
+                try {
+                  const ctrl2 = new AbortController();
+                  const timer2 = setTimeout(() => ctrl2.abort(), 2000);
+                  const testeNovo = await fetch(`${urlAlvo}/api/garcom/cardapio`, { mode: 'cors', signal: ctrl2.signal });
+                  clearTimeout(timer2);
+                  if (testeNovo.ok) {
+                    console.log('[4G TUNNEL] Redirecionando garçom para o túnel ativo:', urlAlvo);
+                    window.location.replace(`${urlAlvo}/garcom.html${window.location.search}`);
+                    return;
+                  }
+                } catch {}
+              }
+            }
+          }
+        } catch {}
+        buscandoTunnel = false;
+      }
+
+      /* ========================================================
+         3. INICIALIZAÇÃO DO APP E DADOS
+         ======================================================== */
+      async function iniciarAppGarcom() {
+        $('#tela-login').style.display = 'none';
+        $('#tela-principal').style.display = 'flex';
+
+        $('#lbl-garcom-nome').textContent = garcomLogado.nome;
+        $('#avatar-inicial').textContent = (garcomLogado.nome || 'G').charAt(0).toUpperCase();
+
+        // Carrega favoritos do garçom
+        try {
+          const favs = localStorage.getItem('favs_garcom_' + garcomLogado.usuario);
+          favoritosGarcom = favs ? JSON.parse(favs) : [];
+        } catch { favoritosGarcom = []; }
+
+        // Guia rápido
+        const guiaVisto = localStorage.getItem('guia_garcom_visto_' + garcomLogado.usuario);
+        if (!guiaVisto) {
+          $('#tour-box').style.display = 'block';
+        }
+
+        verificarPrimeiroAcesso();
+        atualizarBarraPonto();
+        if (!garcomLogado.emTurno) {
+          abrirModalPonto();
+        }
+
+        await carregarCardapio();
+        await carregarMesasAbertas();
+
+        iniciarMonitoramentoSeguranca();
+
+        // Atualização periódica de mesas em segundo plano (a cada 6s)
+        setInterval(carregarMesasAbertas, 6000);
+      }
+
+      /* ========================================================
+         4. CARREGAMENTO E RENDERIZAÇÃO DO CARDÁPIO
+         ======================================================== */
+      async function carregarCardapio() {
+        try {
+          const resp = await fetch('/api/garcom/cardapio');
+          const res = await resp.json();
+          if (res.ok) {
+            cardapio = res;
+            if (res.loja) $('#login-loja-nome').textContent = res.loja;
+            renderCardapioRapido();
+            renderCardapioCompleto();
+            renderFiltrosCategorias();
+          }
+        } catch (e) {
+          console.warn('Erro ao carregar cardápio:', e);
+        }
+      }
+
+      function alternarFavorito(pid, e) {
+        if (e) e.stopPropagation();
+        const idx = favoritosGarcom.indexOf(pid);
+        if (idx >= 0) {
+          favoritosGarcom.splice(idx, 1);
+        } else {
+          favoritosGarcom.push(pid);
+        }
+        localStorage.setItem('favs_garcom_' + garcomLogado.usuario, JSON.stringify(favoritosGarcom));
+        renderCardapioRapido();
+        renderCardapioCompleto();
+      }
+
+      function renderCardapioRapido() {
+        const container = $('#grid-cardapio-rapido');
+        if (!container) return;
+
+        // Se o garçom ainda não favoritou nada, pega os produtos com acessoRapido do ADM
+        let produtosExibir = cardapio.produtos.filter(p => favoritosGarcom.includes(p.id));
+        if (!produtosExibir.length) {
+          produtosExibir = cardapio.produtos.filter(p => p.acessoRapido).slice(0, 8);
+        }
+        if (!produtosExibir.length) {
+          produtosExibir = cardapio.produtos.slice(0, 6);
+        }
+
+        container.innerHTML = produtosExibir.map(p => montarCardProdutoHtml(p, true)).join('');
+        ligarEventosCards(container);
+      }
+
+      function renderCardapioCompleto(categoriaId = 'todas', buscaTexto = '') {
+        const container = $('#grid-cardapio-completo');
+        if (!container) return;
+
+        const termo = buscaTexto.trim().toLowerCase();
+        const filtrados = cardapio.produtos.filter(p => {
+          if (categoriaId !== 'todas' && p.categoriaId !== categoriaId) return false;
+          if (termo && !p.nome.toLowerCase().includes(termo)) return false;
+          return true;
+        });
+
+        if (!filtrados.length) {
+          container.innerHTML = `<div style="grid-column:1/-1;text-align:center;padding:24px;color:var(--tinta-3);font-size:13px">Nenhum produto encontrado.</div>`;
+          return;
+        }
+
+        container.innerHTML = filtrados.map(p => montarCardProdutoHtml(p, false)).join('');
+        ligarEventosCards(container);
+      }
+
+      function montarCardProdutoHtml(p, modoRapido) {
+        const esgotado = !p.disponivel;
+        const ehFav = favoritosGarcom.includes(p.id);
+        const estoqueTxt = p.controlaEstoque ? `${p.estoque} un` : 'Livre';
+        const badgeClass = p.disponivel ? 'badge-disp' : 'badge-indisp';
+        const badgeLabel = p.disponivel ? `Disp (${estoqueTxt})` : 'Indisponível';
+
+        return `
+          <div class="card-prod ${esgotado ? 'esgotado' : ''}" data-pid="${p.id}">
+            <div class="card-prod__topo">
+              <span class="card-prod__nome">${p.nome}</span>
+              <button type="button" class="btn-favorito" data-fav-pid="${p.id}" title="${ehFav ? 'Remover dos favoritos' : 'Fixar no Cardápio Rápido'}">
+                ${ehFav ? '⭐' : '☆'}
+              </button>
+            </div>
+            <div>
+              <span class="card-prod__badge-est ${badgeClass}">${badgeLabel}</span>
+              ${p.vaiParaCozinha ? '<span style="font-size:9.5px;font-weight:800;background:rgba(255,160,0,0.15);color:#FFA000;padding:2px 5px;border-radius:4px;margin-left:4px">Cozinha</span>' : ''}
+            </div>
+            <div class="card-prod__rodape">
+              <span class="card-prod__preco">${moeda(p.preco)}</span>
+              <button type="button" class="btn-adicionar-prod" ${esgotado ? 'disabled' : ''}>
+                +
+              </button>
+            </div>
+          </div>
+        `;
+      }
+
+      function ligarEventosCards(container) {
+        container.querySelectorAll('.card-prod').forEach(card => {
+          card.onclick = () => {
+            const pid = card.dataset.pid;
+            const p = cardapio.produtos.find(x => x.id === pid);
+            if (!p || !p.disponivel) {
+              toast('Produto esgotado ou indisponível.', '⚠️');
+              return;
+            }
+            adicionarItemAoPedido(p);
+          };
+        });
+
+        container.querySelectorAll('[data-fav-pid]').forEach(btn => {
+          btn.onclick = (e) => alternarFavorito(btn.dataset.favPid, e);
+        });
+      }
+
+      function renderFiltrosCategorias() {
+        const box = $('#filtros-categorias-garcom');
+        if (!box) return;
+        const cats = cardapio.categorias || [];
+        box.innerHTML = `<button type="button" class="btn-atalho-mesa ativo" data-cat="todas">Todas</button>` +
+          cats.map(c => `<button type="button" class="btn-atalho-mesa" data-cat="${c.id}">${c.nome}</button>`).join('');
+
+        box.querySelectorAll('button').forEach(btn => {
+          btn.onclick = () => {
+            box.querySelectorAll('button').forEach(b => b.classList.remove('ativo'));
+            btn.classList.add('ativo');
+            renderCardapioCompleto(btn.dataset.cat, $('#busca-cardapio').value);
+          };
+        });
+      }
+
+      /* ========================================================
+         5. CONTROLE DO PEDIDO ATUAL E BARRA FLUTUANTE
+         ======================================================== */
+      function adicionarItemAoPedido(p) {
+        if (!garcomLogado || !garcomLogado.emTurno) {
+          abrirModalPonto();
+          toast('Confirme presença e bata o ponto antes de adicionar itens!', '⏱️');
+          return;
+        }
+
+        const mesa = ($('#input-mesa-atual').value || '').trim();
+        if (!mesa) {
+          toast('Por favor, informe primeiro a Mesa ou Guarda-Sol!', '🎯');
+          $('#input-mesa-atual').focus();
+          return;
+        }
+
+        const jaExiste = pedidoAtual.find(i => i.produtoId === p.id);
+        if (jaExiste) {
+          jaExiste.qtd += 1;
+        } else {
+          pedidoAtual.push({
+            produtoId: p.id,
+            nome: p.nome,
+            preco: p.preco,
+            qtd: 1,
+            obs: '',
+            vaiParaCozinha: !!p.vaiParaCozinha
+          });
+        }
+
+        atualizarBarraPedido();
+        toast(`${p.nome} adicionado!`, '🛒');
+      }
+
+      function atualizarBarraPedido() {
+        const barra = $('#barra-pedido-flutuante');
+        if (!barra) return;
+
+        const totalQtd = pedidoAtual.reduce((s, i) => s + i.qtd, 0);
+        const totalValor = pedidoAtual.reduce((s, i) => s + (i.preco * i.qtd), 0);
+        const mesa = ($('#input-mesa-atual').value || 'Mesa não definida').trim();
+
+        if (totalQtd > 0) {
+          $('#barra-mesa-txt').textContent = `Mesa: ${mesa}`;
+          $('#barra-total-txt').textContent = moeda(totalValor);
+          $('#barra-qtd-itens').textContent = totalQtd;
+          barra.style.display = 'flex';
+        } else {
+          barra.style.display = 'none';
+        }
+      }
+
+      function abrirModalRevisao() {
+        const mesa = ($('#input-mesa-atual').value || '').trim();
+        if (!mesa) {
+          toast('Informe a Mesa antes de enviar.', '🎯');
+          return;
+        }
+        if (!pedidoAtual.length) {
+          toast('Nenhum item selecionado.', '⚠️');
+          return;
+        }
+
+        $('#rev-mesa-tit').textContent = mesa;
+        $('#rev-lista-itens').innerHTML = pedidoAtual.map((it, idx) => `
+          <div style="display:flex;justify-content:space-between;align-items:center;background:var(--afundado);padding:8px 10px;border-radius:8px">
+            <div>
+              <div style="font-weight:800;font-size:13px">${it.qtd}x ${it.nome}</div>
+              <div style="font-size:11.5px;color:var(--tinta-2)">${moeda(it.preco * it.qtd)}</div>
+            </div>
+            <div style="display:flex;gap:6px">
+              <button type="button" class="btn-topo" data-sub-idx="${idx}" style="width:28px;height:28px">-</button>
+              <button type="button" class="btn-topo" data-add-idx="${idx}" style="width:28px;height:28px">+</button>
+            </div>
+          </div>
+        `).join('');
+
+        const total = pedidoAtual.reduce((s, i) => s + (i.preco * i.qtd), 0);
+        $('#rev-total-val').textContent = moeda(total);
+
+        $('#modal-revisao-pedido').classList.add('aberto');
+
+        // Handlers de quantidade na revisão
+        $$('[data-sub-idx]').forEach(b => {
+          b.onclick = () => {
+            const idx = Number(b.dataset.subIdx);
+            pedidoAtual[idx].qtd -= 1;
+            if (pedidoAtual[idx].qtd <= 0) pedidoAtual.splice(idx, 1);
+            atualizarBarraPedido();
+            if (!pedidoAtual.length) $('#modal-revisao-pedido').classList.remove('aberto');
+            else abrirModalRevisao();
+          };
+        });
+        $$('[data-add-idx]').forEach(b => {
+          b.onclick = () => {
+            const idx = Number(b.dataset.addIdx);
+            pedidoAtual[idx].qtd += 1;
+            atualizarBarraPedido();
+            abrirModalRevisao();
+          };
+        });
+      }
+
+      async function dispararPedidoCozinhaEcaixa() {
+        if (!garcomLogado || !garcomLogado.emTurno) {
+          abrirModalPonto();
+          toast('Você precisa bater o ponto antes de enviar o pedido!', '⏱️');
+          return;
+        }
+
+        const mesa = ($('#input-mesa-atual').value || '').trim();
+        const obsGeral = ($('#rev-obs').value || '').trim();
+        const btn = $('#btn-confirmar-envio-cozinha');
+
+        btn.disabled = true;
+        btn.textContent = 'Enviando p/ Cozinha & Caixa...';
+
+        try {
+          const resp = await fetch('/api/garcom/pedido', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              mesa,
+              itens: pedidoAtual,
+              garcom: garcomLogado.nome,
+              garcomId: garcomLogado.id,
+              obs: obsGeral
+            })
+          });
+
+          const res = await resp.json();
+          if (res.ok) {
+            toast(`✅ Pedido da Mesa ${mesa} enviado à Cozinha e ao Caixa!`, '🚀');
+            pedidoAtual = [];
+            $('#rev-obs').value = '';
+            $('#modal-revisao-pedido').classList.remove('aberto');
+            atualizarBarraPedido();
+            await carregarMesasAbertas();
+            // Alterna para a visualização de mesas
+            irParaAba('aba-mesas');
+          } else {
+            if (res.bloqueado) {
+              localStorage.removeItem('manostech_garcom_sessao');
+              $('#modal-revisao-pedido').classList.remove('aberto');
+              $('#txt-motivo-bloqueio').textContent = res.erro || 'Acesso bloqueado pelo Administrador do quiosque.';
+              $('#modal-bloqueado').classList.add('aberto');
+              return;
+            }
+            if (res.semPonto) {
+              $('#modal-revisao-pedido').classList.remove('aberto');
+              abrirModalPonto();
+              toast(res.erro || 'Bata o ponto antes de lançar pedidos.', '⏱️');
+              return;
+            }
+            alert(res.erro || 'Erro ao lançar pedido.');
+          }
+        } catch (e) {
+          alert('Erro de comunicação com o servidor do quiosque.');
+        } finally {
+          btn.disabled = false;
+          btn.textContent = '🚀 Disparar Pedido p/ Cozinha & Caixa';
+        }
+      }
+
+      /* ========================================================
+         6. MESAS ABERTAS E FECHAMENTO DE CONTA
+         ======================================================== */
+      async function carregarMesasAbertas() {
+        try {
+          const resp = await fetch('/api/garcom/comandas');
+          const res = await resp.json();
+          if (res.ok) {
+            const abertas = res.comandas || [];
+            const badge = $('#badge-nav-mesas');
+            if (badge) {
+              badge.textContent = abertas.length;
+              badge.style.display = abertas.length > 0 ? 'inline-block' : 'none';
+            }
+
+            const lista = $('#lista-mesas-abertas');
+            if (!lista) return;
+
+            if (!abertas.length) {
+              lista.innerHTML = `
+                <div style="text-align:center;padding:30px 16px;background:var(--papel);border-radius:var(--raio);color:var(--tinta-3)">
+                  <svg viewBox="0 0 24 24" width="32" height="32" fill="none" stroke="currentColor" style="margin:0 auto 8px;display:block"><circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/></svg>
+                  Nenhuma mesa aberta no momento.
+                </div>
+              `;
+              return;
+            }
+
+            lista.innerHTML = abertas.map(cmd => {
+              const qtd = cmd.itens.reduce((s, i) => s + (i.qtd || 1), 0);
+              return `
+                <div class="card-prod" style="cursor:pointer" data-cmd-mesa="${cmd.mesa}">
+                  <div style="display:flex;justify-content:space-between;align-items:center">
+                    <span style="font-size:16px;font-weight:900;color:var(--tinta)">🛎️ Mesa ${cmd.mesa}</span>
+                    <span style="font-size:11px;font-weight:800;background:var(--primaria-leve);color:var(--primaria-forte);padding:2px 8px;border-radius:10px">
+                      ${qtd} item(ns)
+                    </span>
+                  </div>
+                  <div style="font-size:12px;color:var(--tinta-2)">
+                    Atendente: <b>${cmd.garcom || 'Garçom'}</b>
+                  </div>
+                  <div style="display:flex;justify-content:space-between;align-items:center;margin-top:4px">
+                    <span style="font-size:12px;color:var(--tinta-2)">Total acumulado:</span>
+                    <span style="font-size:16px;font-weight:900;color:var(--sucesso)">${moeda(cmd.total)}</span>
+                  </div>
+                </div>
+              `;
+            }).join('');
+
+            lista.querySelectorAll('[data-cmd-mesa]').forEach(el => {
+              el.onclick = () => {
+                const mesaNome = el.dataset.cmdMesa;
+                const cmd = abertas.find(c => c.mesa === mesaNome);
+                if (cmd) abrirDetalhesMesa(cmd);
+              };
+            });
+          }
+        } catch (e) {
+          console.warn('Erro ao atualizar mesas:', e);
+        }
+      }
+
+      function abrirDetalhesMesa(cmd) {
+        mesaSelecionadaDetalhes = cmd;
+        $('#det-mesa-tit').textContent = `Mesa ${cmd.mesa}`;
+        $('#det-garcom-txt').textContent = `Atendente: ${cmd.garcom || 'Garçom'}`;
+        $('#det-total-mesa').textContent = moeda(cmd.total);
+
+        $('#det-itens-consumidos').innerHTML = cmd.itens.map(it => `
+          <div style="display:flex;justify-content:space-between;font-size:13px">
+            <span><b>${it.qtd}x</b> ${it.nome} ${it.obs ? `<small style="color:var(--primaria-forte)">(${it.obs})</small>` : ''}</span>
+            <span style="font-weight:800">${moeda(it.preco * it.qtd)}</span>
+          </div>
+        `).join('');
+
+        // Permissão de fechamento do Garçom
+        const podeFechar = garcomLogado && (garcomLogado.podeFecharConta || garcomLogado.papel === 'admin');
+        if (podeFechar) {
+          $('#box-fechamento-garcom').style.display = 'block';
+          $('#box-fechamento-apenas-caixa').style.display = 'none';
+        } else {
+          $('#box-fechamento-garcom').style.display = 'none';
+          $('#box-fechamento-apenas-caixa').style.display = 'block';
+        }
+
+        $('#modal-detalhes-mesa').classList.add('aberto');
+      }
+
+      async function finalizarContaMesaPeloGarcom() {
+        if (!mesaSelecionadaDetalhes) return;
+        const btn = $('#btn-fechar-conta-mesa');
+        btn.disabled = true;
+        btn.textContent = 'Processando fechamento...';
+
+        try {
+          const resp = await fetch('/api/garcom/fechar-conta', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              mesa: mesaSelecionadaDetalhes.mesa,
+              pagamento: formaPagamentoEscolhida,
+              operador: garcomLogado.nome,
+              garcomId: garcomLogado.id
+            })
+          });
+
+          const res = await resp.json();
+          if (res.ok) {
+            toast(`Conta da Mesa ${mesaSelecionadaDetalhes.mesa} recebida com sucesso!`, '💰');
+            $('#modal-detalhes-mesa').classList.remove('aberto');
+            await carregarMesasAbertas();
+          } else {
+            alert(res.erro || 'Falha ao encerrar mesa.');
+          }
+        } catch {
+          alert('Erro de comunicação com o servidor.');
+        } finally {
+          btn.disabled = false;
+          btn.textContent = '💳 Fechar Conta e Receber na Mesa';
+        }
+      }
+
+      /* ========================================================
+         7. NAVEGAÇÃO DE ABAS
+         ======================================================== */
+      function irParaAba(idAba) {
+        $$('.conteudo-app > section').forEach(sec => sec.style.display = 'none');
+        $$('.nav-item').forEach(btn => btn.classList.toggle('ativo', btn.dataset.tela === idAba));
+        const alvo = $('#' + idAba);
+        if (alvo) alvo.style.display = 'block';
+        if (idAba === 'aba-mesas') carregarMesasAbertas();
+      }
+
+      /* ========================================================
+         8. LIGAÇÃO DE EVENTOS GERAIS
+         ======================================================== */
+      function ligarEventos() {
+        // Login
+        $('#form-login-garcom').onsubmit = fazerLogin;
+        $('#btn-entrar-garcom').onclick = fazerLogin;
+        $('#btn-desconectar').onclick = desconectar;
+
+        // Primeiro Acesso
+        $('#form-primeiro-acesso').onsubmit = salvarNovaSenhaPrimeiroAcesso;
+
+        // Tour
+        $('#btn-fechar-tour').onclick = () => {
+          $('#tour-box').style.display = 'none';
+          localStorage.setItem('guia_garcom_visto_' + garcomLogado.usuario, '1');
+        };
+        $('#btn-abrir-guia').onclick = () => {
+          $('#tour-box').style.display = 'block';
+        };
+
+        // Navegação
+        $$('.nav-item').forEach(btn => {
+          btn.onclick = () => irParaAba(btn.dataset.tela);
+        });
+        $('#btn-ir-cardapio-completo').onclick = () => irParaAba('aba-cardapio');
+
+        // Atalhos de Mesa
+        $$('.btn-atalho-mesa').forEach(btn => {
+          btn.onclick = () => {
+            if (btn.dataset.m) {
+              $('#input-mesa-atual').value = btn.dataset.m;
+              atualizarBarraPedido();
+            }
+          };
+        });
+        $('#input-mesa-atual').oninput = atualizarBarraPedido;
+
+        // Busca com Debounce no Cardápio Completo
+        let timerBusca = null;
+        $('#busca-cardapio').oninput = e => {
+          const val = e.target.value;
+          if (timerBusca) clearTimeout(timerBusca);
+          timerBusca = setTimeout(() => {
+            const catAtiva = $('#filtros-categorias-garcom .ativo')?.dataset.cat || 'todas';
+            renderCardapioCompleto(catAtiva, val);
+          }, 150);
+        };
+
+        // Modal Revisão Pedido
+        $('#btn-abrir-revisao-pedido').onclick = abrirModalRevisao;
+        $('#btn-fechar-revisao').onclick = () => $('#modal-revisao-pedido').classList.remove('aberto');
+        $('#btn-confirmar-envio-cozinha').onclick = dispararPedidoCozinhaEcaixa;
+
+        // Modal Detalhes Mesa
+        $('#btn-fechar-det-mesa').onclick = () => $('#modal-detalhes-mesa').classList.remove('aberto');
+        $('#btn-atualizar-mesas').onclick = carregarMesasAbertas;
+        $('#btn-fechar-conta-mesa').onclick = finalizarContaMesaPeloGarcom;
+
+        // Ponto & Segurança Anti-Falta
+        if ($('#btn-confirmar-ponto')) {
+          $('#btn-confirmar-ponto').onclick = () => registrarPonto('entrada');
+        }
+        if ($('#btn-ponto-rapido')) {
+          $('#btn-ponto-rapido').onclick = alternarPonto;
+        }
+        if ($('#btn-sair-bloqueado')) {
+          $('#btn-sair-bloqueado').onclick = () => {
+            $('#modal-bloqueado').classList.remove('aberto');
+            desconectar();
+          };
+        }
+
+        // Escolha da Forma de Pagamento
+        $$('.btn-forma-pg').forEach(btn => {
+          btn.onclick = () => {
+            $$('.btn-forma-pg').forEach(b => b.classList.remove('ativo'));
+            btn.classList.add('ativo');
+            formaPagamentoEscolhida = btn.dataset.forma;
+          };
+        });
+      }
+
+      // Inicialização
+      ligarEventos();
+      verificarSessao();
+
+    })();
+  </script>
+</body>
+</html>

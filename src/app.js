@@ -2679,9 +2679,22 @@ ${emailRemetente ? `E-mail de contato: ${emailRemetente}` : ''}`;
               ? `<span class="chip chip--ok" style="font-weight:700">Mensal · ${DB.moeda(f.valorPagamento || 0)}</span>`
               : `<span class="chip" style="color:var(--tinta-3)">Não definido</span>`}
         </td>
-        <td><span class="chip ${f.ativo ? 'chip--ok' : 'chip--zero'}">${f.ativo ? 'Ativo' : 'Inativo'}</span></td>
+        <td>
+          ${f.ativo === false ? `
+            <span class="chip chip--zero" style="font-weight:800;color:var(--alerta)">🚫 Bloqueado</span>
+          ` : f.papel === 'garcom' ? (
+            f.emTurno ? `<span class="chip chip--ok" style="font-weight:800;color:var(--sucesso)">🟢 Em Turno (${UI.hora(f.pontoEntrada)})</span>` : `<span class="chip" style="color:var(--tinta-3)">⚪ Fora de Turno</span>`
+          ) : `<span class="chip ${f.ativo ? 'chip--ok' : 'chip--zero'}">${f.ativo ? 'Ativo' : 'Inativo'}</span>`}
+        </td>
         <td class="dir">
           <div class="mini-acoes">
+            ${f.papel === 'garcom' && f.id !== 'func-admin' && f.usuario !== 'admin' ? (
+              f.ativo === false ? `
+                <button class="btn-desbloquear-garcom-tabela" data-fuser="${f.usuario}" title="Desbloquear Acesso" style="color:var(--sucesso);font-weight:900">✅</button>
+              ` : `
+                <button class="btn-bloquear-garcom-tabela" data-fuser="${f.usuario}" title="Bloquear Acesso Imediatamente" style="color:var(--alerta);font-weight:900">🚫</button>
+              `
+            ) : ''}
             <button data-feditar="${f.id}" title="Editar">${UI.icone('lapis')}</button>
             ${f.id !== 'func-admin' && f.usuario !== 'admin' ? `
               <button class="excluir" data-fexcluir="${f.id}" title="Excluir">${UI.icone('lixeira')}</button>
@@ -2691,6 +2704,8 @@ ${emailRemetente ? `E-mail de contato: ${emailRemetente}` : ''}`;
       </tr>`).join('');
 
     $$('[data-feditar]').forEach(b => b.onclick = () => editarFuncionario(b.dataset.feditar));
+    $$('.btn-bloquear-garcom-tabela').forEach(b => b.onclick = () => acaoBloquearGarcom(b.dataset.fuser));
+    $$('.btn-desbloquear-garcom-tabela').forEach(b => b.onclick = () => acaoDesbloquearGarcom(b.dataset.fuser));
     $$('[data-fexcluir]').forEach(b => b.onclick = () => {
       const f = DB.funcionario(b.dataset.fexcluir);
       if (!f) return;
@@ -3933,64 +3948,147 @@ ${emailRemetente ? `E-mail de contato: ${emailRemetente}` : ''}`;
     }
   }
 
+  /* Controle Preventivo de Garçons e Anti-Avacalhação / Falta */
+  async function acaoBloquearGarcom(usuario) {
+    const nome = String(usuario || '').trim();
+    if (!nome) return;
+    const ok = await UI.confirmar({
+      titulo: 'Bloquear Acesso do Garçom',
+      texto: `Deseja <b>BLOQUEAR IMEDIATAMENTE</b> o acesso de <b>${UI.escapar(nome)}</b>?<br><br>O aplicativo dele será desconectado e nenhuma comanda poderá ser lançada por ele.`,
+      acao: 'Bloquear Imediatamente',
+      perigo: true
+    });
+    if (!ok) return;
+
+    try {
+      DB.bloquearAcessoFuncionario(nome, 'Bloqueio preventivo pelo Caixa/Administrador');
+      await fetch(apiUrl('/api/garcom/bloquear'), {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ usuario: nome, motivo: 'Bloqueio preventivo pelo Caixa/Administrador' })
+      }).catch(() => {});
+      UI.toast(`Acesso do garçom ${nome} foi bloqueado com sucesso!`, 'alerta');
+      abrirModalComandasMesas();
+      if (typeof renderFuncionariosTab === 'function') renderFuncionariosTab();
+    } catch (err) {
+      UI.toast(err.message || 'Erro ao bloquear.', 'erro');
+    }
+  }
+
+  async function acaoDesbloquearGarcom(usuario) {
+    const nome = String(usuario || '').trim();
+    if (!nome) return;
+    try {
+      DB.desbloquearAcessoFuncionario(nome);
+      await fetch(apiUrl('/api/garcom/desbloquear'), {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ usuario: nome })
+      }).catch(() => {});
+      UI.toast(`Acesso de ${nome} desbloqueado!`);
+      abrirModalComandasMesas();
+      if (typeof renderFuncionariosTab === 'function') renderFuncionariosTab();
+    } catch (err) {
+      UI.toast(err.message || 'Erro ao desbloquear.', 'erro');
+    }
+  }
+
   function abrirModalComandasMesas() {
     const abertas = DB.comandasAbertas();
-    if (!abertas.length) {
-      UI.toast('Nenhuma mesa ou comanda aberta no momento.');
-      return;
-    }
+    const garcons = (DB.funcionarios() || []).filter(f => f.papel === 'garcom');
 
     UI.abrirModal({
-      titulo: `Mesas & Comandas Abertas (${abertas.length})`,
+      titulo: `Mesas & Comandas (${abertas.length} abertas)`,
       largo: true,
       corpo: `
-        <div style="display:grid;grid-template-columns:repeat(auto-fill, minmax(280px, 1fr));gap:12px;max-height:65vh;overflow-y:auto;padding:4px">
-          ${abertas.map(cmd => {
-            const qtdItens = cmd.itens.reduce((s, i) => s + (i.qtd || 1), 0);
-            return `
-              <div style="background:var(--afundado);border:1.5px solid var(--borda);border-radius:10px;padding:12px;display:flex;flex-direction:column;justify-content:space-between;gap:10px">
-                <div>
-                  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
-                    <span style="font-size:16px;font-weight:900;color:var(--tinta)">🛎️ Mesa ${UI.escapar(cmd.mesa)}</span>
-                    <span style="font-size:11px;font-weight:800;padding:2px 8px;border-radius:10px;background:var(--primaria-leve);color:var(--primaria-forte)">
-                      ${qtdItens} item(ns)
-                    </span>
-                  </div>
-                  <div style="font-size:11.5px;color:var(--tinta-2);margin-bottom:8px">
-                    Atendido por: <b>${UI.escapar(cmd.garcom || 'Garçom')}</b> · Aberta às ${UI.hora(cmd.abertaEm)}
-                  </div>
-                  <div style="max-height:120px;overflow-y:auto;border-top:1px dashed var(--borda);border-bottom:1px dashed var(--borda);padding:6px 0;font-size:12px">
-                    ${cmd.itens.map(it => `
-                      <div style="display:flex;justify-content:space-between;gap:6px;margin-bottom:4px">
-                        <span><b>${it.qtd}x</b> ${UI.escapar(it.nome)} ${it.obs ? `<small style="color:var(--mar)">(${UI.escapar(it.obs)})</small>` : ''}</span>
-                        <span style="font-weight:700">${DB.moeda(it.preco * it.qtd)}</span>
-                      </div>
-                    `).join('')}
-                  </div>
-                </div>
-                <div>
-                  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
-                    <span style="font-size:12px;font-weight:700;color:var(--tinta-2)">Total da Conta:</span>
-                    <span style="font-size:18px;font-weight:900;color:var(--sucesso)">${DB.moeda(cmd.total)}</span>
-                  </div>
-                  <div style="display:flex;gap:6px">
-                    <button class="btn-secundario btn-pequeno btn-imprimir-previa-cmd" data-id="${cmd.id}" type="button" style="flex:1;justify-content:center;font-size:11px;font-weight:700">
-                      🖨️ Prévia
-                    </button>
-                    <button class="btn-primario btn-pequeno btn-carregar-cmd-caixa" data-id="${cmd.id}" type="button" style="flex:1.5;justify-content:center;font-size:11.5px;font-weight:800">
-                      💳 Fechar no Caixa
-                    </button>
-                  </div>
-                </div>
-              </div>
-            `;
-          }).join('')}
+        <!-- Barra de Controle de Presença dos Garçons (Anti-Avacalhação / Falta) -->
+        <div style="background:var(--papel);border:1px solid var(--borda);border-radius:10px;padding:10px 14px;margin-bottom:12px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px">
+          <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+            <span style="font-size:12.5px;font-weight:800;color:var(--tinta)">👥 Garçons & Presença:</span>
+            ${garcons.length === 0 ? '<span style="font-size:11.5px;color:var(--tinta-3)">Nenhum garçom cadastrado</span>' : ''}
+            <div style="display:flex;gap:6px;flex-wrap:wrap">
+              ${garcons.map(g => {
+                if (g.ativo === false) {
+                  return `<span style="background:rgba(211,47,47,.12);color:var(--alerta);padding:3px 8px;border-radius:8px;font-size:11.5px;font-weight:800;display:inline-flex;align-items:center;gap:4px">
+                    🚫 ${UI.escapar(g.nome)} (Bloqueado)
+                    <button type="button" class="btn-quick-desbloquear" data-user="${g.usuario}" style="background:none;border:none;cursor:pointer;color:var(--sucesso);font-weight:900" title="Desbloquear Acesso">✅</button>
+                  </span>`;
+                }
+                if (g.emTurno) {
+                  return `<span style="background:rgba(46,125,50,.12);color:var(--sucesso);padding:3px 8px;border-radius:8px;font-size:11.5px;font-weight:800;display:inline-flex;align-items:center;gap:4px">
+                    🟢 ${UI.escapar(g.nome)} (${UI.hora(g.pontoEntrada)})
+                    <button type="button" class="btn-quick-bloquear" data-user="${g.usuario}" style="background:none;border:none;cursor:pointer;color:var(--alerta);font-weight:900" title="Bloquear Imediatamente">🚫</button>
+                  </span>`;
+                }
+                return `<span style="background:var(--afundado);color:var(--tinta-3);padding:3px 8px;border-radius:8px;font-size:11.5px;font-weight:700">
+                  ⚪ ${UI.escapar(g.nome)} (Fora)
+                </span>`;
+              }).join('')}
+            </div>
+          </div>
+          <a href="/garcom.html" target="_blank" style="font-size:11.5px;font-weight:700;color:var(--primaria-forte);text-decoration:none">
+            Abrir Comanda Garçom ↗
+          </a>
         </div>
+
+        ${!abertas.length ? `
+          <div style="text-align:center;padding:32px 16px;color:var(--tinta-3)">
+            <div style="font-size:36px;margin-bottom:8px">🛎️</div>
+            <div style="font-size:14px;font-weight:700">Nenhuma mesa ou comanda aberta no momento.</div>
+            <div style="font-size:12px;margin-top:4px">Os pedidos lançados pelos garçons aparecerão aqui automaticamente.</div>
+          </div>
+        ` : `
+          <div style="display:grid;grid-template-columns:repeat(auto-fill, minmax(280px, 1fr));gap:12px;max-height:60vh;overflow-y:auto;padding:4px">
+            ${abertas.map(cmd => {
+              const qtdItens = cmd.itens.reduce((s, i) => s + (i.qtd || 1), 0);
+              return `
+                <div style="background:var(--afundado);border:1.5px solid var(--borda);border-radius:10px;padding:12px;display:flex;flex-direction:column;justify-content:space-between;gap:10px">
+                  <div>
+                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+                      <span style="font-size:16px;font-weight:900;color:var(--tinta)">🛎️ Mesa ${UI.escapar(cmd.mesa)}</span>
+                      <span style="font-size:11px;font-weight:800;padding:2px 8px;border-radius:10px;background:var(--primaria-leve);color:var(--primaria-forte)">
+                        ${qtdItens} item(ns)
+                      </span>
+                    </div>
+                    <div style="font-size:11.5px;color:var(--tinta-2);margin-bottom:8px">
+                      Atendido por: <b>${UI.escapar(cmd.garcom || 'Garçom')}</b> · Aberta às ${UI.hora(cmd.abertaEm)}
+                    </div>
+                    <div style="max-height:120px;overflow-y:auto;border-top:1px dashed var(--borda);border-bottom:1px dashed var(--borda);padding:6px 0;font-size:12px">
+                      ${cmd.itens.map(it => `
+                        <div style="display:flex;justify-content:space-between;gap:6px;margin-bottom:4px">
+                          <span><b>${it.qtd}x</b> ${UI.escapar(it.nome)} ${it.obs ? `<small style="color:var(--mar)">(${UI.escapar(it.obs)})</small>` : ''}</span>
+                          <span style="font-weight:700">${DB.moeda(it.preco * it.qtd)}</span>
+                        </div>
+                      `).join('')}
+                    </div>
+                  </div>
+                  <div>
+                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+                      <span style="font-size:12px;font-weight:700;color:var(--tinta-2)">Total da Conta:</span>
+                      <span style="font-size:18px;font-weight:900;color:var(--sucesso)">${DB.moeda(cmd.total)}</span>
+                    </div>
+                    <div style="display:flex;gap:6px">
+                      <button class="btn-secundario btn-pequeno btn-imprimir-previa-cmd" data-id="${cmd.id}" type="button" style="flex:1;justify-content:center;font-size:11px;font-weight:700">
+                        🖨️ Prévia
+                      </button>
+                      <button class="btn-primario btn-pequeno btn-carregar-cmd-caixa" data-id="${cmd.id}" type="button" style="flex:1.5;justify-content:center;font-size:11.5px;font-weight:800">
+                        💳 Fechar no Caixa
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              `;
+            }).join('')}
+          </div>
+        `}
       `,
       rodape: `
         <button class="btn-secundario" type="button" onclick="UI.fecharModal()">Fechar</button>
       `
     });
+
+    $$('.btn-quick-bloquear').forEach(b => b.onclick = () => acaoBloquearGarcom(b.dataset.user));
+    $$('.btn-quick-desbloquear').forEach(b => b.onclick = () => acaoDesbloquearGarcom(b.dataset.user));
 
     $$('.btn-carregar-cmd-caixa').forEach(btn => {
       btn.onclick = () => {

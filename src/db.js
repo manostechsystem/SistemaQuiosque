@@ -273,6 +273,58 @@ const DB = (() => {
     salvar(); alertar();
   }
 
+  /* Controle de Presença, Ponto e Bloqueio Preventivo de Garçom */
+  function baterPontoGarcom(usuario, tipo = 'entrada') {
+    const u = String(usuario || '').trim().toLowerCase();
+    const f = estado.funcionarios.find(x => x.usuario === u);
+    if (!f) throw new Error('Funcionário não encontrado.');
+    if (!f.ativo) throw new Error('Acesso do funcionário está bloqueado ou inativo.');
+
+    const agora = new Date().toISOString();
+    f.pontos = f.pontos || [];
+    if (tipo === 'entrada') {
+      f.emTurno = true;
+      f.pontoEntrada = agora;
+      f.pontoSaida = null;
+      f.pontos.push({ data: agora, tipo: 'entrada' });
+    } else {
+      f.emTurno = false;
+      f.pontoSaida = agora;
+      f.pontos.push({ data: agora, tipo: 'saida' });
+    }
+    salvar(); alertar();
+    return f;
+  }
+
+  function bloquearAcessoFuncionario(fidOuUsuario, motivo = '') {
+    const idOuUser = String(fidOuUsuario || '').trim().toLowerCase();
+    const f = estado.funcionarios.find(x => x.id === idOuUser || x.usuario === idOuUser);
+    if (!f) throw new Error('Funcionário não encontrado.');
+    if (f.usuario === 'admin' || f.id === 'func-admin') throw new Error('Não é possível bloquear o Administrador principal.');
+
+    f.ativo = false;
+    f.emTurno = false;
+    f.bloqueadoEm = new Date().toISOString();
+    f.motivoBloqueio = motivo || 'Bloqueio preventivo pelo Administrador';
+    salvar(); alertar();
+    return f;
+  }
+
+  function desbloquearAcessoFuncionario(fidOuUsuario) {
+    const idOuUser = String(fidOuUsuario || '').trim().toLowerCase();
+    const f = estado.funcionarios.find(x => x.id === idOuUser || x.usuario === idOuUser);
+    if (!f) throw new Error('Funcionário não encontrado.');
+    f.ativo = true;
+    f.bloqueadoEm = null;
+    f.motivoBloqueio = null;
+    salvar(); alertar();
+    return f;
+  }
+
+  function garconsEmTurno() {
+    return (estado.funcionarios || []).filter(f => f.papel === 'garcom' && f.ativo && f.emTurno);
+  }
+
   async function conferirLogin(usuario, senha) {
     const u = String(usuario || '').trim().toLowerCase();
     const f = estado.funcionarios.find(x => x.usuario === u);
@@ -854,6 +906,7 @@ const DB = (() => {
     salvarLoteContabil, lotesContabeis, marcarLoteEnviado,
     categorias, nomeCategoria, salvarCategoria, excluirCategoria,
     funcionarios, funcionario, salvarFuncionario, excluirFuncionario, conferirLogin, trocarSenhaFuncionario,
+    baterPontoGarcom, bloquearAcessoFuncionario, desbloquearAcessoFuncionario, garconsEmTurno,
     comandasAbertas, comandaMesa, lancarPedidoGarcom, fecharComandaMesa, obterFilaCozinha, marcarCozinhaImpresso,
     caixaAberto, abrirCaixa, registrarMovimento, fecharCaixa, caixasFechados,
     vendasDoCaixa, resumoCaixa,
