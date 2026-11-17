@@ -3894,9 +3894,14 @@ ${emailRemetente ? `E-mail de contato: ${emailRemetente}` : ''}`;
   function ligarEventos() {
     $$('.trilho__btn').forEach(b => b.onclick = () => irPara(b.dataset.vista));
 
+    let timerBuscaPdv = null;
     $('#busca').addEventListener('input', e => {
-      st.busca = e.target.value;
-      renderGrade();
+      const val = e.target.value;
+      if (timerBuscaPdv) clearTimeout(timerBuscaPdv);
+      timerBuscaPdv = setTimeout(() => {
+        st.busca = val;
+        renderGrade();
+      }, 100);
     });
     $('#busca').addEventListener('keydown', e => {
       if (e.key !== 'Enter') return;
@@ -3934,7 +3939,15 @@ ${emailRemetente ? `E-mail de contato: ${emailRemetente}` : ''}`;
     if ($('#btn-compras-importar')) $('#btn-compras-importar').onclick = importarXmlFluxo;
     if ($('#btn-contabil-filtrar')) $('#btn-contabil-filtrar').onclick = filtrarEAtualizarContabilidade;
     if ($('#btn-contabil-exportar')) $('#btn-contabil-exportar').onclick = exportarXmlContabilidadeFluxo;
-    if ($('#prod-busca')) $('#prod-busca').addEventListener('input', e => { st.filtroProdutos = e.target.value; renderProdutos(); });
+    let timerBuscaProd = null;
+    if ($('#prod-busca')) $('#prod-busca').addEventListener('input', e => {
+      const val = e.target.value;
+      if (timerBuscaProd) clearTimeout(timerBuscaProd);
+      timerBuscaProd = setTimeout(() => {
+        st.filtroProdutos = val;
+        renderProdutos();
+      }, 120);
+    });
 
     $$('#abas-ret .aba').forEach(b => b.onclick = () => { st.retAba = b.dataset.aba; renderRetaguarda(); });
     $$('[data-ret-nav]').forEach(b => b.onclick = () => {

@@ -2,6 +2,7 @@ const http = require('http');
 const fs = require('fs');
 const path = require('path');
 const os = require('os');
+const zlib = require('zlib');
 const QRCode = require('qrcode');
 const Backup = require('./backup.js');
 const Dispositivos = require('./dispositivos.js');
@@ -27,6 +28,37 @@ const MIME = {
   '.mp3': 'audio/mpeg',
   '.ogg': 'audio/ogg'
 };
+
+// Otimização de Performance (Checklist 31 #14 & #15): Compressão Gzip e Cache Inteligente
+function enviarRespostaOtimizada(req, res, statusCode, headers, conteudo) {
+  const buffer = Buffer.isBuffer(conteudo) ? conteudo : Buffer.from(conteudo != null ? String(conteudo) : '', 'utf8');
+  const aceitaGzip = String(req.headers['accept-encoding'] || '').includes('gzip');
+  const contentType = headers['Content-Type'] || '';
+  const eComprimivel = /text|javascript|json|xml|svg/i.test(contentType);
+
+  if (aceitaGzip && eComprimivel && buffer.length > 512) {
+    zlib.gzip(buffer, (err, compactado) => {
+      if (err) {
+        res.writeHead(statusCode, { ...headers, 'Content-Length': buffer.length });
+        res.end(buffer);
+        return;
+      }
+      res.writeHead(statusCode, {
+        ...headers,
+        'Content-Encoding': 'gzip',
+        'Content-Length': compactado.length,
+        'Vary': 'Accept-Encoding'
+      });
+      res.end(compactado);
+    });
+  } else {
+    res.writeHead(statusCode, {
+      ...headers,
+      'Content-Length': buffer.length
+    });
+    res.end(buffer);
+  }
+}
 
 let debounceBackupTimer = null;
 function agendarBackupNuvem() {
@@ -122,15 +154,16 @@ const server = http.createServer((req, res) => {
       try {
         if (fs.existsSync(DATA_FILE)) {
           const conteudo = fs.readFileSync(DATA_FILE, 'utf8');
-          res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
-          res.end(conteudo);
+          enviarRespostaOtimizada(req, res, 200, {
+            'Content-Type': 'application/json; charset=utf-8',
+            'Cache-Control': 'no-cache'
+          }, conteudo);
           return;
         }
       } catch (err) {
         console.error('Erro ao ler DB:', err);
       }
-      res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
-      res.end('null');
+      enviarRespostaOtimizada(req, res, 200, { 'Content-Type': 'application/json; charset=utf-8' }, 'null');
       return;
     }
 
@@ -598,7 +631,7 @@ const server = http.createServer((req, res) => {
     }
   }
 
-  // Servir arquivos estáticos da pasta src
+  // Servir arquivos estáticos da pasta src com Compressão Gzip e Cache Inteligente (Performance 31 #13, #14, #15)
   let urlPath = pathname;
   if (urlPath === '/' || urlPath === '') urlPath = '/index.html';
   const filePath = path.join(SRC_DIR, urlPath);
@@ -610,8 +643,24 @@ const server = http.createServer((req, res) => {
   }
 
   const ext = path.extname(filePath).toLowerCase();
-  res.writeHead(200, { 'Content-Type': MIME[ext] || 'application/octet-stream' });
-  fs.createReadStream(filePath).pipe(res);
+  let cacheControl = 'no-cache';
+  if (['.png', '.jpg', '.jpeg', '.ico', '.svg', '.woff2', '.mp3', '.ogg'].includes(ext)) {
+    cacheControl = 'public, max-age=86400, stale-while-revalidate=604800';
+  } else if (['.js', '.css'].includes(ext)) {
+    cacheControl = 'public, max-age=3600';
+  }
+
+  fs.readFile(filePath, (err, data) => {
+    if (err) {
+      res.writeHead(500, { 'Content-Type': 'text/plain; charset=utf-8' });
+      res.end('Erro ao carregar arquivo');
+      return;
+    }
+    enviarRespostaOtimizada(req, res, 200, {
+      'Content-Type': MIME[ext] || 'application/octet-stream',
+      'Cache-Control': cacheControl
+    }, data);
+  });
 });
 
 // Ouve em 0.0.0.0 para aceitar conexões locais e túneis do Cloudflare

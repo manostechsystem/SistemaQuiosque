@@ -108,20 +108,26 @@ async function publicarTunnelNoGitHub(urlTunnel) {
     const base64 = Buffer.from(payloadContent, 'utf8').toString('base64');
 
     const sha = await new Promise(resolve => {
-      https.get({
+      const getReq = https.get({
         hostname: 'api.github.com',
         path: `/repos/${GITHUB_OWNER}/${GITHUB_REPO}/contents/tunnel_active.json`,
         headers: {
           'User-Agent': 'ManosTech-System',
           'Authorization': `token ${GITHUB_TOKEN}`
-        }
+        },
+        timeout: 6000
       }, res => {
         let b = '';
         res.on('data', c => b += c);
         res.on('end', () => {
           try { resolve(JSON.parse(b).sha || null); } catch { resolve(null); }
         });
-      }).on('error', () => resolve(null));
+      });
+      getReq.on('error', () => resolve(null));
+      getReq.on('timeout', () => {
+        getReq.destroy();
+        resolve(null);
+      });
     });
 
     const bodyEnvio = JSON.stringify({
@@ -140,7 +146,8 @@ async function publicarTunnelNoGitHub(urlTunnel) {
           'Authorization': `token ${GITHUB_TOKEN}`,
           'Content-Type': 'application/json',
           'Content-Length': Buffer.byteLength(bodyEnvio)
-        }
+        },
+        timeout: 7000
       }, res => {
         res.on('data', () => {});
         res.on('end', () => {
@@ -150,6 +157,11 @@ async function publicarTunnelNoGitHub(urlTunnel) {
       });
       req.on('error', (e) => {
         console.warn('[TUNNEL] Falha ao publicar no GitHub:', e.message);
+        resolve();
+      });
+      req.on('timeout', () => {
+        req.destroy();
+        console.warn('[TUNNEL] Timeout ao publicar no GitHub');
         resolve();
       });
       req.write(bodyEnvio);

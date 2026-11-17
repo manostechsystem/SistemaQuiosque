@@ -913,6 +913,11 @@
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
           <span>Atualizações (v2.5.1)</span>
         </button>
+
+        <button class="drawer-item" id="btn-drawer-privacidade">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="m9 12 2 2 4-4"/></svg>
+          <span>Conformidade & LGPD</span>
+        </button>
       </div>
 
       <div class="drawer-rodape">
@@ -979,6 +984,19 @@
               Muitas tentativas. Aguarde <span id="segundos-bloqueio">30</span>s.
             </div>
           </form>
+
+          <!-- Rodapé de Conformidade Legal, Dados Jurídicos e LGPD (Checklist Isaque Paiva / CDC) -->
+          <div style="margin-top:18px;padding-top:12px;border-top:1px dashed var(--borda);text-align:center;font-size:11px;color:var(--tinta-3);line-height:1.5">
+            <div>
+              <b id="leg-loja-rodape">ManosTech System</b>
+              <span id="leg-cnpj-wrap" style="display:none"> • CNPJ <span id="leg-cnpj-rodape"></span></span>
+            </div>
+            <div style="margin-top:4px">
+              <button type="button" id="btn-abrir-privacidade-login" style="background:none;border:none;color:var(--primaria-forte);text-decoration:underline;font-size:11px;font-weight:700;cursor:pointer">
+                Privacidade, Termos & LGPD
+              </button>
+            </div>
+          </div>
         </div>
       </div>
     </section>
@@ -1437,6 +1455,78 @@
     </div>
   </div>
 
+  <!-- MODAL DE CONFORMIDADE LEGAL, LGPD E PRIVACIDADE -->
+  <div class="mob-modal-overlay" id="modal-privacidade-overlay">
+    <div class="mob-modal" style="max-height:88vh;overflow-y:auto;padding-bottom:24px">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+        <div style="display:flex;align-items:center;gap:8px">
+          <div style="width:34px;height:34px;border-radius:8px;background:var(--primaria-leve);display:flex;align-items:center;justify-content:center;color:var(--primaria-forte)">
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="m9 12 2 2 4-4"/></svg>
+          </div>
+          <h3 style="font-size:16px;font-weight:900;color:var(--tinta);margin:0">Privacidade & Termos Legais</h3>
+        </div>
+        <button type="button" class="btn-fechar-drawer" id="btn-fechar-modal-privacidade" style="width:32px;height:32px;border:1px solid var(--borda-forte)">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>
+
+      <div style="font-size:12.5px;color:var(--tinta-2);line-height:1.55;display:flex;flex-direction:column;gap:12px">
+        <!-- Identificação do Estabelecimento (Decreto 7.962/2013 / CDC Art. 31) -->
+        <div style="background:var(--afundado);padding:10px 12px;border-radius:10px;border:1px solid var(--borda)">
+          <div style="font-weight:800;color:var(--primaria-forte);font-size:11px;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px">
+            🏢 Identificação do Estabelecimento
+          </div>
+          <div><b>Nome Comercial:</b> <span id="priv-nome-loja">ManosTech System</span></div>
+          <div id="priv-razao-box"><b>Razão Social:</b> <span id="priv-razao-social">—</span></div>
+          <div id="priv-cnpj-box"><b>CNPJ:</b> <span id="priv-cnpj">—</span></div>
+          <div id="priv-endereco-box"><b>Endereço / Cidade:</b> <span id="priv-endereco">—</span></div>
+          <div id="priv-contato-box"><b>Contato:</b> <span id="priv-contato">—</span></div>
+        </div>
+
+        <!-- Minimização e LGPD -->
+        <div>
+          <b style="color:var(--tinta)">🛡️ Princípio da Minimização (LGPD Art. 6º, III):</b>
+          <p style="margin:4px 0 0 0">
+            Para o atendimento e pedidos nas mesas/quiosque, o sistema <b>não exige nem armazena dados pessoais</b> (como CPF, nome ou telefone). Os pedidos são vinculados unicamente ao número da comanda/mesa de consumo local.
+          </p>
+        </div>
+
+        <!-- Cookies e Armazenamento Local -->
+        <div>
+          <b style="color:var(--tinta)">🍪 Armazenamento Local Estritamente Necessário (Guia ANPD):</b>
+          <p style="margin:4px 0 0 0">
+            Este aplicativo utiliza apenas memória local técnica (<code style="background:var(--afundado);padding:2px 4px;border-radius:4px">localStorage</code>) para manter a comanda ativa e preservar os itens adicionados ao carrinho durante sua permanência. Nenhum cookie de rastreamento publicitário ou de terceiros é utilizado.
+          </p>
+        </div>
+
+        <!-- Emissão Fiscal -->
+        <div>
+          <b style="color:var(--tinta)">🧾 Emissão Fiscal & Transparência (Lei 12.741/2012):</b>
+          <p style="margin:4px 0 0 0">
+            A inclusão voluntária de CPF na nota fiscal atende exclusivamente ao Art. 7º, II da LGPD (cumprimento de obrigação legal tributária perante a SEFAZ). Os tributos aproximados federais e estaduais são calculados conforme a Lei da Transparência Fiscal.
+          </p>
+        </div>
+
+        <!-- Direitos do Titular -->
+        <div>
+          <b style="color:var(--tinta)">⚖️ Direitos do Titular (LGPD Art. 18):</b>
+          <p style="margin:4px 0 0 0">
+            Qualquer solicitação referente a dados de faturamento ou histórico pode ser exercida diretamente junto à gerência do quiosque ou pelos canais de contato informados.
+          </p>
+        </div>
+
+        <div style="background:var(--sucesso-leve);color:var(--sucesso);padding:8px 10px;border-radius:8px;font-size:11px;font-weight:700;display:flex;align-items:center;gap:6px">
+          <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+          Em total conformidade com a LGPD (Lei 13.709/2018) e Código de Defesa do Consumidor.
+        </div>
+      </div>
+
+      <button type="button" class="btn-acao" id="btn-ok-privacidade" style="width:100%;margin-top:16px;height:42px;font-size:14px;justify-content:center">
+        Entendi e Aceito
+      </button>
+    </div>
+  </div>
+
   <!-- SCRIPTS DO SISTEMA -->
   <script src="browser-mock.js"></script>
   <script src="db.js"></script>
@@ -1862,7 +1952,36 @@
           else if (hora >= 18 || hora < 5) saudacaoTxt = 'Boa noite!';
           titHome.textContent = `${saudacaoTxt} ${nomeLoja}`;
         }
+
+        // Atualiza Dados de Conformidade Legal, Dados da Empresa e LGPD (Checklist Isaque Paiva)
+        const legLoja = $('#leg-loja-rodape');
+        if (legLoja) legLoja.textContent = nomeLoja;
+        const legCnpjWrap = $('#leg-cnpj-wrap');
+        const legCnpjEl = $('#leg-cnpj-rodape');
+        if (cfg.cnpj) {
+          if (legCnpjEl) legCnpjEl.textContent = cfg.cnpj;
+          if (legCnpjWrap) legCnpjWrap.style.display = 'inline';
+        }
+        if ($('#priv-nome-loja')) $('#priv-nome-loja').textContent = nomeLoja;
+        if ($('#priv-razao-social')) $('#priv-razao-social').textContent = cfg.razaoSocial || nomeLoja;
+        if ($('#priv-cnpj')) $('#priv-cnpj').textContent = cfg.cnpj || 'Não informado / Em cadastro';
+        if ($('#priv-endereco')) $('#priv-endereco').textContent = [cfg.endereco, cfg.municipioEmitente, cfg.ufEmitente].filter(Boolean).join(', ') || 'Balcão / Quiosque';
+        if ($('#priv-contato')) $('#priv-contato').textContent = cfg.telefone || 'Atendimento presencial no balcão';
       }
+
+      // Handlers da Modal de Privacidade & Conformidade Legal (LGPD)
+      const modalPrivacidade = $('#modal-privacidade-overlay');
+      function abrirModalPrivacidade() {
+        if (modalPrivacidade) modalPrivacidade.classList.add('aberto');
+        fecharDrawer();
+      }
+      function fecharModalPrivacidade() {
+        if (modalPrivacidade) modalPrivacidade.classList.remove('aberto');
+      }
+      if ($('#btn-abrir-privacidade-login')) $('#btn-abrir-privacidade-login').onclick = abrirModalPrivacidade;
+      if ($('#btn-drawer-privacidade')) $('#btn-drawer-privacidade').onclick = abrirModalPrivacidade;
+      if ($('#btn-fechar-modal-privacidade')) $('#btn-fechar-modal-privacidade').onclick = fecharModalPrivacidade;
+      if ($('#btn-ok-privacidade')) $('#btn-ok-privacidade').onclick = fecharModalPrivacidade;
 
       // Mostrar/Ocultar Senha (Olho)
       const btnOlhoSenha = $('#btn-olho-senha');
@@ -2406,9 +2525,14 @@
         renderEstoque();
       };
 
+      let timerBuscaEstoque = null;
       $('#busca-estoque').oninput = e => {
-        termoBusca = e.target.value.trim();
-        renderEstoque();
+        const val = e.target.value.trim();
+        if (timerBuscaEstoque) clearTimeout(timerBuscaEstoque);
+        timerBuscaEstoque = setTimeout(() => {
+          termoBusca = val;
+          renderEstoque();
+        }, 150);
       };
 
       // Modal de Ajuste Rápido Touch
