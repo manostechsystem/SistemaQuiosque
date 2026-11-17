@@ -140,13 +140,13 @@ const Fiscal = (() => {
     return chave.match(/.{1,4}/g).join(' ');
   }
 
-  const TABELA_ALIQUOTAS_IBPT = {
-    '2202': { nome: 'Águas, Sucos e Bebidas Não Alcoólicas', fed: 13.45, est: 17.00, total: 30.45 },
-    '2203': { nome: 'Cervejas e Chopes (Bebidas Frias / ST)', fed: 16.59, est: 25.00, total: 41.59 },
-    '2106': { nome: 'Pastéis, Porções, Lanches e Alimentos', fed: 12.45, est: 12.00, total: 24.45 },
-    '1806': { nome: 'Chocolates, Açaí, Sobremesas e Doces', fed: 14.25, est: 17.00, total: 31.25 },
-    '2105': { nome: 'Sorvetes e Picolés', fed: 13.80, est: 17.00, total: 30.80 },
-    'padrao': { nome: 'Outros Produtos Comerciais', fed: 13.45, est: 17.00, total: 30.45 }
+  const TABELA_ALIQUOTAS_PADRAO_SC = {
+    '2202': { key: '2202', nome: 'Águas, Sucos e Bebidas Não Alcoólicas', fed: 13.45, est: 17.00, total: 30.45 },
+    '2203': { key: '2203', nome: 'Cervejas e Chopes (Bebidas Frias / ST)', fed: 16.59, est: 25.00, total: 41.59 },
+    '2106': { key: '2106', nome: 'Pastéis, Porções, Lanches e Alimentos', fed: 12.45, est: 12.00, total: 24.45 },
+    '1806': { key: '1806', nome: 'Chocolates, Açaí, Sobremesas e Doces', fed: 14.25, est: 17.00, total: 31.25 },
+    '2105': { key: '2105', nome: 'Sorvetes e Picolés', fed: 13.80, est: 17.00, total: 30.80 },
+    'padrao': { key: 'padrao', nome: 'Outros Produtos Comerciais Gerais', fed: 13.45, est: 17.00, total: 30.45 }
   };
 
   const TABELA_SIMPLES_NACIONAL = {
@@ -156,13 +156,42 @@ const Fiscal = (() => {
     'mei': { nome: 'MEI (Microempreendedor Individual)', aliquota: 0.00, icms: 0.00, fed: 0.00 }
   };
 
-  function obterAliquotaItem(ncm) {
+  function obterAliquotaItem(ncm, config = {}, prod = null) {
+    // 1. Prioridade máxima: alíquota individual definida no produto
+    if (prod && prod.aliquotaFederal != null && prod.aliquotaFederal !== '' && prod.aliquotaEstadual != null && prod.aliquotaEstadual !== '') {
+      const fed = Number(prod.aliquotaFederal) || 0;
+      const est = Number(prod.aliquotaEstadual) || 0;
+      return {
+        key: 'produto',
+        nome: prod.nome || 'Produto Individual',
+        fed,
+        est,
+        total: Math.round((fed + est) * 100) / 100
+      };
+    }
+
     const limpo = String(ncm || '').replace(/\D/g, '');
     const cap4 = limpo.slice(0, 4);
-    return TABELA_ALIQUOTAS_IBPT[cap4] || TABELA_ALIQUOTAS_IBPT['padrao'];
+    const base = TABELA_ALIQUOTAS_PADRAO_SC[cap4] || TABELA_ALIQUOTAS_PADRAO_SC['padrao'];
+
+    // 2. Alíquota personalizada configurada na loja pelo dono/contador
+    const customizada = config.aliquotasPersonalizadas?.[cap4] || (TABELA_ALIQUOTAS_PADRAO_SC[cap4] ? null : config.aliquotasPersonalizadas?.['padrao']);
+    if (customizada) {
+      const fed = Number(customizada.fed != null ? customizada.fed : base.fed) || 0;
+      const est = Number(customizada.est != null ? customizada.est : base.est) || 0;
+      return {
+        key: cap4,
+        nome: base.nome,
+        fed,
+        est,
+        total: Math.round((fed + est) * 100) / 100
+      };
+    }
+
+    return base;
   }
 
-  function calcularTributosAproximados(venda, config) {
+  function calcularTributosAproximados(venda, config = {}) {
     const modoCalculo = config.modoCalculoAliquota || 'ibpt'; // 'ibpt' ou 'simples'
     const total = Number(venda.total || 0);
 
@@ -183,7 +212,7 @@ const Fiscal = (() => {
       };
     }
 
-    // Modo Oficial IBPT (Lei Federal 12.741/2012) produto a produto:
+    // Modo Oficial IBPT (Lei Federal 12.741/2012) produto a produto (com suporte a alíquotas editáveis da loja):
     let somaFederal = 0;
     let somaEstadual = 0;
     const itens = venda.itens || [];
@@ -192,13 +221,13 @@ const Fiscal = (() => {
       itens.forEach(it => {
         const prod = typeof DB !== 'undefined' && DB.produto ? DB.produto(it.produtoId) : null;
         const ncm = prod?.ncm || it.ncm || '22021000';
-        const aliq = obterAliquotaItem(ncm);
+        const aliq = obterAliquotaItem(ncm, config, prod);
         const subItem = Number(it.preco || 0) * Number(it.qtd || 1);
         somaFederal += subItem * (aliq.fed / 100);
         somaEstadual += subItem * (aliq.est / 100);
       });
     } else {
-      const aliqPadrao = TABELA_ALIQUOTAS_IBPT.padrao;
+      const aliqPadrao = obterAliquotaItem('padrao', config);
       somaFederal = total * (aliqPadrao.fed / 100);
       somaEstadual = total * (aliqPadrao.est / 100);
     }
@@ -218,7 +247,7 @@ const Fiscal = (() => {
       valorEstadual: somaEstadual,
       fedPerc: percFed,
       estPerc: percEst,
-      fonte: 'IBPT/empresometro.com.br (Chave 26.1.B)'
+      fonte: 'IBPT/empresometro.com.br (Chave 26.1.B SC)'
     };
   }
 
@@ -929,7 +958,9 @@ ${xmlsVendas}
     filtrarVendasContabilidade,
     montarXmlVendaContabil,
     gerarLoteContabilidadeXml,
-    FORMAS_PAGAMENTO_FISCAL
+    FORMAS_PAGAMENTO_FISCAL,
+    TABELA_ALIQUOTAS_PADRAO_SC,
+    obterAliquotaItem
   };
 })();
 

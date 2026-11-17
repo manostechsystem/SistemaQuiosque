@@ -68,6 +68,7 @@ const DB = (() => {
       ambienteFiscal: 'homologacao', // 'homologacao' ou 'producao'
       modoCalculoAliquota: 'ibpt', // 'ibpt' ou 'simples'
       aliquotaIbptPadrao: 4.25,
+      aliquotasPersonalizadas: null,
       imprimirDanfeNfce: true,
       termoIsencaoAceito: true
     }
@@ -383,7 +384,10 @@ const DB = (() => {
       ncm: (dados.ncm || '').trim().replace(/\D/g, '') || '22021000',
       cfop: (dados.cfop || '').trim().replace(/\D/g, '') || '5102',
       csosn: (dados.csosn || '').trim().replace(/\D/g, '') || '102',
-      unidadeTributavel: (dados.unidadeTributavel || 'UN').trim().toUpperCase()
+      unidadeTributavel: (dados.unidadeTributavel || 'UN').trim().toUpperCase(),
+      // Alíquotas Individuais do Produto (opcional: se nulo, segue a tabela configurada da loja ou padrão SC)
+      aliquotaFederal: (dados.aliquotaFederal !== null && dados.aliquotaFederal !== undefined && dados.aliquotaFederal !== '' && !isNaN(dados.aliquotaFederal)) ? Math.max(0, Number(dados.aliquotaFederal)) : null,
+      aliquotaEstadual: (dados.aliquotaEstadual !== null && dados.aliquotaEstadual !== undefined && dados.aliquotaEstadual !== '' && !isNaN(dados.aliquotaEstadual)) ? Math.max(0, Number(dados.aliquotaEstadual)) : null
     };
     if (!base.nome) throw new Error('Informe o nome do produto.');
     if (!(base.preco > 0)) throw new Error('Informe um preço maior que zero.');

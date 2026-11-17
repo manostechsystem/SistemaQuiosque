@@ -1058,6 +1058,21 @@ const App = (() => {
                   style="width:100%;height:38px;padding:0 8px;border-radius:var(--r-campo);border:1px solid var(--borda-forte);background:var(--elevado);font:inherit;text-transform:uppercase" />
               </div>
             </div>
+            <div class="grid-2" style="gap:10px;margin-top:6px">
+              <div>
+                <label for="f-aliq-fed" style="font-size:11px">Alíquota Federal % (Opcional)</label>
+                <input id="f-aliq-fed" type="number" step="0.01" min="0" max="100" placeholder="Padrão Categoria" value="${p?.aliquotaFederal != null ? p.aliquotaFederal : ''}"
+                  style="width:100%;height:38px;padding:0 8px;border-radius:var(--r-campo);border:1px solid var(--borda-forte);background:var(--elevado);font:inherit" />
+              </div>
+              <div>
+                <label for="f-aliq-est" style="font-size:11px">Alíquota Estadual / ICMS % (Opcional)</label>
+                <input id="f-aliq-est" type="number" step="0.01" min="0" max="100" placeholder="Padrão Categoria" value="${p?.aliquotaEstadual != null ? p.aliquotaEstadual : ''}"
+                  style="width:100%;height:38px;padding:0 8px;border-radius:var(--r-campo);border:1px solid var(--borda-forte);background:var(--elevado);font:inherit" />
+              </div>
+            </div>
+            <div style="font-size:10px;color:var(--tinta-3);margin-top:4px">
+              * Deixe em branco para usar o padrão da categoria definido nas Configurações da Loja.
+            </div>
             <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:8px">
               <span style="font-size:10px;color:var(--tinta-3);align-self:center">Sugestões rápidas:</span>
               <button type="button" class="btn-secundario btn-sug-ncm" data-ncm="22021000" data-cfop="5102" data-csosn="102" style="padding:2px 8px;font-size:10.5px">Bebidas (2202)</button>
@@ -1119,7 +1134,9 @@ const App = (() => {
           ncm: (document.querySelector('#f-ncm')?.value || '22021000').trim(),
           cfop: (document.querySelector('#f-cfop')?.value || '5102').trim(),
           csosn: (document.querySelector('#f-csosn')?.value || '102').trim(),
-          unidadeTributavel: (document.querySelector('#f-unidade')?.value || 'UN').trim().toUpperCase()
+          unidadeTributavel: (document.querySelector('#f-unidade')?.value || 'UN').trim().toUpperCase(),
+          aliquotaFederal: document.querySelector('#f-aliq-fed')?.value !== '' ? document.querySelector('#f-aliq-fed')?.value : null,
+          aliquotaEstadual: document.querySelector('#f-aliq-est')?.value !== '' ? document.querySelector('#f-aliq-est')?.value : null
         });
         UI.fecharModal();
         renderProdutos(); renderGrade(); renderCategorias();
@@ -3108,6 +3125,82 @@ ${emailRemetente ? `E-mail de contato: ${emailRemetente}` : ''}`;
     }
   }
 
+  const CATEGORIAS_ALIQUOTAS = [
+    { key: '2202', icone: '🥤', ncm: '2202', nome: 'Bebidas Não Alcoólicas' },
+    { key: '2203', icone: '🍺', ncm: '2203', nome: 'Cervejas e Chopes (ST)' },
+    { key: '2106', icone: '🥟', ncm: '2106', nome: 'Pastéis, Lanches e Refeições' },
+    { key: '1806', icone: '🍫', ncm: '1806', nome: 'Açaí, Doces e Sobremesas' },
+    { key: '2105', icone: '🍦', ncm: '2105', nome: 'Sorvetes e Picolés' },
+    { key: 'padrao', icone: '📦', ncm: 'Geral', nome: 'Outros Produtos Gerais' }
+  ];
+
+  function renderTabelaAliquotasConfig() {
+    const tbody = $('#corpo-tabela-aliquotas');
+    if (!tbody) return;
+    const c = cfg();
+    const personalizadas = c.aliquotasPersonalizadas || {};
+
+    tbody.innerHTML = CATEGORIAS_ALIQUOTAS.map(cat => {
+      const padrao = Fiscal.TABELA_ALIQUOTAS_PADRAO_SC[cat.key] || { fed: 13.45, est: 17.00 };
+      const salva = personalizadas[cat.key];
+      const fedVal = (salva && salva.fed != null) ? salva.fed : padrao.fed;
+      const estVal = (salva && salva.est != null) ? salva.est : padrao.est;
+      const totalVal = Math.round((Number(fedVal) + Number(estVal)) * 100) / 100;
+
+      return `
+        <tr data-key="${cat.key}" style="border-bottom:1px solid var(--borda)">
+          <td style="padding:6px 8px">
+            <b>${cat.icone} ${cat.nome}</b>
+            <div style="font-size:9.5px;color:var(--tinta-3)">NCM Base: ${cat.ncm}</div>
+          </td>
+          <td style="padding:6px 4px;text-align:center">
+            <input type="number" step="0.01" min="0" max="100" class="input-aliq-fed"
+              value="${fedVal}" style="width:75px;height:30px;text-align:center;font-size:11px;padding:0 4px;border:1px solid var(--borda-forte);border-radius:4px" />
+          </td>
+          <td style="padding:6px 4px;text-align:center">
+            <input type="number" step="0.01" min="0" max="100" class="input-aliq-est"
+              value="${estVal}" style="width:75px;height:30px;text-align:center;font-size:11px;padding:0 4px;border:1px solid var(--borda-forte);border-radius:4px" />
+          </td>
+          <td style="padding:6px 8px;text-align:center;font-weight:800;color:var(--primaria-forte)">
+            <span class="total-aliq-row">${totalVal.toFixed(2)}%</span>
+          </td>
+        </tr>
+      `;
+    }).join('');
+
+    // Listener dinâmico de recálculo ao digitar
+    tbody.querySelectorAll('tr').forEach(tr => {
+      const inFed = tr.querySelector('.input-aliq-fed');
+      const inEst = tr.querySelector('.input-aliq-est');
+      const spTotal = tr.querySelector('.total-aliq-row');
+      const atualizarLinha = () => {
+        const fed = Number(inFed.value || 0);
+        const est = Number(inEst.value || 0);
+        const tot = Math.round((fed + est) * 100) / 100;
+        spTotal.textContent = `${tot.toFixed(2)}%`;
+      };
+      inFed.addEventListener('input', atualizarLinha);
+      inEst.addEventListener('input', atualizarLinha);
+    });
+
+    const btnRestaurar = $('#btn-restaurar-aliquotas-sc');
+    if (btnRestaurar) {
+      btnRestaurar.onclick = () => {
+        CATEGORIAS_ALIQUOTAS.forEach(cat => {
+          const padrao = Fiscal.TABELA_ALIQUOTAS_PADRAO_SC[cat.key];
+          if (!padrao) return;
+          const tr = tbody.querySelector(`tr[data-key="${cat.key}"]`);
+          if (tr) {
+            tr.querySelector('.input-aliq-fed').value = padrao.fed;
+            tr.querySelector('.input-aliq-est').value = padrao.est;
+            tr.querySelector('.total-aliq-row').textContent = `${padrao.total.toFixed(2)}%`;
+          }
+        });
+        UI.toast('Valores oficiais do IBPT Santa Catarina restaurados!');
+      };
+    }
+  }
+
   async function preencherConfig() {
     const c = cfg();
     $('#cfg-loja').value = c.loja || '';
@@ -3133,6 +3226,9 @@ ${emailRemetente ? `E-mail de contato: ${emailRemetente}` : ''}`;
     if ($('#cfg-csc-codigo')) $('#cfg-csc-codigo').value = c.cscCodigo || '';
     if ($('#cfg-modo-aliquota')) $('#cfg-modo-aliquota').value = c.modoCalculoAliquota || 'ibpt';
     if ($('#cfg-aliquota-ibpt')) $('#cfg-aliquota-ibpt').value = c.aliquotaIbptPadrao != null ? c.aliquotaIbptPadrao : 4.25;
+
+    // Renderiza a tabela editável de alíquotas por categoria
+    renderTabelaAliquotasConfig();
 
     // Atalhos de alíquotas do Simples
     document.querySelectorAll('.btn-aliq-atalho').forEach(btn => {
@@ -3184,6 +3280,23 @@ ${emailRemetente ? `E-mail de contato: ${emailRemetente}` : ''}`;
     c.modoCalculoAliquota = ($('#cfg-modo-aliquota')?.value || 'ibpt').trim();
     c.aliquotaIbptPadrao = Number($('#cfg-aliquota-ibpt')?.value || 4.25);
     c.termoIsencaoAceito = true;
+
+    // Salva tabela de alíquotas personalizadas por categoria
+    const tbodyAliq = $('#corpo-tabela-aliquotas');
+    if (tbodyAliq) {
+      const personalizadas = {};
+      tbodyAliq.querySelectorAll('tr[data-key]').forEach(tr => {
+        const key = tr.dataset.key;
+        const fed = Number(tr.querySelector('.input-aliq-fed')?.value || 0);
+        const est = Number(tr.querySelector('.input-aliq-est')?.value || 0);
+        personalizadas[key] = {
+          fed,
+          est,
+          total: Math.round((fed + est) * 100) / 100
+        };
+      });
+      c.aliquotasPersonalizadas = personalizadas;
+    }
 
     c.imprimirLogoCupom = $('#cfg-imprimir-logo') ? $('#cfg-imprimir-logo').checked : true;
     if (logoOriginalTemporaria) {
