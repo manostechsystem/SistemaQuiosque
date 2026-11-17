@@ -8,6 +8,7 @@ on:
       - 'mobile_app/**'
       - 'garcom_app/**'
       - 'capacitor.config.json'
+      - 'capacitor.gestor.json'
       - 'capacitor.garcom.json'
       - '.github/workflows/build-apk.yml'
   workflow_dispatch:
@@ -39,6 +40,7 @@ jobs:
       - name: Build Gestor APK (ManosTech-System.apk)
         run: |
           mkdir -p output_apk
+          cp capacitor.gestor.json capacitor.config.json
           npx cap add android || true
           npx cap sync android
           rm -rf android/app/src/main/res/mipmap-anydpi-v26
@@ -64,8 +66,9 @@ jobs:
       - name: Build Garçom APK (ManosTech-Garcom.apk)
         run: |
           rm -rf android
-          npx cap add android --config capacitor.garcom.json || true
-          npx cap sync android --config capacitor.garcom.json
+          cp capacitor.garcom.json capacitor.config.json
+          npx cap add android || true
+          npx cap sync android
           rm -rf android/app/src/main/res/mipmap-anydpi-v26
           for dir in mdpi hdpi xhdpi xxhdpi xxxhdpi; do
             target="android/app/src/main/res/mipmap-$dir"
