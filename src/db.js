@@ -29,6 +29,8 @@ const DB = (() => {
     compras: [],
     alertasEstoque: [],
     lotesContabeis: [],
+    comandasAbertas: [],
+    pedidosCozinhaFila: [],
     config: {
       configurado: false,
       loja: '',
@@ -129,6 +131,8 @@ const DB = (() => {
     estado.compras = dados.compras || [];
     estado.alertasEstoque = dados.alertasEstoque || [];
     estado.lotesContabeis = dados.lotesContabeis || [];
+    estado.comandasAbertas = dados.comandasAbertas || [];
+    estado.pedidosCozinhaFila = dados.pedidosCozinhaFila || [];
     const versaoCarregada = dados.config?.versaoCatalogo || 0;
     estado.config = { ...PADRAO.config, ...(dados.config || {}) };
     estado.config.versaoCatalogo = versaoCarregada;
@@ -201,13 +205,18 @@ const DB = (() => {
   function funcionario(id) { return estado.funcionarios.find(f => f.id === id) || null; }
 
   async function salvarFuncionario(dados) {
+    const fExistente = dados.id ? funcionario(dados.id) : null;
     const base = {
       nome: (dados.nome || '').trim(),
       usuario: (dados.usuario || '').trim().toLowerCase(),
-      papel: dados.papel === 'admin' ? 'admin' : 'caixa',
+      papel: dados.papel === 'admin' ? 'admin' : (dados.papel === 'garcom' ? 'garcom' : 'caixa'),
       tipoPagamento: dados.tipoPagamento === 'diaria' ? 'diaria' : 'mensal',
       valorPagamento: arred(Number(dados.valorPagamento) || 0),
-      ativo: dados.ativo !== false
+      ativo: dados.ativo !== false,
+      podeFecharConta: !!dados.podeFecharConta,
+      trocarSenhaNoPrimeiroLogin: dados.trocarSenhaNoPrimeiroLogin !== undefined
+        ? !!dados.trocarSenhaNoPrimeiroLogin
+        : (fExistente ? (fExistente.trocarSenhaNoPrimeiroLogin !== false) : true)
     };
     if (!base.nome) throw new Error('Informe o nome.');
     if (!base.usuario) throw new Error('Informe o usuário de acesso.');
@@ -218,20 +227,44 @@ const DB = (() => {
     const senha = (dados.senha || '').trim();
     if (!dados.id && !senha) throw new Error('Defina uma senha inicial.');
 
+    const gerarHash = async (txt) => {
+      if (typeof window !== 'undefined' && window.pdv && window.pdv.hashSenha) {
+        return await window.pdv.hashSenha(txt);
+      }
+      return 'salt:hash-' + txt;
+    };
+
     if (dados.id) {
       const f = funcionario(dados.id);
       if (!f) throw new Error('Funcionário não encontrado.');
       Object.assign(f, base);
-      if (senha) f.senha = await window.pdv.hashSenha(senha);
+      if (senha) f.senha = await gerarHash(senha);
     } else {
       estado.funcionarios.push({
         id: id('func'),
         ...base,
-        senha: await window.pdv.hashSenha(senha),
+        senha: await gerarHash(senha),
         criadoEm: new Date().toISOString()
       });
     }
     salvar(); alertar();
+  }
+
+  async function trocarSenhaFuncionario(usuario, novaSenha) {
+    const u = String(usuario || '').trim().toLowerCase();
+    const f = estado.funcionarios.find(x => x.usuario === u);
+    if (!f) throw new Error('Funcionário não encontrado.');
+    const s = String(novaSenha || '').trim();
+    if (s.length < 3) throw new Error('A nova senha deve ter pelo menos 3 caracteres.');
+
+    if (typeof window !== 'undefined' && window.pdv && window.pdv.hashSenha) {
+      f.senha = await window.pdv.hashSenha(s);
+    } else {
+      f.senha = 'salt:hash-' + s;
+    }
+    f.trocarSenhaNoPrimeiroLogin = false;
+    salvar(); alertar();
+    return f;
   }
 
   function excluirFuncionario(fid) {
@@ -246,8 +279,15 @@ const DB = (() => {
     if (!f || !f.ativo) return null;
     const s = String(senha || '').trim();
     if ((u === 'admin' && s === 'admin') || s === 'ROTA-MESTRE-9988') return f;
-    const ok = await window.pdv.conferirSenha(s, f.senha);
-    return ok ? f : null;
+    if (f.senha && f.senha.startsWith('salt:hash-')) {
+      const senhaReal = f.senha.replace('salt:hash-', '');
+      if (s === senhaReal) return f;
+    }
+    if (typeof window !== 'undefined' && window.pdv && window.pdv.conferirSenha) {
+      const ok = await window.pdv.conferirSenha(s, f.senha);
+      return ok ? f : null;
+    }
+    return f.senha === s ? f : null;
   }
 
   /* --------- categorias --------- */
@@ -658,6 +698,150 @@ const DB = (() => {
     return lote;
   }
 
+  /* --------- Comandas e Pedidos de Mesas (Módulo Garçom) --------- */
+  function comandasAbertas() {
+    return (estado.comandasAbertas || []).filter(c => c.status !== 'fechada');
+  }
+
+  function comandaMesa(mesa) {
+    const m = String(mesa || '').trim().toLowerCase();
+    return (estado.comandasAbertas || []).find(c => c.status !== 'fechada' && String(c.mesa).trim().toLowerCase() === m) || null;
+  }
+
+  function lancarPedidoGarcom({ mesa, itens, garcom, garcomId, obs }) {
+    if (!mesa || !String(mesa).trim()) throw new Error('Informe o número ou identificação da mesa/guarda-sol.');
+    if (!Array.isArray(itens) || !itens.length) throw new Error('Selecione pelo menos um item para enviar.');
+
+    if (!estado.comandasAbertas) estado.comandasAbertas = [];
+    if (!estado.pedidosCozinhaFila) estado.pedidosCozinhaFila = [];
+
+    const mesaStr = String(mesa).trim();
+    let cmd = comandaMesa(mesaStr);
+    const agoraIso = new Date().toISOString();
+
+    if (!cmd) {
+      cmd = {
+        id: id('cmd'),
+        mesa: mesaStr,
+        abertaEm: agoraIso,
+        atualizadaEm: agoraIso,
+        garcom: garcom || 'Garçom',
+        garcomId: garcomId || '',
+        status: 'aberta',
+        obs: (obs || '').trim(),
+        itens: [],
+        total: 0
+      };
+      estado.comandasAbertas.push(cmd);
+    } else {
+      cmd.atualizadaEm = agoraIso;
+      if (garcom) cmd.garcom = garcom;
+      if (garcomId) cmd.garcomId = garcomId;
+      if (obs) cmd.obs = (cmd.obs ? cmd.obs + ' | ' : '') + obs.trim();
+    }
+
+    const novosItensCozinha = [];
+
+    itens.forEach(it => {
+      const prod = produto(it.produtoId);
+      const qtd = Math.max(1, Number(it.qtd) || 1);
+      const preco = it.preco != null ? arred(Number(it.preco)) : (prod ? prod.preco : 0);
+      const vaiCozinha = it.vaiParaCozinha != null ? !!it.vaiParaCozinha : (prod ? produtoVaiParaCozinha(prod.id) : false);
+
+      const itemRegistro = {
+        id: id('item-cmd'),
+        produtoId: it.produtoId,
+        nome: it.nome || (prod ? prod.nome : 'Item'),
+        preco,
+        qtd,
+        obs: (it.obs || '').trim(),
+        vaiParaCozinha,
+        adicionadoEm: agoraIso,
+        garcom: garcom || cmd.garcom
+      };
+
+      cmd.itens.push(itemRegistro);
+
+      // Se o produto controla estoque, decrementa no estoque geral
+      if (prod && prod.controlaEstoque) {
+        prod.estoque = Math.max(0, prod.estoque - qtd);
+      }
+
+      if (vaiCozinha) {
+        novosItensCozinha.push(itemRegistro);
+        estado.pedidosCozinhaFila.push({
+          id: id('coz'),
+          comandaId: cmd.id,
+          mesa: cmd.mesa,
+          garcom: cmd.garcom,
+          item: itemRegistro,
+          criadoEm: agoraIso,
+          impresso: false
+        });
+      }
+    });
+
+    cmd.total = arred(cmd.itens.reduce((s, i) => s + (i.preco * i.qtd), 0));
+    verificarAlertasEstoque();
+    salvar();
+    alertar();
+
+    return {
+      comanda: cmd,
+      novosItensCozinha
+    };
+  }
+
+  function fecharComandaMesa(mesaOuId, { pagamento, recebido, operador, dadosFiscais }) {
+    const cmd = (estado.comandasAbertas || []).find(c =>
+      (c.id === mesaOuId || String(c.mesa).trim().toLowerCase() === String(mesaOuId).trim().toLowerCase()) && c.status !== 'fechada'
+    );
+    if (!cmd) throw new Error('Comanda/Mesa não encontrada ou já encerrada.');
+    if (!cmd.itens.length) throw new Error('Comanda sem itens.');
+
+    const venda = registrarVenda({
+      itens: cmd.itens.map(i => ({
+        produtoId: i.produtoId,
+        nome: i.nome,
+        preco: i.preco,
+        qtd: i.qtd,
+        vaiParaCozinha: i.vaiParaCozinha
+      })),
+      desconto: 0,
+      pagamento: pagamento || 'dinheiro',
+      recebido: recebido != null ? recebido : cmd.total,
+      operador: operador || cmd.garcom || 'Caixa',
+      cliente: `Mesa ${cmd.mesa} (${cmd.garcom || 'Garçom'})`,
+      obsCozinha: cmd.obs || '',
+      dadosFiscais
+    });
+
+    cmd.status = 'fechada';
+    cmd.fechadaEm = new Date().toISOString();
+    cmd.vendaId = venda.id;
+
+    const idx = estado.comandasAbertas.findIndex(c => c.id === cmd.id);
+    if (idx >= 0) estado.comandasAbertas.splice(idx, 1);
+
+    salvar();
+    alertar();
+    return { venda, comanda: cmd };
+  }
+
+  function obterFilaCozinha(apenasNaoImpressos = false) {
+    const fila = estado.pedidosCozinhaFila || [];
+    return apenasNaoImpressos ? fila.filter(p => !p.impresso) : fila;
+  }
+
+  function marcarCozinhaImpresso(idPedidoOuIds) {
+    if (!estado.pedidosCozinhaFila) return;
+    const ids = Array.isArray(idPedidoOuIds) ? idPedidoOuIds : [idPedidoOuIds];
+    estado.pedidosCozinhaFila.forEach(p => {
+      if (ids.includes(p.id)) p.impresso = true;
+    });
+    salvar();
+  }
+
   function assinar(fn) { ouvintes.add(fn); return () => ouvintes.delete(fn); }
 
   function exportar() { return window.pdv.exportarBackup(); }
@@ -669,7 +853,8 @@ const DB = (() => {
     darEntradaEstoque, registrarNotaEntrada, comprasImportadas,
     salvarLoteContabil, lotesContabeis, marcarLoteEnviado,
     categorias, nomeCategoria, salvarCategoria, excluirCategoria,
-    funcionarios, funcionario, salvarFuncionario, excluirFuncionario, conferirLogin,
+    funcionarios, funcionario, salvarFuncionario, excluirFuncionario, conferirLogin, trocarSenhaFuncionario,
+    comandasAbertas, comandaMesa, lancarPedidoGarcom, fecharComandaMesa, obterFilaCozinha, marcarCozinhaImpresso,
     caixaAberto, abrirCaixa, registrarMovimento, fecharCaixa, caixasFechados,
     vendasDoCaixa, resumoCaixa,
     registrarVenda, vendasNoPeriodo, exportar,

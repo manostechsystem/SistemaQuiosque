@@ -2666,7 +2666,12 @@ ${emailRemetente ? `E-mail de contato: ${emailRemetente}` : ''}`;
           <div class="nome-prod" style="font-weight:700;font-size:14px">${UI.escapar(f.nome)}</div>
         </td>
         <td class="num" style="font-weight:600;color:var(--tinta-2)">${UI.escapar(f.usuario)}</td>
-        <td><span class="chip ${f.papel === 'admin' ? 'chip--aluguel' : 'chip--tipo'}">${f.papel === 'admin' ? 'Administrador' : 'Caixa (Operador)'}</span></td>
+        <td>
+          <span class="chip ${f.papel === 'admin' ? 'chip--aluguel' : (f.papel === 'garcom' ? 'chip--tipo' : 'chip--ok')}">
+            ${f.papel === 'admin' ? 'Administrador' : (f.papel === 'garcom' ? 'Garçom / Atendente' : 'Caixa (Operador)')}
+          </span>
+          ${f.papel === 'garcom' && f.podeFecharConta ? '<span class="chip chip--ok" style="font-size:10px;margin-left:4px">Fecha Conta</span>' : ''}
+        </td>
         <td>
           ${f.tipoPagamento === 'diaria'
             ? `<span class="chip chip--tipo" style="font-weight:700">Diária · ${DB.moeda(f.valorPagamento || 0)}</span>`
@@ -2733,6 +2738,7 @@ ${emailRemetente ? `E-mail de contato: ${emailRemetente}` : ''}`;
             <select id="fu-papel" class="campo-select">
               <option value="caixa" ${!f || f.papel === 'caixa' ? 'selected' : ''}>Caixa (Operador de Vendas)</option>
               <option value="admin" ${f && f.papel === 'admin' ? 'selected' : ''}>Administrador (Acesso Total)</option>
+              <option value="garcom" ${f && f.papel === 'garcom' ? 'selected' : ''}>Garçom / Atendente (Comanda & Cardápio Móvel)</option>
             </select>
           </div>
           <div class="campo">
@@ -2741,6 +2747,19 @@ ${emailRemetente ? `E-mail de contato: ${emailRemetente}` : ''}`;
               <option value="1" ${!f || f.ativo ? 'selected' : ''}>Ativo</option>
               <option value="0" ${f && !f.ativo ? 'selected' : ''}>Inativo (Bloqueado)</option>
             </select>
+          </div>
+          <div class="campo col-full" id="fu-garcom-box" style="${(!f || f.papel !== 'garcom') ? 'display:none;' : ''}background:var(--afundado);padding:10px 12px;border-radius:8px;border:1px solid var(--borda)">
+            <b style="font-size:11px;color:var(--primaria-forte);text-transform:uppercase;display:block;margin-bottom:6px">Configurações do Garçom:</b>
+            <div style="display:flex;flex-direction:column;gap:6px">
+              <label style="display:flex;align-items:center;gap:8px;font-size:12px;cursor:pointer">
+                <input type="checkbox" id="fu-pode-fechar" ${f && f.podeFecharConta ? 'checked' : ''} />
+                <span>Permitir fechar conta e receber pagamentos na mesa</span>
+              </label>
+              <label style="display:flex;align-items:center;gap:8px;font-size:12px;cursor:pointer">
+                <input type="checkbox" id="fu-trocar-senha" ${!f || f.trocarSenhaNoPrimeiroLogin !== false ? 'checked' : ''} />
+                <span>Obrigar troca de senha no primeiro login</span>
+              </label>
+            </div>
           </div>
           <div class="campo">
             <label for="fu-tipo-pagamento">Tipo de Pagamento</label>
@@ -2774,6 +2793,13 @@ ${emailRemetente ? `E-mail de contato: ${emailRemetente}` : ''}`;
       }
     };
 
+    if ($('#fu-papel')) {
+      $('#fu-papel').onchange = e => {
+        const box = $('#fu-garcom-box');
+        if (box) box.style.display = (e.target.value === 'garcom') ? 'block' : 'none';
+      };
+    }
+
     const salvar = async () => {
       const nome = $('#fu-nome').value.trim();
       const usuario = $('#fu-usuario').value.trim().toLowerCase();
@@ -2782,6 +2808,8 @@ ${emailRemetente ? `E-mail de contato: ${emailRemetente}` : ''}`;
       const tipoPagamento = $('#fu-tipo-pagamento').value;
       const valorPagamento = valorDeTexto($('#fu-valor-pagamento').value);
       const ativo = $('#fu-ativo').value === '1';
+      const podeFecharConta = $('#fu-pode-fechar') ? $('#fu-pode-fechar').checked : false;
+      const trocarSenhaNoPrimeiroLogin = $('#fu-trocar-senha') ? $('#fu-trocar-senha').checked : true;
 
       if (!nome) { mostrarErro('Informe o nome completo do funcionário.'); return; }
       if (!usuario) { mostrarErro('Informe o nome de usuário para login.'); return; }
@@ -2796,7 +2824,9 @@ ${emailRemetente ? `E-mail de contato: ${emailRemetente}` : ''}`;
           papel,
           tipoPagamento,
           valorPagamento,
-          ativo
+          ativo,
+          podeFecharConta,
+          trocarSenhaNoPrimeiroLogin
         });
         UI.fecharModal();
         renderFuncionariosTab();
@@ -3890,9 +3920,134 @@ ${emailRemetente ? `E-mail de contato: ${emailRemetente}` : ''}`;
     }
   }
 
+  /* ================== COMANDAS & MESAS DO GARÇOM ================== */
+  function atualizarBadgeComandas() {
+    const abertas = DB.comandasAbertas();
+    const badge = $('#badge-comandas-qtd');
+    if (!badge) return;
+    if (abertas.length > 0) {
+      badge.textContent = abertas.length;
+      badge.style.display = 'inline-block';
+    } else {
+      badge.style.display = 'none';
+    }
+  }
+
+  function abrirModalComandasMesas() {
+    const abertas = DB.comandasAbertas();
+    if (!abertas.length) {
+      UI.toast('Nenhuma mesa ou comanda aberta no momento.');
+      return;
+    }
+
+    UI.abrirModal({
+      titulo: `Mesas & Comandas Abertas (${abertas.length})`,
+      largo: true,
+      corpo: `
+        <div style="display:grid;grid-template-columns:repeat(auto-fill, minmax(280px, 1fr));gap:12px;max-height:65vh;overflow-y:auto;padding:4px">
+          ${abertas.map(cmd => {
+            const qtdItens = cmd.itens.reduce((s, i) => s + (i.qtd || 1), 0);
+            return `
+              <div style="background:var(--afundado);border:1.5px solid var(--borda);border-radius:10px;padding:12px;display:flex;flex-direction:column;justify-content:space-between;gap:10px">
+                <div>
+                  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+                    <span style="font-size:16px;font-weight:900;color:var(--tinta)">🛎️ Mesa ${UI.escapar(cmd.mesa)}</span>
+                    <span style="font-size:11px;font-weight:800;padding:2px 8px;border-radius:10px;background:var(--primaria-leve);color:var(--primaria-forte)">
+                      ${qtdItens} item(ns)
+                    </span>
+                  </div>
+                  <div style="font-size:11.5px;color:var(--tinta-2);margin-bottom:8px">
+                    Atendido por: <b>${UI.escapar(cmd.garcom || 'Garçom')}</b> · Aberta às ${UI.hora(cmd.abertaEm)}
+                  </div>
+                  <div style="max-height:120px;overflow-y:auto;border-top:1px dashed var(--borda);border-bottom:1px dashed var(--borda);padding:6px 0;font-size:12px">
+                    ${cmd.itens.map(it => `
+                      <div style="display:flex;justify-content:space-between;gap:6px;margin-bottom:4px">
+                        <span><b>${it.qtd}x</b> ${UI.escapar(it.nome)} ${it.obs ? `<small style="color:var(--mar)">(${UI.escapar(it.obs)})</small>` : ''}</span>
+                        <span style="font-weight:700">${DB.moeda(it.preco * it.qtd)}</span>
+                      </div>
+                    `).join('')}
+                  </div>
+                </div>
+                <div>
+                  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+                    <span style="font-size:12px;font-weight:700;color:var(--tinta-2)">Total da Conta:</span>
+                    <span style="font-size:18px;font-weight:900;color:var(--sucesso)">${DB.moeda(cmd.total)}</span>
+                  </div>
+                  <div style="display:flex;gap:6px">
+                    <button class="btn-secundario btn-pequeno btn-imprimir-previa-cmd" data-id="${cmd.id}" type="button" style="flex:1;justify-content:center;font-size:11px;font-weight:700">
+                      🖨️ Prévia
+                    </button>
+                    <button class="btn-primario btn-pequeno btn-carregar-cmd-caixa" data-id="${cmd.id}" type="button" style="flex:1.5;justify-content:center;font-size:11.5px;font-weight:800">
+                      💳 Fechar no Caixa
+                    </button>
+                  </div>
+                </div>
+              </div>
+            `;
+          }).join('')}
+        </div>
+      `,
+      rodape: `
+        <button class="btn-secundario" type="button" onclick="UI.fecharModal()">Fechar</button>
+      `
+    });
+
+    $$('.btn-carregar-cmd-caixa').forEach(btn => {
+      btn.onclick = () => {
+        const idCmd = btn.dataset.id;
+        const cmd = DB.comandasAbertas().find(c => c.id === idCmd);
+        if (!cmd) return;
+        st.carrinho = cmd.itens.map(i => ({
+          produtoId: i.produtoId,
+          nome: i.nome,
+          preco: i.preco,
+          qtd: i.qtd,
+          vaiParaCozinha: i.vaiParaCozinha
+        }));
+        st.desconto = 0;
+        st.clienteComandaMesa = cmd.mesa;
+        renderCarrinho();
+        UI.fecharModal();
+        UI.toast(`Itens da Mesa ${cmd.mesa} carregados no caixa. Prossiga com o pagamento!`);
+        setTimeout(() => abrirPagamento(), 200);
+      };
+    });
+
+    $$('.btn-imprimir-previa-cmd').forEach(btn => {
+      btn.onclick = async () => {
+        const idCmd = btn.dataset.id;
+        const cmd = DB.comandasAbertas().find(c => c.id === idCmd);
+        if (!cmd) return;
+        const cupomTexto = `
+========================================
+       CONFERÊNCIA DE MESA / CONTA      
+========================================
+Estabelecimento: ${cfg().loja || 'ManosTech System'}
+Mesa / Comanda:  ${cmd.mesa}
+Atendente:       ${cmd.garcom || 'Garçom'}
+Data/Hora:       ${new Date().toLocaleString('pt-BR')}
+----------------------------------------
+ITENS CONSUMIDOS:
+${cmd.itens.map(i => `${String(i.qtd).padStart(2, ' ')}x ${i.nome.padEnd(24, ' ').slice(0, 24)} ${DB.moeda(i.preco * i.qtd).padStart(9, ' ')}`).join('\n')}
+----------------------------------------
+SUBTOTAL:                      ${DB.moeda(cmd.total).padStart(9, ' ')}
+TOTAL A PAGAR:                 ${DB.moeda(cmd.total).padStart(9, ' ')}
+========================================
+        NÃO É DOCUMENTO FISCAL          
+========================================
+`;
+        await Printer.imprimir(cupomTexto, cfg(), 'caixa');
+        UI.toast(`Conferência da Mesa ${cmd.mesa} impressa!`);
+      };
+    });
+  }
+
   /* ================== EVENTOS ================== */
   function ligarEventos() {
     $$('.trilho__btn').forEach(b => b.onclick = () => irPara(b.dataset.vista));
+
+    if ($('#btn-comandas-mesas')) $('#btn-comandas-mesas').onclick = abrirModalComandasMesas;
+    if ($('#btn-abrir-app-garcom-link')) $('#btn-abrir-app-garcom-link').onclick = () => window.open('/garcom.html', '_blank');
 
     let timerBuscaPdv = null;
     $('#busca').addEventListener('input', e => {
@@ -4747,8 +4902,10 @@ ${emailRemetente ? `E-mail de contato: ${emailRemetente}` : ''}`;
     if ($('#login-tit')) $('#login-tit').textContent = nomeLoja;
     aplicarLogoSistema(cfg().logo);
     atualizarStatusCaixaUI();
+    atualizarBadgeComandas();
     DB.assinar(() => {
       atualizarStatusCaixaUI();
+      atualizarBadgeComandas();
       if (st.vista === 'retaguarda') renderRetaguarda();
       if (st.vista === 'caixa') renderCaixaVista();
       if (st.vista === 'venda') { renderCategorias(); renderGrade(); }
@@ -4759,6 +4916,43 @@ ${emailRemetente ? `E-mail de contato: ${emailRemetente}` : ''}`;
     verificarPrimeiroAcesso();
     renderCategorias();
     renderGrade();
+
+    // Verificador periódico de novos pedidos da comanda móvel / garçom para a cozinha
+    setInterval(async () => {
+      try {
+        const pendentes = DB.obterFilaCozinha(true);
+        if (!pendentes || !pendentes.length) return;
+
+        if (cfg().cozinhaAtiva !== false) {
+          const porMesa = {};
+          pendentes.forEach(p => {
+            porMesa[p.mesa] = porMesa[p.mesa] || { mesa: p.mesa, garcom: p.garcom, itens: [], ids: [] };
+            porMesa[p.mesa].itens.push(p.item);
+            porMesa[p.mesa].ids.push(p.id);
+          });
+
+          for (const mesaKey of Object.keys(porMesa)) {
+            const grp = porMesa[mesaKey];
+            const vendaFicticia = {
+              numeroComanda: grp.mesa,
+              cliente: `Mesa ${grp.mesa} (${grp.garcom})`,
+              data: new Date().toISOString()
+            };
+            const comandaTexto = Printer.montarComandaCozinha(vendaFicticia, grp.itens, cfg());
+            await Printer.imprimir(comandaTexto, cfg(), 'cozinha');
+            DB.marcarCozinhaImpresso(grp.ids);
+            SomAlerta.tocar('sirene_oficial');
+            UI.toast(`🛎️ Pedido da Mesa ${grp.mesa} enviado à Cozinha pelo Garçom ${grp.garcom}!`);
+          }
+        } else {
+          DB.marcarCozinhaImpresso(pendentes.map(p => p.id));
+        }
+        atualizarBadgeComandas();
+      } catch (e) {
+        console.warn('Erro ao processar fila da cozinha:', e);
+      }
+    }, 3000);
+
     setTimeout(() => {
       checarAtualizacoesSistema(false);
     }, 2500);
