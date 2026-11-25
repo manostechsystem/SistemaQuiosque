@@ -1,6 +1,6 @@
 {
   "name": "manostech-sistema-quiosque",
-  "version": "2.5.3",
+  "version": "2.5.4",
   "description": "ManosTech System — PDV e Gestão Inteligente para Quiosques",
   "main": "main.js",
   "author": "ManosTech System",
@@ -22,6 +22,7 @@
       "dispositivos.js",
       "pasta-dados.js",
       "tunnel.js",
+      "fiscal.js",
       "src/**/*",
       "package.json"
     ],
