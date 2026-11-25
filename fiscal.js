@@ -156,6 +156,51 @@ const Fiscal = (() => {
     'mei': { nome: 'MEI (Microempreendedor Individual)', aliquota: 0.00, icms: 0.00, fed: 0.00 }
   };
 
+  // Referência Reforma Tributária (RTC - Simples Nacional: CBS + IBS + cClassTrib)
+  const TABELA_RTC_SIMPLES_NACIONAL = {
+    'padrao': { anexo: 'I', cClassTrib: '000001', descricao: 'Comércio / Alimentos e Bebidas (Tributação Integral)', aliqCbs: 0.90, aliqIbs: 0.10 },
+    'reducao60': { anexo: 'I', cClassTrib: '200003', descricao: 'Alimentos / Cesta Básica com Redução 60%', aliqCbs: 0.36, aliqIbs: 0.04 },
+    'st_monofasico': { anexo: 'I', cClassTrib: '410001', descricao: 'Bebidas Frias / Monofásico / ST', aliqCbs: 0.00, aliqIbs: 0.00 }
+  };
+
+  function calcularTributosRtcSimples(venda, config = {}) {
+    const itens = venda.itens || [];
+    const total = Number(venda.total || 0);
+    const regraPadrao = TABELA_RTC_SIMPLES_NACIONAL[config.rtcRegraPadrao || 'padrao'] || TABELA_RTC_SIMPLES_NACIONAL.padrao;
+    const aliqCbsCfg = config.rtcAliquotaCbs != null ? Number(config.rtcAliquotaCbs) : null;
+    const aliqIbsCfg = config.rtcAliquotaIbs != null ? Number(config.rtcAliquotaIbs) : null;
+
+    let somaCbs = 0;
+    let somaIbs = 0;
+
+    if (itens.length > 0) {
+      itens.forEach(it => {
+        const prod = typeof DB !== 'undefined' && DB.produto ? DB.produto(it.produtoId) : null;
+        const regra = (prod?.rtcRegra && TABELA_RTC_SIMPLES_NACIONAL[prod.rtcRegra]) || regraPadrao;
+        const aliqCbs = prod?.aliqCbs != null ? Number(prod.aliqCbs) : (aliqCbsCfg != null ? aliqCbsCfg : regra.aliqCbs);
+        const aliqIbs = prod?.aliqIbs != null ? Number(prod.aliqIbs) : (aliqIbsCfg != null ? aliqIbsCfg : regra.aliqIbs);
+        const subItem = Number(it.preco || 0) * Number(it.qtd || 1);
+        somaCbs += subItem * (aliqCbs / 100);
+        somaIbs += subItem * (aliqIbs / 100);
+      });
+    } else {
+      const aliqCbs = aliqCbsCfg != null ? aliqCbsCfg : regraPadrao.aliqCbs;
+      const aliqIbs = aliqIbsCfg != null ? aliqIbsCfg : regraPadrao.aliqIbs;
+      somaCbs = total * (aliqCbs / 100);
+      somaIbs = total * (aliqIbs / 100);
+    }
+
+    const valorCbs = Math.round(somaCbs * 100) / 100;
+    const valorIbs = Math.round(somaIbs * 100) / 100;
+    return {
+      anexo: config.rtcAnexo || regraPadrao.anexo,
+      cClassTrib: config.cClassTribPadrao || regraPadrao.cClassTrib,
+      valorCbs,
+      valorIbs,
+      valorTotalRtc: Math.round((valorCbs + valorIbs) * 100) / 100
+    };
+  }
+
   function obterAliquotaItem(ncm, config = {}, prod = null) {
     // 1. Prioridade máxima: alíquota individual definida no produto
     if (prod && prod.aliquotaFederal != null && prod.aliquotaFederal !== '' && prod.aliquotaEstadual != null && prod.aliquotaEstadual !== '') {
@@ -266,7 +311,8 @@ const Fiscal = (() => {
         valorTotalCentavos: Math.round(Number(it.preco || 0) * (it.qtd || 1) * 100),
         ncm: (prod?.ncm || '22021000').replace(/\D/g, ''),
         cfop: (prod?.cfop || '5102').replace(/\D/g, ''),
-        csosn: (prod?.csosn || '102').replace(/\D/g, '')
+        csosn: (prod?.csosn || '102').replace(/\D/g, ''),
+        cClassTrib: prod?.cClassTrib || config.cClassTribPadrao || TABELA_RTC_SIMPLES_NACIONAL.padrao.cClassTrib
       };
     });
 
@@ -353,6 +399,9 @@ const Fiscal = (() => {
       tributosFedPerc: tributos.fedPerc,
       tributosEstPerc: tributos.estPerc,
       tributosFonte: tributos.fonte,
+      tributosCbs: config.habilitarRtcSimples ? calcularTributosRtcSimples(venda, config).valorCbs : 0,
+      tributosIbs: config.habilitarRtcSimples ? calcularTributosRtcSimples(venda, config).valorIbs : 0,
+      cClassTrib: config.cClassTribPadrao || TABELA_RTC_SIMPLES_NACIONAL.padrao.cClassTrib,
       qrCodeUrl: gerarQrCodeSefazUrl(chave, config)
     };
 
@@ -473,6 +522,7 @@ const Fiscal = (() => {
         <b>Tributos Incidentes (Lei Federal 12.741/2012):</b><br>
         Total aprox.: <b>R$ ${Number(fiscal.tributosAprox || 0).toFixed(2).replace('.', ',')}</b> (${fiscal.tributosPerc}%)<br>
         Federal: R$ ${Number(fiscal.tributosFederais || 0).toFixed(2).replace('.', ',')} (${fiscal.tributosFedPerc}%) | Estadual: R$ ${Number(fiscal.tributosEstaduais || 0).toFixed(2).replace('.', ',')} (${fiscal.tributosEstPerc}%)<br>
+        ${(Number(fiscal.tributosCbs || 0) > 0 || Number(fiscal.tributosIbs || 0) > 0) ? `CBS: R$ ${Number(fiscal.tributosCbs || 0).toFixed(2).replace('.', ',')} | IBS: R$ ${Number(fiscal.tributosIbs || 0).toFixed(2).replace('.', ',')} (cClassTrib ${escapar(fiscal.cClassTrib || '000001')})<br>` : ''}
         <span style="font-size:7px;color:#555">Fonte: ${escapar(fiscal.tributosFonte)}</span>
       </div>
 
@@ -960,6 +1010,8 @@ ${xmlsVendas}
     gerarLoteContabilidadeXml,
     FORMAS_PAGAMENTO_FISCAL,
     TABELA_ALIQUOTAS_PADRAO_SC,
+    TABELA_RTC_SIMPLES_NACIONAL,
+    calcularTributosRtcSimples,
     obterAliquotaItem
   };
 })();
