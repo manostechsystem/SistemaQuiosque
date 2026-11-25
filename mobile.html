@@ -1582,25 +1582,8 @@
             }
           } catch {}
 
-          // 2. Pré-instancia os elementos de áudio para estarem prontos no cache de hardware
-          try {
-            const criarAudio = (caminho) => {
-              const a = new Audio(caminho);
-              a.preload = 'auto';
-              try { a.load(); } catch {}
-              return a;
-            };
-            this.pool.caixa_oficial = criarAudio('assets/som-venda-caixa.mp3');
-            this.pool.voz_quiosque = criarAudio('assets/som-venda-voz.mp3');
-            this.pool.sirene_oficial = criarAudio('assets/som-estoque-critico.mp3');
-
-            // Safari iOS requer que um play()/pause() silencioso ocorra no gesto do usuário
-            const silent = new Audio('data:audio/wav;base64,UklGRigAAABXQVZFZm10IBIAAAABAAEARKwAAIhYAQACABAAAABkYXRhAgAAAAEA');
-            silent.play().then(() => {
-              silent.pause();
-              silent.currentTime = 0;
-            }).catch(() => {});
-          } catch {}
+          // 2. Áudio via AudioContext (evita registrar player na tela de bloqueio do iOS)
+          this.pool = {};
 
           console.log('[AUDIO] Sistema de som desbloqueado com sucesso para Safari e APK!');
         },
