@@ -4203,6 +4203,12 @@ TOTAL A PAGAR:                 ${DB.moeda(cmd.total).padStart(9, ' ')}
     });
 
     $$('#abas-ret .aba').forEach(b => b.onclick = () => { st.retAba = b.dataset.aba; renderRetaguarda(); });
+    if ($('#btn-atualizar-estoque-ret')) {
+      $('#btn-atualizar-estoque-ret').onclick = () => {
+        renderRetaguarda();
+        toast('Estoque atualizado!');
+      };
+    }
     $$('[data-ret-nav]').forEach(b => b.onclick = () => {
       st.retAba = b.dataset.retNav;
       renderRetaguarda();
