@@ -199,16 +199,39 @@ async function iniciar(porta = 3000) {
     }
   }
 
-  console.log(`[TUNNEL] Iniciando conector automático para http://localhost:${porta}... (${bin})`);
+  // Verifica se há token de túnel fixo (Cloudflare Zero Trust)
+  let tokenFixo = process.env.CLOUDFLARE_TUNNEL_TOKEN || '';
+  if (!tokenFixo) {
+    for (const p of [path.join(DATA_DIR, 'tunnel_token.txt'), path.join(__dirname, 'tunnel_token.txt')]) {
+      try {
+        if (fs.existsSync(p)) {
+          tokenFixo = fs.readFileSync(p, 'utf8').trim();
+          if (tokenFixo) break;
+        }
+      } catch {}
+    }
+  }
+
+  const argsTunnel = tokenFixo
+    ? ['tunnel', 'run', '--token', tokenFixo]
+    : ['tunnel', '--url', `http://localhost:${porta}`];
+
+  console.log(`[TUNNEL] Iniciando conector ${tokenFixo ? 'FIXO' : 'automático'} para http://localhost:${porta}... (${bin})`);
 
   try {
-    tunnelProcess = spawn(bin, ['tunnel', '--url', `http://localhost:${porta}`], {
+    tunnelProcess = spawn(bin, argsTunnel, {
       windowsHide: true,
       stdio: ['ignore', 'pipe', 'pipe']
     });
 
     const processarSaida = (data) => {
       const texto = data.toString();
+      if (tokenFixo && texto.includes('Registered tunnel connection') && tunnelStatus !== 'online') {
+        tunnelStatus = 'online';
+        console.log('[TUNNEL] Túnel fixo Cloudflare conectado!');
+        if (currentTunnelUrl) notificar(currentTunnelUrl);
+        return;
+      }
       const match = texto.match(/https:\/\/[a-zA-Z0-9-]+\.trycloudflare\.com/);
       if (match) {
         const urlCapturada = match[0];
