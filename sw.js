@@ -1,5 +1,5 @@
 // Service Worker do ManosTech System — Offline PWA Engine & Push Notifications
-const CACHE_NAME = 'manostech-pwa-v2.5.7';
+const CACHE_NAME = 'manostech-pwa-v2.5.8';
 const ASSETS_STATICOS = [
   './',
   'mobile.html',
