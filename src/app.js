@@ -4578,7 +4578,7 @@ TOTAL A PAGAR:                 ${DB.moeda(cmd.total).padStart(9, ' ')}
 
     // ==================== VERIFICAÇÃO REAL DE ATUALIZAÇÕES (MANOSTECH SYSTEM) ====================
     async function checarAtualizacoesSistema(manual = true) {
-      let versaoLocal = '2.5.13';
+      let versaoLocal = '2.5.14';
       try {
         const respLoc = await fetch(apiUrl('/api/app-version'), { cache: 'no-store' });
         if (respLoc.ok) {
