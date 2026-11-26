@@ -1,4 +1,4 @@
-/* Rota do Forte — PDV: comportamento das telas. */
+﻿/* Rota do Forte — PDV: comportamento das telas. */
 
 const App = (() => {
   const $ = s => document.querySelector(s);
@@ -4578,7 +4578,7 @@ TOTAL A PAGAR:                 ${DB.moeda(cmd.total).padStart(9, ' ')}
 
     // ==================== VERIFICAÇÃO REAL DE ATUALIZAÇÕES (MANOSTECH SYSTEM) ====================
     async function checarAtualizacoesSistema(manual = true) {
-      let versaoLocal = '2.5.1';
+      let versaoLocal = '2.5.9';
       try {
         const respLoc = await fetch(apiUrl('/api/app-version'), { cache: 'no-store' });
         if (respLoc.ok) {
