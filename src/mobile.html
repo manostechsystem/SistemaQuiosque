@@ -911,12 +911,7 @@
 
         <button class="drawer-item" id="btn-drawer-update">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-          <span>Atualizações (v2.5.14)</span>
-        </button>
-
-        <button class="drawer-item" id="btn-drawer-privacidade">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="m9 12 2 2 4-4"/></svg>
-          <span>Conformidade & LGPD</span>
+          <span>Atualizações (v2.5.15)</span>
         </button>
       </div>
 
@@ -1567,8 +1562,33 @@
             }
           } catch {}
 
-          // 2. Áudio via AudioContext (evita registrar player na tela de bloqueio do iOS)
+          // 2. Carrega os MP3s via AudioContext (toca seus arquivos MP3 sem abrir o player na tela de bloqueio do iOS)
           this.pool = {};
+          const carregarMp3WebAudio = (chave, caminho) => {
+            this.pool[chave] = {
+              buffer: null,
+              currentTime: 0,
+              play: () => {
+                try {
+                  const ctx = this.obterCtx();
+                  if (!ctx || !this.pool[chave].buffer) return Promise.reject();
+                  if (ctx.state === 'suspended') ctx.resume();
+                  const src = ctx.createBufferSource();
+                  src.buffer = this.pool[chave].buffer;
+                  src.connect(ctx.destination);
+                  src.start(0);
+                  return Promise.resolve();
+                } catch (e) { return Promise.reject(e); }
+              }
+            };
+            fetch(caminho).then(r => r.arrayBuffer()).then(ab => {
+              const ctx = this.obterCtx();
+              if (ctx) ctx.decodeAudioData(ab, buf => { this.pool[chave].buffer = buf; }, () => {});
+            }).catch(() => {});
+          };
+          carregarMp3WebAudio('caixa_oficial', 'assets/som-venda-caixa.mp3');
+          carregarMp3WebAudio('voz_quiosque', 'assets/som-venda-voz.mp3');
+          carregarMp3WebAudio('sirene_oficial', 'assets/som-estoque-critico.mp3');
 
           console.log('[AUDIO] Sistema de som desbloqueado com sucesso para Safari e APK!');
         },
@@ -2742,7 +2762,7 @@
         }
       }
 
-      let VERSAO_LOCAL_APP = '2.5.14';
+      let VERSAO_LOCAL_APP = '2.5.15';
 
       async function verificarAtualizacoesApk(manual = false) {
         try {
