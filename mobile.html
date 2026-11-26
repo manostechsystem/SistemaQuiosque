@@ -817,6 +817,7 @@
       box-shadow: 0 1px 4px rgba(0,0,0,0.1);
     }
   </style>
+  <script src="assets/jsQR.js"></script>
 </head>
 <body>
 
@@ -911,7 +912,7 @@
 
         <button class="drawer-item" id="btn-drawer-update">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-          <span>Atualizações (v2.5.19)</span>
+          <span>Atualizações (v2.5.20)</span>
         </button>
       </div>
 
@@ -938,8 +939,26 @@
             <div class="login-sub-quiosque" id="login-sub-quiosque">Gestão Empresarial ADM</div>
           </div>
 
-          <!-- Formulário de Login Seguro -->
-          <form id="form-login-adm" onsubmit="return false;">
+          <!-- Painel de Reconexão via QR Code (Padrão ao desconectar) -->
+          <div id="painel-qr-reconectar" style="text-align:center;margin-top:8px">
+            <p style="font-size:13.5px;color:var(--tinta-suave);margin:0 0 16px;line-height:1.5">
+              Aponte a câmera para o <b>QR Code</b> exibido no computador principal para reconectar este aparelho.
+            </p>
+            <div id="qr-scanner-box" hidden style="position:relative;width:100%;max-width:280px;margin:0 auto 14px;border-radius:14px;overflow:hidden;border:2px solid var(--borda);background:#000">
+              <video id="qr-video" playsinline muted style="width:100%;display:block;max-height:240px;object-fit:cover"></video>
+              <canvas id="qr-canvas" hidden></canvas>
+            </div>
+            <div id="qr-status-msg" style="font-size:12.5px;color:var(--tinta-suave);margin-bottom:12px;min-height:18px"></div>
+            <button type="button" class="btn-acao" id="btn-ler-qrcode-mob" style="margin-top:0">
+              📷 Ler QR Code
+            </button>
+            <button type="button" class="btn-esqueci-link" id="btn-mostrar-login-manual" style="margin-top:14px;display:inline-block">
+              Entrar com usuário e senha
+            </button>
+          </div>
+
+          <!-- Formulário de Login Seguro (Secundário) -->
+          <form id="form-login-adm" onsubmit="return false;" hidden>
             <div class="campo-login-grupo">
               <label for="login-usuario" class="campo-login-rotulo">Usuário de Acesso</label>
               <input type="text" id="login-usuario" class="input-login-padrao" placeholder="Digite seu usuário" autocomplete="username" spellcheck="false" required />
@@ -974,6 +993,11 @@
 
             <div id="login-bloqueio" class="aviso-erro-login" style="display:none;background:#FFF3CD;border-color:#FFEBAA;color:#856404">
               Muitas tentativas. Aguarde <span id="segundos-bloqueio">30</span>s.
+            </div>
+            <div style="text-align:center;margin-top:12px">
+              <button type="button" class="btn-esqueci-link" id="btn-voltar-qr-mob">
+                ← Voltar para leitura de QR Code
+              </button>
             </div>
           </form>
 
@@ -2767,21 +2791,9 @@
         }
       }
 
-      let VERSAO_LOCAL_APP = '2.5.19';
+      let VERSAO_LOCAL_APP = '2.5.20';
 
       async function verificarAtualizacoesApk(manual = false) {
-        if (/iPhone|iPad|iPod/i.test(navigator.userAgent)) {
-          if (manual) {
-            try {
-              if ('caches' in window) {
-                const keys = await caches.keys();
-                await Promise.all(keys.map(k => caches.delete(k)));
-              }
-            } catch {}
-            window.location.reload();
-          }
-          return;
-        }
         try {
           let dados = null;
           // 1. Tenta API local/servidor
@@ -3174,12 +3186,125 @@
             localStorage.removeItem('mob_adm_logado');
             localStorage.removeItem('mob_session_token');
             sessionStorage.removeItem('mob_adm_logado');
-            alert('Atenção: Este aparelho foi desconectado pelo computador principal do quiosque.');
+            if ($('#painel-qr-reconectar')) $('#painel-qr-reconectar').hidden = false;
+            if ($('#form-login-adm')) $('#form-login-adm').hidden = true;
             verificarLogin();
             return false;
           }
         } catch {}
         return true;
+      }
+
+      // Scanner de QR Code na tela de reconexão
+      let qrStream = null;
+      let qrRaf = null;
+
+      function pararScannerQr() {
+        if (qrRaf) { cancelAnimationFrame(qrRaf); qrRaf = null; }
+        if (qrStream) {
+          qrStream.getTracks().forEach(t => t.stop());
+          qrStream = null;
+        }
+        const box = $('#qr-scanner-box');
+        if (box) box.hidden = true;
+      }
+
+      async function conectarComTokenQr(tokenPareamento) {
+        const statusEl = $('#qr-status-msg');
+        if (statusEl) statusEl.textContent = 'Conectando ao quiosque...';
+        try {
+          const resp = await fetch('/api/dispositivos/registrar', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ tokenPareamento })
+          });
+          const dados = await resp.json();
+          if (dados.ok && dados.sessionToken) {
+            localStorage.setItem('mob_adm_logado', 'true');
+            localStorage.setItem('mob_session_token', dados.sessionToken);
+            if (dados.dispositivo?.id) localStorage.setItem('mob_dispositivo_id', dados.dispositivo.id);
+            localStorage.setItem('mob_adm_salvo_user', 'admin');
+            localStorage.setItem('mob_adm_lembrar', 'true');
+            pararScannerQr();
+            if (statusEl) statusEl.textContent = '';
+            verificarLogin();
+          } else {
+            if (statusEl) statusEl.textContent = dados.erro || 'QR Code expirado ou inválido. Tente novamente.';
+          }
+        } catch {
+          if (statusEl) statusEl.textContent = 'Sem conexão com o computador. Verifique o Wi-Fi.';
+        }
+      }
+
+      if ($('#btn-ler-qrcode-mob')) {
+        $('#btn-ler-qrcode-mob').onclick = async () => {
+          const statusEl = $('#qr-status-msg');
+          if (qrStream) {
+            pararScannerQr();
+            if (statusEl) statusEl.textContent = '';
+            return;
+          }
+          if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+            if (statusEl) statusEl.textContent = 'Câmera não disponível neste navegador.';
+            return;
+          }
+          try {
+            if (statusEl) statusEl.textContent = 'Abrindo câmera...';
+            qrStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
+            const video = $('#qr-video');
+            const canvas = $('#qr-canvas');
+            const box = $('#qr-scanner-box');
+            video.srcObject = qrStream;
+            await video.play();
+            box.hidden = false;
+            if (statusEl) statusEl.textContent = 'Aponte para o QR Code no computador...';
+
+            const ctx = canvas.getContext('2d', { willReadFrequently: true });
+            const tick = () => {
+              if (!qrStream) return;
+              if (video.readyState === video.HAVE_ENOUGH_DATA) {
+                canvas.width = video.videoWidth;
+                canvas.height = video.videoHeight;
+                ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+                const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+                if (typeof jsQR === 'function') {
+                  const code = jsQR(imgData.data, imgData.width, imgData.height, { inversionAttempts: 'dontInvert' });
+                  if (code && code.data) {
+                    let token = code.data.trim();
+                    try {
+                      const u = new URL(token);
+                      const p = u.searchParams.get('conectar');
+                      if (p) token = p;
+                    } catch {}
+                    pararScannerQr();
+                    conectarComTokenQr(token);
+                    return;
+                  }
+                }
+              }
+              qrRaf = requestAnimationFrame(tick);
+            };
+            qrRaf = requestAnimationFrame(tick);
+          } catch {
+            pararScannerQr();
+            if (statusEl) statusEl.textContent = 'Permissão de câmera negada ou indisponível.';
+          }
+        };
+      }
+
+      if ($('#btn-mostrar-login-manual')) {
+        $('#btn-mostrar-login-manual').onclick = () => {
+          pararScannerQr();
+          $('#painel-qr-reconectar').hidden = true;
+          $('#form-login-adm').hidden = false;
+        };
+      }
+
+      if ($('#btn-voltar-qr-mob')) {
+        $('#btn-voltar-qr-mob').onclick = () => {
+          $('#form-login-adm').hidden = true;
+          $('#painel-qr-reconectar').hidden = false;
+        };
       }
 
       iniciar();
