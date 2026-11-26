@@ -163,6 +163,10 @@ struct ContentView: View {
             if let url = URL(string: serverURL), !serverURL.isEmpty, errorMessage == nil {
                 WebView(url: url, isLoading: $isLoading, errorMessage: $errorMessage)
                     .ignoresSafeArea(.container, edges: .bottom)
+                    .onAppear {
+                        let types: Set<String> = [WKWebsiteDataTypeDiskCache, WKWebsiteDataTypeMemoryCache]
+                        WKWebsiteDataStore.default().removeData(ofTypes: types, modifiedSince: .distantPast) {}
+                    }
             } else {
                 VStack(spacing: 16) {
                     Text("ManosTech — Rota do Forte")

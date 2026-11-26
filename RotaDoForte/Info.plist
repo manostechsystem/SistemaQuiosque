@@ -3,9 +3,9 @@
 <plist version="1.0">
 <dict>
     <key>CFBundleDisplayName</key>
-    <string>ManosTech System</string>
+    <string>ManosTech System Quiosque</string>
     <key>CFBundleName</key>
-    <string>ManosTech System</string>
+    <string>ManosTech System Quiosque</string>
     <key>NSCameraUsageDescription</key>
     <string>Usamos a câmera para ler o QR Code de sincronização com o Sistema Quiosque.</string>
 </dict>
