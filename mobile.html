@@ -3,11 +3,11 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-  <title>ManosTech System Quiosque</title>
+  <title>ManosTech System</title>
   <meta name="theme-color" content="#2C1B10">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <meta name="apple-mobile-web-app-title" content="ManosTech System Quiosque">
+  <meta name="apple-mobile-web-app-title" content="ManosTech System">
   <link rel="apple-touch-icon" href="assets/manostech-icon.png">
   <link rel="apple-touch-icon" sizes="180x180" href="assets/manostech-icon.png">
   <link rel="manifest" href="manifest.webmanifest">
@@ -834,7 +834,7 @@
       <div class="mob-topo__marca">
         <img src="assets/manostech-icon.png" alt="Logo" class="mob-topo__logo" id="mob-topo-logo">
         <div>
-          <div class="mob-topo__tit" id="mob-topo-tit">ManosTech System Quiosque</div>
+          <div class="mob-topo__tit" id="mob-topo-tit">ManosTech System</div>
           <div class="mob-topo__sub">Gestão Empresarial ADM</div>
         </div>
       </div>
@@ -869,7 +869,7 @@
         <div style="display:flex;align-items:center;gap:10px">
           <img src="assets/manostech-icon.png" alt="Logo" id="drawer-logo" loading="lazy" style="width:36px;height:36px;border-radius:8px;object-fit:cover">
           <div>
-            <div style="font-size:16px;font-weight:900" id="drawer-nome-loja">ManosTech System Quiosque</div>
+            <div style="font-size:16px;font-weight:900" id="drawer-nome-loja">ManosTech System</div>
             <div style="font-size:12px;color:#E5D5C5">Painel do Administrador</div>
           </div>
         </div>
@@ -935,7 +935,7 @@
           <!-- Logo e Identidade do Quiosque de Acordo com o Dono -->
           <div class="login-logo-container">
             <img id="login-logo-img" src="assets/manostech-icon.png" alt="Logo" class="login-logo-img">
-            <h1 id="login-nome-quiosque" class="login-nome-quiosque">ManosTech System Quiosque</h1>
+            <h1 id="login-nome-quiosque" class="login-nome-quiosque">ManosTech System</h1>
             <div class="login-sub-quiosque" id="login-sub-quiosque">Gestão Empresarial ADM</div>
           </div>
 
@@ -1480,7 +1480,7 @@
           <div style="font-weight:800;color:var(--primaria-forte);font-size:11px;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px">
             🏢 Identificação do Estabelecimento
           </div>
-          <div><b>Nome Comercial:</b> <span id="priv-nome-loja">ManosTech System Quiosque</span></div>
+          <div><b>Nome Comercial:</b> <span id="priv-nome-loja">ManosTech System</span></div>
           <div id="priv-razao-box"><b>Razão Social:</b> <span id="priv-razao-social">—</span></div>
           <div id="priv-cnpj-box"><b>CNPJ:</b> <span id="priv-cnpj">—</span></div>
           <div id="priv-endereco-box"><b>Endereço / Cidade:</b> <span id="priv-endereco">—</span></div>
@@ -1938,7 +1938,7 @@
       /* ==================== IDENTIDADE VISUAL DO ESTABELECIMENTO ==================== */
       function aplicarMarcaQuiosque() {
         const cfg = (typeof DB !== 'undefined' && DB.estado && DB.estado.config) ? DB.estado.config : {};
-        const nomeLoja = cfg.loja || 'ManosTech System Quiosque';
+        const nomeLoja = cfg.loja || 'ManosTech System';
         const logoLoja = cfg.logo || 'assets/manostech-icon.png';
         const logoTopo = cfg.logo || 'assets/manostech-icon.png';
 
@@ -2354,7 +2354,7 @@
         if (hora >= 12 && hora < 18) saudacaoTxt = 'Boa tarde!';
         else if (hora >= 18 || hora < 5) saudacaoTxt = 'Boa noite!';
 
-        const nomeLoja = DB?.estado?.config?.loja || 'ManosTech System Quiosque';
+        const nomeLoja = DB?.estado?.config?.loja || 'ManosTech System';
         $('#home-saudacao').textContent = `${saudacaoTxt} ${nomeLoja}`;
         const diaSemana = ['Domingo', 'Segunda-feira', 'Terça-feira', 'Quarta-feira', 'Quinta-feira', 'Sexta-feira', 'Sábado'][agora.getDay()];
         $('#home-data-hoje').textContent = `${nomeLoja} · ${diaSemana}, ${agora.toLocaleDateString('pt-BR')}`;
