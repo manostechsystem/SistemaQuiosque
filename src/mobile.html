@@ -911,7 +911,7 @@
 
         <button class="drawer-item" id="btn-drawer-update">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-          <span>Atualizações (v2.5.15)</span>
+          <span>Atualizações (v2.5.16)</span>
         </button>
       </div>
 
@@ -1856,6 +1856,11 @@
           try { navigator.vibrate([200, 100, 200, 100, 300]); } catch {}
         }
 
+        if (window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.notificar) {
+          try { window.webkit.messageHandlers.notificar.postMessage({ titulo, corpo }); } catch {}
+          return;
+        }
+
         if (!('Notification' in window) || Notification.permission !== 'granted') return;
 
         const iconeValido = 'assets/manostech-icon.png';
@@ -2762,7 +2767,7 @@
         }
       }
 
-      let VERSAO_LOCAL_APP = '2.5.15';
+      let VERSAO_LOCAL_APP = '2.5.16';
 
       async function verificarAtualizacoesApk(manual = false) {
         try {
