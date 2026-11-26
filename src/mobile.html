@@ -911,7 +911,7 @@
 
         <button class="drawer-item" id="btn-drawer-update">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-          <span>Atualizações (v2.5.11)</span>
+          <span>Atualizações (v2.5.12)</span>
         </button>
 
         <button class="drawer-item" id="btn-drawer-privacidade">
@@ -1582,25 +1582,8 @@
             }
           } catch {}
 
-          // 2. Pré-instancia os elementos de áudio para estarem prontos no cache de hardware
-          try {
-            const criarAudio = (caminho) => {
-              const a = new Audio(caminho);
-              a.preload = 'auto';
-              try { a.load(); } catch {}
-              return a;
-            };
-            this.pool.caixa_oficial = criarAudio('assets/som-venda-caixa.mp3');
-            this.pool.voz_quiosque = criarAudio('assets/som-venda-voz.mp3');
-            this.pool.sirene_oficial = criarAudio('assets/som-estoque-critico.mp3');
-
-            // Safari iOS requer que um play()/pause() silencioso ocorra no gesto do usuário
-            const silent = new Audio('data:audio/wav;base64,UklGRigAAABXQVZFZm10IBIAAAABAAEARKwAAIhYAQACABAAAABkYXRhAgAAAAEA');
-            silent.play().then(() => {
-              silent.pause();
-              silent.currentTime = 0;
-            }).catch(() => {});
-          } catch {}
+          // 2. Áudio via AudioContext (evita registrar player na tela de bloqueio do iOS)
+          this.pool = {};
 
           console.log('[AUDIO] Sistema de som desbloqueado com sucesso para Safari e APK!');
         },
@@ -1810,6 +1793,12 @@
       function atualizarStatusPermissaoPush() {
         const txt = $('#txt-status-push-permissao');
         const banner = $('#banner-solicitar-push');
+
+        if (window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.notificar) {
+          if (txt) txt.innerHTML = '<span style="color:var(--sucesso)">Ativo (App iOS Nativo — Tela Bloqueada)</span>';
+          if (banner) banner.hidden = true;
+          return;
+        }
 
         if (!('Notification' in window)) {
           if (txt) txt.textContent = 'Não suportado neste navegador';
@@ -2768,7 +2757,7 @@
         }
       }
 
-      let VERSAO_LOCAL_APP = '2.5.11';
+      let VERSAO_LOCAL_APP = '2.5.12';
 
       async function verificarAtualizacoesApk(manual = false) {
         try {
