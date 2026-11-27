@@ -2749,3 +2749,22 @@ select optgroup {
     grid-template-columns: 1fr !important;
   }
 }
+
+/* ================== UNSLOP: TIPOGRAFIA, CONTRASTE & DETALHES ================== */
+.kpi__v,
+.tabela td.dir,
+.tabela th.dir {
+  font-variant-numeric: tabular-nums;
+}
+.banner-alerta-estoque .btn-secundario {
+  background: var(--elevado);
+  border-color: var(--primaria-forte);
+  color: var(--primaria-forte);
+  font-weight: 700;
+  flex: none;
+}
+.btn-primario:focus-visible,
+.btn-secundario:focus-visible {
+  outline: 2px solid var(--primaria-forte);
+  outline-offset: 2px;
+}

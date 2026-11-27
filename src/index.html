@@ -318,11 +318,11 @@
             <div style="display:flex;align-items:center;gap:12px">
               <svg class="ic" viewBox="0 0 24 24" style="color:#D84315;width:26px;height:26px;flex:none"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
               <div>
-                <b id="ret-fin-alerta-texto" style="font-size:13.5px">ALERTA: PRODUTOS COM ESTOQUE BAIXO OU ZERADO!</b>
+                <b id="ret-fin-alerta-texto" style="font-size:13.5px">Produtos com estoque baixo ou zerado</b>
                 <span id="ret-fin-alerta-sub" style="font-size:12px;display:block;opacity:.85;margin-top:2px">Itens precisam de reposição para evitar perda de vendas.</span>
               </div>
             </div>
-            <button class="btn-secundario" id="btn-ir-estoque-alerta" type="button" style="background:#fff;border-color:#F58220;color:#9E3B06;font-weight:700;flex:none">Ver Estoque</button>
+            <button class="btn-secundario" id="btn-ir-estoque-alerta" type="button">Ver estoque</button>
           </div>
 
           <div class="kpis" style="margin:0 24px 20px">
@@ -344,7 +344,7 @@
           </div>
 
           <div class="painel" style="margin:0 24px">
-            <h3>Histórico Financeiro de Fechamentos de Caixa</h3>
+            <h3>Fechamentos de caixa</h3>
             <table class="tabela">
               <thead>
                 <tr>
@@ -401,7 +401,8 @@
                   <input type="text" id="prod-busca" placeholder="Filtrar por nome ou código…" />
                 </div>
                 <button class="btn-secundario" id="btn-atualizar-estoque-ret" type="button" title="Atualizar estoque agora">
-                  ↻ Atualizar estoque
+                  <svg class="ic" viewBox="0 0 24 24"><path d="M21 12a9 9 0 1 1-2.64-6.36"/><polyline points="21 3 21 9 15 9"/></svg>
+                  Atualizar estoque
                 </button>
                 <button class="btn-primario" id="btn-novo-produto">
                   <svg class="ic" viewBox="0 0 24 24"><path d="M12 5v14"/><path d="M5 12h14"/></svg>
